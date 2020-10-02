@@ -96,7 +96,7 @@ counter_reloj = dcc.Interval(
 
 def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     
-    
+    markersize=4
     ffinxaxis = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     df_count,df = oap.get_pickle_OVV(volcan,fini,ffin)
 
@@ -105,7 +105,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     #ampslogs=np.power(df['ampl'],0.2)/1
     tipoevs = len(df.tipoev.unique())
     
-    fig = make_subplots(rows=tipoevs+4, cols=1,shared_xaxes=True, vertical_spacing=0.02)
+    fig = make_subplots(rows=tipoevs+5, cols=1,shared_xaxes=True, vertical_spacing=0.02)
     
     i=1
     for tipoev in df.tipoev.unique():
@@ -113,68 +113,91 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
         go.Bar( x=df_count.index, y=df_count[tipoev],marker= { "color" : 'white'},name='Ev/hora'),
         row=i, col=1
         )
-    
+        fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df_count[tipoev]),font=dict(color='white'),
+                                            xanchor='left',yanchor='bottom',xref='paper',bgcolor='#141d26',
+                                            yref='y'+str(i),text=tipoev+'/hora',showarrow=False))      
         
         fig.add_trace(
         go.Scattergl( x=df_count.index, y=df_count[tipoev+'cumsum'],name='Acum. ev/hora',line=dict(color='crimson')),
         row=i, col=1
         )
         i+=1
-        
-    fig.add_trace(
-    go.Scattergl( x=df.index, y=df['ampl'], mode='markers',name='Amplitud',
-               marker= {"size":df['ampl'], "color" : 'black'}),
-    row=i, col=1
-    )
-    fig.update_traces(opacity=0.75,marker=dict(color='white',size=2,line=dict(color='crimson',width=0)),
-                  row=i,
-                  )
-    fig.update_yaxes(title_text="um/s", row=i)
-    fig.update_yaxes(type="log",row=i)
-
-    i+=1
-    
-    fig.add_trace(
-    go.Scattergl( x=df.index, y=df['duracion'], mode='markers',name='Duración',
-               marker= {"size":8, "color" : 'white'}),
-    row=i, col=1
-    )
-    fig.update_traces(opacity=0.5,marker=dict(color='white',size=2,line=dict(color='crimson',width=0)),
-                  row=i,
-                  )
-    fig.update_yaxes(title_text="s", row=i)
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['duracion']),font=dict(color='white'),
-                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
-                                            yref='y'+str(i),text='Duración/ev',showarrow=False))  
-    i+=1
-
-    fig.add_trace(
-    go.Scattergl( x=df.index, y=df['DRc'], mode='markers',name='DR',
-               marker= {"size":8, "color" : 'white'}),
-    row=i, col=1
-    )
-    fig.update_traces(opacity=0.5,marker=dict(color='white',size=2,line=dict(color='crimson',width=0)),
-                  row=i,
-                  )
-    fig.update_yaxes(title_text="cm*cm", row=i)
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['DRc']),font=dict(color='white'),
-                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
-                                            yref='y'+str(i),text='DR/ev',showarrow=False))  
-    i+=1
-
-    
+    ##########################RSAM
     fig.add_trace(
     go.Scattergl( x=df_RSAM.index, y=df_RSAM.fastRSAM, mode='markers',name='RSAM',
-               marker= {"size":8, "color" : 'white'}),
+               marker= {"size":markersize, "color" : 'white'}),
     row=i, col=1
     )   
-    fig.update_traces(opacity=0.5,marker=dict(color='white',size=2,line=dict(color='crimson',width=0)),
+    fig.update_traces(opacity=0.5,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
                   row=i,
                   )
     fig.update_yaxes(row=i,range=[0,max(df_RSAM.fastRSAM)*1.5])
     fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df_RSAM.fastRSAM)*1.5,font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='RSAM ('+estaRSAM+') '+str(rangef[0])+ ' - '+ str(rangef[1])+ ' Hz',showarrow=False))
+    i+=1
+    #######################DR
+
+    fig.add_trace(
+    go.Scattergl( x=df.index, y=df['DRc'], mode='markers',name='DR',
+               marker= {"size":markersize, "color" : 'white'}),
+    row=i, col=1
+    )
+    fig.update_traces(opacity=0.5,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
+                  row=i,
+                  )
+    fig.update_yaxes(title_text="cm*cm", row=i)
+    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['DRc']),font=dict(color='white'),
+                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
+                                            yref='y'+str(i),text='DR/ev',showarrow=False))  
+    
+    i+=1
+    #######################freq
+
+    fig.add_trace(
+    go.Scattergl( x=df.index, y=df['fdom'], mode='markers',name='fdom',
+               marker= {"size":markersize, "color" : 'white'}),
+    row=i, col=1
+    )
+    fig.update_traces(opacity=0.5,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
+                  row=i,
+                  )
+    fig.update_yaxes(title_text="Hz", row=i)
+    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['fdom']),font=dict(color='white'),
+                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
+                                            yref='y'+str(i),text='Frecuencia dom/ev',showarrow=False))  
+    
+    i+=1
+    #################################AMP
+    fig.add_trace(
+    go.Scattergl( x=df.index, y=df['ampl'], mode='markers',name='Amplitud',
+               marker= {"size":markersize, "color" : 'black'}),
+    row=i, col=1
+    )
+    fig.update_traces(opacity=0.75,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
+                  row=i,
+                  )
+    fig.update_yaxes(title_text="um/s", row=i)
+    #fig.update_yaxes(type="log",row=i)
+    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['ampl']),font=dict(color='white'),
+                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
+                                            yref='y'+str(i),text='Amplitud/ev',showarrow=False))  
+    i+=1
+    
+    fig.add_trace(
+    go.Scattergl( x=df.index, y=df['duracion'], mode='markers',name='Duración',
+               marker= {"size":markersize, "color" : 'white'}),
+    row=i, col=1
+    )
+    fig.update_traces(opacity=0.5,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
+                  row=i,
+                  )
+    fig.update_yaxes(title_text="s", row=i)
+    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['duracion']),font=dict(color='white'),
+                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
+                                            yref='y'+str(i),text='Duración/ev',showarrow=False))  
+   
+
     
     fig['layout']['xaxis']['tickfont']['color']='rgba(0,0,0,0)'
     fig['layout']['xaxis'+str(i)]['range']=[fini,ffinxaxis]
@@ -182,18 +205,22 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     fig.update_yaxes(title_text="um/s", row=i)
     fig.update_xaxes(title_text="Fecha", row=i)
     i+=1
+    
+    
+    
     totalfilas = i
     j=1
+    k=1    
+ 
     for tipoev in df.tipoev.unique():
         fig['data'][j].update(yaxis='y'+str(i))
-        fig['layout']['yaxis'+str(i)]=dict(overlaying='y'+str(j),side='right',title='Acum. ev/hora',title_font=dict(color='crimson'))
-        fig.update_yaxes(title_text="ev/hora", row=j)
+        fig['layout']['yaxis'+str(i)]=dict(overlaying='y'+str(k),side='right',title='Acum. ev/hora',title_font=dict(color='crimson'))
+        #fig.update_yaxes(title_text="ev/hora", row=j)
         i+=1
-        j+=1
+        j+=2
+        k+=1
+    
 
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=(1/totalfilas)*(totalfilas-j+1)*0.9,font=dict(color='white'),
-                                            xanchor='left',yanchor='top',xref='paper',yref='paper',bgcolor='#141d26',
-                                            text='Amplitud/ev',showarrow=False)) 
      
     
     
