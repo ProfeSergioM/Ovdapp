@@ -167,6 +167,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='Frecuencia dom/ev',showarrow=False))  
     fig.update_yaxes(type="log",row=i)
+    fig.update_yaxes(row=i,range=[-1,1],dtick=1)
     i+=1
     #################################AMP
     fig.add_trace(
