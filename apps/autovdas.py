@@ -137,9 +137,9 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
                                             yref='y'+str(i),text='RSAM ('+estaRSAM+') '+str(rangef[0])+ ' - '+ str(rangef[1])+ ' Hz',showarrow=False))
     i+=1
     #######################DR
-
+    dfdr = df[df.tipoev=='LP']
     fig.add_trace(
-    go.Scattergl( x=df.index, y=df['DRc'], mode='markers',name='DR',
+    go.Scattergl( x=dfdr.index, y=dfdr['DRc'], mode='markers',name='DR',
                marker= {"size":markersize, "color" : 'white'}),
     row=i, col=1
     )
@@ -147,7 +147,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
                   row=i,
                   )
     fig.update_yaxes(title_text="cm*cm", row=i)
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['DRc']),font=dict(color='white'),
+    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(dfdr['DRc']),font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='DR/ev',showarrow=False))  
     
