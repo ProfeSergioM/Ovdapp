@@ -1,0 +1,305 @@
+﻿import dash
+import json
+from random import random
+import dash_bootstrap_components as dbc
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dash import no_update
+from plotly.subplots import make_subplots
+import numpy as np
+from io import BytesIO
+from dash_extensions.snippets import send_bytes
+from simplekml import (Kml, OverlayXY, ScreenXY, Units, RotationXY,
+                           AltitudeMode, Camera)
+import plotly.graph_objects as go
+from dash.dependencies import Input, Output,State
+from dash.exceptions import PreventUpdate
+from app import app
+import dash_leaflet as dl
+from dash_extensions import Download
+from dash_extensions.snippets import send_data_frame
+import pandas as pd
+import sys
+sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
+import ovdas_getfromdb_lib as gdb
+import ovdas_figure_lib as ffig
+import datetime as dt
+
+def get_fechahoy(): 
+    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
+    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
+    return fini,ffin
+
+def get_markers_loc(volcan,fi,ff):
+    def postproc(df):
+        df['fecha'] = df['fecha'].astype('datetime64[s]')
+        return df
+        
+    volcanes =gdb.get_metadata_volcan('*',rep='y')
+    volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
+    if(len(volcan))==1:
+        if volcan !='*':
+            volcan = volcan[0]
+        df = gdb.extraer_eventos(fi, ff, volcan)
+        df= pd.DataFrame(df) 
+        if len(df)>0:
+            df = df[df.calidad.isin(['A1','B1','C1'])]
+            df['volcan_real'] = df['idvolc'].map(volcanes.set_index('id')['nombre'])
+            df['nref_loc']=df['idvolc'].map(volcanes.set_index('id')['nref'])
+            df['prof_msnm'] = (df['profundidad']*1000-df['nref_loc'])/1000
+    else:
+        df = gdb.extraer_eventos(fi, ff, volcan[0])
+        df= pd.DataFrame(df)
+        if len(df)>0:
+            df = df[df.calidad.isin(['A1','B1','C1'])]
+            df['volcan_real'] = df['idvolc'].map(volcanes.set_index('id')['nombre'])
+            df['nref_loc']=df['idvolc'].map(volcanes.set_index('id')['nref'])
+            df['prof_msnm'] = (df['profundidad']*1000-df['nref_loc'])/1000
+        for v in range(1,len(volcan)):
+            dfvolcan = gdb.extraer_eventos(fi, ff, volcan[v])
+            dfvolcan= pd.DataFrame(dfvolcan)
+            df = df.append(dfvolcan)
+    return postproc(df)
+    
+volcanes =gdb.get_metadata_volcan('*',rep='y')
+volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
+
+red = gdb.get_metadata_wws('*')
+red=red[red.tipo=='SISMOLOGICA']
+sis = red[red.cod.str.startswith('S')]
+ace = red[red.cod.str.startswith('A')]
+mic =red[red.tipo=='INFRASONIDO']
+
+modal = dbc.Modal(
+    [
+        dbc.ModalHeader("Información!"),
+        dbc.ModalBody("No existen eventos clasificados para el filtro de datos seleccionado :("),
+        dbc.ModalFooter(
+            dbc.Button("Cerrar", id="close-modal", className="ml-auto")
+        ),
+    ],
+    id="modal",
+)
+# the style arguments for the sidebar. We use position:fixed and a fixed width
+SIDEBAR_STYLE = {
+
+    "background-color": " #141d26",
+}
+
+# the styles for the main content position it to the right of the sidebar and
+# add some padding.
+CONTENT_STYLE = {
+
+
+}
+
+PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))       
+
+navbar = dbc.Navbar(
+[
+html.A(
+    # Use row and col to control vertical alignment of logo / brand
+    dbc.Row(
+        [
+            dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=2),
+            dbc.Col(dbc.NavbarBrand("Revisión de localizaciones - Locali6",style={'color':'white'}))
+            
+        ],
+        align="left",
+        no_gutters=True,
+    )
+)
+],
+color="#141d26",
+
+)
+
+lista_volcanes=[]
+lista_volcanes.append({'label': 'Todos','value':'*'})
+for index, row in volcanes.iterrows():
+    volcan = {'label': row.nombre,'value':row.nombre_db}
+    lista_volcanes.append(volcan)  
+
+volcan_selector = dcc.Dropdown(
+    clearable=False,
+    id='locali5-dropdown_volcanes',
+    options=lista_volcanes,
+    placeholder='Seleccione uno, varios o "todos"',
+    value='*',
+    multi=True,
+    style=
+                                    { 
+                                      'color': '#212121',
+                                      'background-color': '#212121',
+                                    } 
+)
+fechas_picker = dcc.DatePickerRange(
+    id='locali5-fechas',
+    start_date_placeholder_text="Inicio",
+    end_date_placeholder_text="Final",
+    calendar_orientation='vertical',
+    display_format='Y-MM-DD',
+    start_date=get_fechahoy()[0],
+    end_date=get_fechahoy()[1],
+    min_date_allowed='2010-01-01',
+    max_date_allowed=get_fechahoy()[1],
+    style=
+                                    { 'width':'100%',
+                                      'color': '#212121',
+                                      'background-color': '#212121',
+                                    } 
+)  
+
+itemsformatos=[dbc.DropdownMenuItem("KMZ (Google Earth)", id="export-kmz-button"),dbc.DropdownMenuItem("XLS (Excel)", id="export-xls-button")]
+formatosalidadropdown = html.Div([dbc.DropdownMenu(itemsformatos,label='Exportar selección',color='primary',className='m-1',id='export-button',
+                                                   style={'pointer-events': 'none','opacity':'0.2'})])
+
+controles = html.Div([
+    html.Div(html.P('Intervalo de fechas',id='locali5-titulo-fecha')),
+    fechas_picker,
+    html.Div(html.P('Volcán(es)',id='locali5-titulo-fecha')),
+    volcan_selector,
+    dbc.Row([formatosalidadropdown,html.Div(dbc.Button("Enviar", color="primary", id="locali5-submit-filtro"),className='m-1',style={'text-align':'right'})],justify='end')
+    
+    ])
+   
+
+ 
+controlescard = dbc.Card([
+    dbc.CardHeader('Selección de eventos'),
+    dbc.CardBody(controles,id='controles-locali5')
+    
+    ],outline=True,color='light',className='m-1')
+
+
+
+
+
+
+
+
+mapalayout=dbc.Container(dcc.Graph(id='mapaloc-graph',style={'height':'100%'}),style={'height':'100%','padding-left':'0','padding-right':'0'})
+mapacard = dbc.Card([dbc.CardHeader('Localizaciones'),dbc.CardBody(mapalayout,id='mapa-locali5',style={'height':'100%'})],outline=True,color='light',style={'height':'80vh'})
+mapacard=dcc.Loading(mapacard)
+
+
+
+counter_imgfija = dcc.Interval(id='interval-component-fija',interval=5*1000,n_intervals=0)
+
+
+sidebar = html.Div([controlescard],style=SIDEBAR_STYLE)
+content = html.Div(mapacard, style=CONTENT_STYLE)
+layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),dbc.Col([content],width=7)]),html.Div(id='cajita-loc', style={'display': 'none'}),counter_imgfija, Download(id="download")])
+
+    
+@app.callback(
+    [Output('mapaloc-graph','figure')],
+    [Input('url','href'),Input('locali5-submit-filtro','n_clicks')],
+    [State('locali5-dropdown_volcanes','value'),State('locali5-fechas','start_date'),
+     State('locali5-fechas','end_date')])
+def display_mapa(href,ir,volcan,fi,ff):
+
+    ctx = dash.callback_context
+    trigger = ctx.triggered[0]['prop_id']
+
+    if trigger in['.','locali5-submit-filtro.n_clicks']:   
+        dflocs = get_markers_loc(volcan, fi, ff)
+        fig =go.Figure()
+        
+        trace_volcanes = go.Scattermapbox(lon=volcanes.longitud,lat=volcanes.latitud,
+                             name='Volcán',mode='markers',marker=go.scattermapbox.Marker(symbol='volcano',size=12),text =volcanes.nombre_db)   
+        fig.add_trace(trace_volcanes)
+
+        trace_sis = go.Scattermapbox(lon=sis.longitud,lat=sis.latitud,
+                             name='Sismómetro',mode='markers',marker=go.scattermapbox.Marker(size=6,color='#555555'),text =sis.codcorto)   
+        fig.add_trace(trace_sis)        
+
+        trace_ace = go.Scattermapbox(lon=ace.longitud,lat=ace.latitud,
+                             name='Acelerómetro',mode='markers',marker=go.scattermapbox.Marker(size=6,color='#999999'),text =ace.codcorto)   
+        fig.add_trace(trace_ace)  
+        
+        for tipoev in dflocs['tipoevento'].unique():
+            df = dflocs[dflocs['tipoevento']==tipoev]
+            trace = go.Scattermapbox(lon=df['longitud'],
+                                     lat=df['latitud'],
+                                     name='Evento '+tipoev,
+                                     mode='markers',
+                                     customdata=df,
+                                     marker=go.scattermapbox.Marker(
+                                     size=8,
+                                     color='#'+ffig.colores_cla_hex(tipoev)[:-2]
+                                         ),
+                                     text = df['profundidad'],
+                                     hovertemplate = "Fecha: %{customdata[0]}<br>Latitud: %{lat}<br>Longitud: %{lon} </br>Profundidad: %{text} km </br>Calidad: %{customdata[22]}"
+
+                                    
+                                     )
+            fig.add_trace(trace)
+
+
+        
+     
+        fig.update_layout(legend=dict(
+            bgcolor='rgba(0,0,0,0.2)',
+            x=0.01,
+            y=.95,
+            traceorder="normal",
+            font=dict(
+                family="sans-serif",
+                size=12,
+                color="white"
+       )))
+        fig.update_layout(mapbox1=dict(
+            accesstoken= 'pk.eyJ1IjoicHJvZmVzZXJnaW9tIiwiYSI6ImNrZXk5ZG9yaTB3Y3IycnA5bTlscWZqZjMifQ.s1qn784tAww2oGZYWeTi8w',
+            style="mapbox://styles/profesergiom/ckfpoplbw1bpl1any6qj7eqtn"),margin = dict(l = 0, r = 0, t = 0, b = 0))
+        return [fig]
+    else:
+        return dash.no_update
+
+@app.callback(
+    [Output('cajita-loc', 'children'),Output('export-button','style')],
+    [Input('mapaloc-graph', 'selectedData')])
+def display_data(selectedData):
+    if selectedData==None:
+        show = {'pointer-events': 'none','opacity':'0.2'}
+    else:
+        show = {'pointer-events': 'auto','opacity':'1'}
+    return json.dumps(selectedData, indent=2),show
+
+
+@app.callback(Output("download", "data"), [Input("export-kmz-button", "n_clicks"),Input("export-xls-button", "n_clicks")],[State('cajita-loc', 'children')],prevent_initial_call=True)
+def func(kmz,xls,cajita):
+    ctx = dash.callback_context
+    trigger = ctx.triggered[0]['prop_id']
+    df = json.loads(cajita)
+    df= pd.DataFrame(df['points'])
+    df = df.dropna()
+    custom = df['customdata'].tolist()
+    fecha,lat,lon,prof,ml,tipoev,volcan = ([item[0] for item in custom],[item[12] for item in custom],
+                            [item[13] for item in custom],[item[14] for item in custom],
+                            [item[24] for item in custom],[item[4] for item in custom],
+                            [item[-3] for item in custom])
+    df['fecha'],df['latitud'],df['longitud'],df['profundidad'],df['ml'],df['tipoev'],df['volcan'] = fecha,lat,lon,prof,ml,tipoev,volcan
+    dfnew = df[['fecha','latitud','longitud','profundidad','ml','tipoev','volcan']].copy()
+    dfnew = dfnew.set_index('fecha',drop=True)
+    if trigger=='export-kmz-button.n_clicks':
+        def to_kmz(ruta):
+            kml = Kml()
+            vol_fol={} 
+            for vol in dfnew['volcan'].unique():
+                vol_fol[vol] = kml.newfolder(name=vol)
+                tipoev_fol={}
+                for tipoev in dfnew[dfnew['volcan']==vol]['tipoev'].unique():
+                    evento = dfnew[dfnew['volcan']==vol]
+                    evento = evento[evento['tipoev']==tipoev]
+                    tipoev_fol[tipoev] = vol_fol[vol].newfolder(name=tipoev)
+                    for item,row in evento.iterrows():
+                        pnt = tipoev_fol[tipoev].newpoint()
+                        pnt.style.iconstyle.color = ffig.colores_cla_hex(row.tipoev)
+                        lat,lon=row.latitud,row.longitud
+                        pnt.coords= [(lon,lat)]
+            kml.savekmz(ruta)
+        return send_bytes(to_kmz,"seleccionado.kmz")
+    elif trigger=='export-xls-button.n_clicks':
+        return send_data_frame(dfnew.to_excel, "seleccionado.xls")
+

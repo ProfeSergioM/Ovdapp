@@ -1,0 +1,97 @@
+html, body {
+height:100%;
+background-color:#111111;
+
+}
+
+.xaxislayer-above {
+  font-weight: bold;
+}
+
+.yaxislayer-above {
+  font-weight: bold;
+}
+
+#react-entry-point {
+height:100%
+}
+
+#page-content {
+height:100%;
+background-color:#111111;
+}
+
+#row-timeline {
+width:100vw!important ;}
+
+#row-mapaloc {
+width:100vw!important ;}
+
+.navbar-brand {
+font-size:1.5rem!important;
+}
+
+.navbar {
+border-bottom: 1px solid rgba(120,120,120,0.5);
+}
+
+table {
+  border: 4px solid #555555;
+  background-color: #555555;
+  width: 100%;
+  height: 10%;
+  text-align: center;
+  border-collapse: collapse;
+}
+table td, table th {
+  border: 1px solid #555555;
+  padding: 5px 10px;
+}
+table tbody td {
+  font-size: 12px;
+  font-weight: bold;
+  color: #FFFFFF;
+}
+table td:nth-child(even) {
+  background: #398AA4;
+}
+table thead {
+  background: #398AA4;
+  border-bottom: 10px solid #398AA4;
+}
+table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  color: #FFFFFF;
+  text-align: left;
+  border-left: 2px solid #398AA4;
+}
+table thead th:first-child {
+  border-left: none;
+}
+
+table tfoot td {
+  font-size: 13px;
+}
+table tfoot .links {
+  text-align: right;
+}
+table tfoot .links a{
+  display: inline-block;
+  background: #FFFFFF;
+  color: #398AA4;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: #333!important;
+    color: #333;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+}
+
+.row {
+margin-left:0!important;
+margin-right:0!important;
+}
+
