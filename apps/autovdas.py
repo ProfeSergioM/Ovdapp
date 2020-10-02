@@ -163,7 +163,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
                   row=i,
                   )
     fig.update_yaxes(title_text="Hz", row=i)
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['fdom']),font=dict(color='white'),
+    fig.add_annotation(go.layout.Annotation(x=0.01,y=1,font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='Frecuencia dom/ev',showarrow=False))  
     fig.update_yaxes(type="log",row=i)
