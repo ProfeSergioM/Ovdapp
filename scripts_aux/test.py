@@ -2,5 +2,6 @@ import sys
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_imageProc_lib as ima
 import ovdas_getfromdb_lib as gdb
+import ovdas_ovdapp_lib as oap
 
-aer = gdb.get_metadata_wws('*')
+df_count,df = oap.get_pickle_OVV('Villarrica')
