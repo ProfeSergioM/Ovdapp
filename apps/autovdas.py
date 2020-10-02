@@ -166,7 +166,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['fdom']),font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='Frecuencia dom/ev',showarrow=False))  
-    
+    fig.update_yaxes(type="log",row=i)
     i+=1
     #################################AMP
     fig.add_trace(
