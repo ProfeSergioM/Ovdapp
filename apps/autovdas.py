@@ -90,9 +90,85 @@ counter_imggif = dcc.Interval(
       )
 counter_reloj = dcc.Interval(
           id='interval-component-reloj-autovdas',
-          interval=60*1000, # in milliseconds
+          interval=60*1000*1, # in milliseconds
           n_intervals=0
       )
+
+def helicorder(detect):
+    import ovdas_WWS_lib as wws
+    import ovdas_SeismicProc_lib as sp
+    import datetime as dt
+    ejex =10 #minutos en el eje x
+    from datetime import timedelta
+    import pandas as pd
+    import numpy as np
+    fini = dt.datetime.utcnow() - dt.timedelta(hours=1)
+    ffin = dt.datetime.utcnow()
+    subsample=10
+    finiround = fini - (fini -fini.min) % timedelta(minutes=ejex)
+    ffinround = ffin + (ffin.min - ffin) % timedelta(minutes=ejex)-timedelta(milliseconds=100)
+    
+    traza = wws.extraer_signal(estacion='VN2',componente='Z',inicio=fini,fin=ffin)
+    traza = sp.filtrar_traza(traza,tipo="butter",orden=4,fi=0.4,ff=12)
+    
+    
+    t_index = pd.date_range(start=finiround, end=ffinround, freq='100ms').round('100ms')
+    times = []
+    amps = []
+    for i in range(0,len(traza)):
+        times.extend(traza[i].times('timestamp'))
+        amps.extend(traza[i].data*traza[i].stats.calib)
+    times = np.around(times,2)
+    amps = np.around(amps,2)
+    df_traza = pd.DataFrame(amps,index=times)
+    df_traza = df_traza[::subsample]
+    df_traza['fecha_abs'] = pd.to_datetime(df_traza.index, unit='s')
+    df_traza = df_traza.set_index('fecha_abs',drop=True)
+    df_traza.index = df_traza.index.round('100ms')
+    aer = df_traza.reindex(t_index)
+    aer.index = aer.index.rename('fecha')
+    aer = aer.rename(columns={0:'amp'})
+    grp = aer.groupby(pd.Grouper(freq='10Min'))
+    
+    filas = []
+    for key, df in grp:
+        filas.append(df)
+
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+    fig = make_subplots(rows=len(filas), cols=1,vertical_spacing=0)
+    maxy = abs(max(amps))*1.5
+    for i in range(0,len(filas)):
+        evs = detect[detect.index.to_series().between(min(filas[i].index),max(filas[i].index))]
+        alertaplot = go.Scattergl(x=filas[i].index
+                                  ,y=filas[i].amp,
+                                  showlegend=False,
+                                  hoverinfo='x+y',
+                                  line=dict(color='rgba(66,155,245,1)'))
+        fig.append_trace(alertaplot,i+1,1)
+        fig.update_xaxes(showticklabels=False,row=i)
+        fig.update_yaxes(row=i,range=[-maxy,maxy])
+    
+        for index,row in evs.iterrows():
+    
+            lev = go.Scatter(x=[index,index],y=[-maxy,maxy],showlegend=False,hoverinfo='x',line=dict(color='red'))
+            fig.append_trace(lev,i+1,1)
+        
+    fig.update_yaxes(row=i+1,range=[-maxy,maxy])  
+    fig.update_xaxes(row=i+1,tickformat="%H:%M")  
+        
+    fig.layout.template = 'plotly_dark'
+    fig.update_layout(bargap=0,margin={"r":1,"t":25,"l":1,"b":5},
+                    
+    title={
+    'text':'Estación VN2',
+    'y':0.99,
+    'x':0.5,
+    'xanchor':'center',
+    'yanchor':'top'
+    }
+    )
+    return fig
 
 def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     
@@ -355,8 +431,8 @@ banner_inferior = dbc.Card([
 
 
 layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
-                                   dbc.Col([dcc.Loading(html.Div(id='colgrafica-autovdas'))],width=9)
-                                   #dbc.Col([dcc.Loading(html.Div(id='colmapa-autovdas'))],width=3)
+                                   dbc.Col([dcc.Loading(html.Div(id='colgrafica-autovdas'))],width=6),
+                                   dbc.Col([html.Div(id='heli-autovdas')],width=3)
                                    ]),
                    dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start'),
                    
@@ -386,6 +462,7 @@ def update_cam_fija(*args):
     estaRSAM = red1.codcorto.iloc[0]
     
     
+
     fig = crear_figura(rangef,fini,ffin,volcan,estaRSAM)
     grafico = html.Div(children=[
         dcc.Graph(
@@ -401,22 +478,35 @@ def update_cam_fija(*args):
         
         ],outline=True,color='light')
 
-    mapa  = dibujar_mapa(fini, ffin)
-    mapacard = dbc.Card([
-        dbc.CardHeader('Localizaciones USGS'),
-        dbc.CardBody(mapa)
-        
-        ],outline=True,color='light')
+
 
     #return [graficocard],[mapacard]
     return [graficocard]
 
 
-@app.callback([Output('live-update-text-autovdas', 'children'),Output('fechas-autovdas','start_date'),Output('fechas-autovdas','end_date')],
-              [Input('interval-component-reloj-autovdas', 'n_intervals')])
-def update_date(n):
+@app.callback([Output('live-update-text-autovdas', 'children'),Output('fechas-autovdas','start_date'),Output('fechas-autovdas','end_date'),Output("heli-autovdas", "children")],
+              [Input('interval-component-reloj-autovdas', 'n_intervals')],
+              [State('dropdown_volcanes','value')]
+              )
+def update_date(n,volcan):
     from flask import request
     print('tic! from '+request.remote_addr)
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=2), '%Y-%m-%d')
-    return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin
+
+    finidetect = dt.datetime.utcnow() - dt.timedelta(hours=1)
+    df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin)
+    heli  = helicorder(detect)
+    heli = html.Div(children=[
+        dcc.Graph(
+            id='timeline-orca',
+            figure=heli,
+            style={ 'height':'80vh' }
+        )
+    ])
+    helicard = dbc.Card([
+        dbc.CardHeader('Sismograma - Última hora'),
+        dbc.CardBody(heli)
+        
+        ],outline=True,color='light')
+    return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin,[helicard]
