@@ -146,7 +146,7 @@ def helicorder(detect):
                                   hoverinfo='x+y',
                                   line=dict(color='rgba(66,155,245,1)'))
         fig.append_trace(alertaplot,i+1,1)
-        fig.update_xaxes(showticklabels=False,row=i)
+        fig.update_xaxes(showticklabels=False,range=[min(filas[i].index),max(filas[i].index)],row=i+1)
         fig.update_yaxes(row=i,range=[-maxy,maxy])
     
         for index,row in evs.iterrows():
@@ -155,7 +155,7 @@ def helicorder(detect):
             fig.append_trace(lev,i+1,1)
         
     fig.update_yaxes(row=i+1,range=[-maxy,maxy])  
-    fig.update_xaxes(row=i+1,tickformat="%H:%M")  
+    fig.update_xaxes(row=i+1,tickformat="%H:%M",showticklabels=True)  
         
     fig.layout.template = 'plotly_dark'
     fig.update_layout(bargap=0,margin={"r":1,"t":25,"l":1,"b":5},
