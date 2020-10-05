@@ -230,7 +230,7 @@ def display_mapa(href,ir,volcan,fi,ff):
                                      color='#'+ffig.colores_cla_hex(tipoev)[:-2]
                                          ),
                                      text = df['profundidad'],
-                                     hovertemplate = "Fecha: %{customdata[0]}<br>Latitud: %{lat}<br>Longitud: %{lon} </br>Profundidad: %{text} km </br>Calidad: %{customdata[22]}"
+                                     hovertemplate = "Fecha: %{customdata[0]}<br>Latitud: %{lat}<br>Longitud: %{lon} </br>Profundidad: %{text} km </br>Calidad: %{customdata[22]} </br>ML: %{customdata[24]}"
 
                                     
                                      )
