@@ -412,9 +412,11 @@ def update_cam_fija(*args):
     return [graficocard]
 
 
-@app.callback(Output('live-update-text-autovdas', 'children'),
+@app.callback([Output('live-update-text-autovdas', 'children'),Output('fechas-autovdas','start_date'),Output('fechas-autovdas','end_date')],
               [Input('interval-component-reloj-autovdas', 'n_intervals')])
 def update_date(n):
     from flask import request
     print('tic! from '+request.remote_addr)
-    return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})]
+    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
+    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=2), '%Y-%m-%d')
+    return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin
