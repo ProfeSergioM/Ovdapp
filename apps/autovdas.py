@@ -108,7 +108,7 @@ def helicorder(detect):
     finiround = fini - (fini -fini.min) % timedelta(minutes=ejex)
     ffinround = ffin + (ffin.min - ffin) % timedelta(minutes=ejex)-timedelta(milliseconds=100)
     
-    traza = wws.extraer_signal(estacion='VN2',componente='Z',inicio=fini,fin=ffin)
+    traza = wws.extraer_signal(estacion='VN2',componente='Z',inicio=finiround,fin=ffin)
     traza = sp.filtrar_traza(traza,tipo="butter",orden=4,fi=0.4,ff=12)
     
     
@@ -138,7 +138,24 @@ def helicorder(detect):
     from plotly.subplots import make_subplots
     fig = make_subplots(rows=len(filas), cols=1,vertical_spacing=0)
     maxy = abs(max(amps))*1.5
+    scale=round(maxy/2)
     for i in range(0,len(filas)):
+        if i==0:
+            #escala
+            
+            
+            lev = go.Scatter(x=[min(filas[i].index),min(filas[i].index)],y=[-scale,scale],
+                             showlegend=False,hoverinfo='x',line=dict(color='white',width=10))
+            fig.add_annotation(go.layout.Annotation(x=min(filas[i].index),y=scale,font=dict(color='white'),
+                                        xanchor='center',yanchor='bottom',xref='x1',
+                                        yref='y'+str(i+1),text=str(scale*2)+' um/s',showarrow=False)) 
+            fig.append_trace(lev,i+1,1)
+        tituloy = str(min(filas[i].index))[11:16]
+        if tituloy in ['00:00','06:00','12:00','18:00']:
+            diatxt=str(min(filas[i].index))[8:10]+'-'+str(min(filas[i].index))[5:7]
+            fig.add_annotation(go.layout.Annotation(x=0,y=0.5,font=dict(color='white'),
+                                        xanchor='right',yanchor='bottom',xref='paper',
+                                        yref='y'+str(i+1),text=diatxt,showarrow=False)) 
         evs = detect[detect.index.to_series().between(min(filas[i].index),max(filas[i].index))]
         alertaplot = go.Scattergl(x=filas[i].index
                                   ,y=filas[i].amp,
@@ -147,18 +164,27 @@ def helicorder(detect):
                                   line=dict(color='rgba(66,155,245,1)'))
         fig.append_trace(alertaplot,i+1,1)
         fig.update_xaxes(showticklabels=False,range=[min(filas[i].index),max(filas[i].index)],row=i+1)
-        fig.update_yaxes(row=i,range=[-maxy,maxy])
-    
+        fig.update_yaxes(row=i,range=[-scale,scale],showticklabels=False)
+        fig.add_annotation(go.layout.Annotation(x=0,y=0,font=dict(color='white'),
+                                        xanchor='right',yanchor='middle',xref='paper',
+                                        yref='y'+str(i+1),text=tituloy,showarrow=False))     
         for index,row in evs.iterrows():
-    
-            lev = go.Scatter(x=[index,index],y=[-maxy,maxy],showlegend=False,hoverinfo='x',line=dict(color='red'))
+            DR = str(int(row.DRc))
+            lev = go.Scatter(x=[index,index],y=[-scale/2,scale/2],showlegend=False,hoverinfo='x',line=dict(color='red'))
             fig.append_trace(lev,i+1,1)
+            fig.add_annotation(go.layout.Annotation(x=index,y=scale/2,font=dict(color='white'),
+                                    xanchor='right',yanchor='middle',xref='x'+str(i+1),
+                                    yref='y'+str(i+1),text=DR+r' cm<sup>2</sup> ',showarrow=False)) 
+    for minu in range(0,11):
+        fig.add_annotation(go.layout.Annotation(x=minu*0.1,y=0,font=dict(color='white'),
+                                        xanchor='center',yanchor='top',xref='paper',
+                                        yref='paper',text=str(minu),showarrow=False))  
         
-    fig.update_yaxes(row=i+1,range=[-maxy,maxy])  
-    fig.update_xaxes(row=i+1,tickformat="%H:%M",showticklabels=True)  
+    fig.update_yaxes(row=i+1,range=[-scale,scale],showticklabels=False)  
+    fig.update_xaxes(row=i+1,tickformat="%M",showticklabels=False,title='Minutos')  
         
     fig.layout.template = 'plotly_dark'
-    fig.update_layout(bargap=0,margin={"r":1,"t":25,"l":1,"b":5},
+    fig.update_layout(bargap=0,margin={"r":10,"t":25,"l":50,"b":30},
                     
     title={
     'text':'Estación VN2',
