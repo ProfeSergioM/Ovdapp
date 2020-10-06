@@ -22,6 +22,7 @@ import ovdas_future_lib as fut
 import ovdas_ovdapp_lib as oap
 import ovdas_getfromdb_lib as gdb
 import datetime as dt
+horas=2
 fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
 ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=2), '%Y-%m-%d')
 volcanes =gdb.get_metadata_volcan('*',rep='y')
@@ -94,7 +95,7 @@ counter_reloj = dcc.Interval(
           n_intervals=0
       )
 
-def helicorder(detect):
+def helicorder(detect,horas):
     import ovdas_WWS_lib as wws
     import ovdas_SeismicProc_lib as sp
     import datetime as dt
@@ -102,7 +103,7 @@ def helicorder(detect):
     from datetime import timedelta
     import pandas as pd
     import numpy as np
-    fini = dt.datetime.utcnow() - dt.timedelta(hours=1)
+    fini = dt.datetime.utcnow() - dt.timedelta(hours=horas)
     ffin = dt.datetime.utcnow()
     subsample=10
     finiround = fini - (fini -fini.min) % timedelta(minutes=ejex)
@@ -521,9 +522,9 @@ def update_date(n,volcan):
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=2), '%Y-%m-%d')
 
-    finidetect = dt.datetime.utcnow() - dt.timedelta(hours=1)
+    finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
     df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin)
-    heli  = helicorder(detect)
+    heli  = helicorder(detect,horas)
     heli = html.Div(children=[
         dcc.Graph(
             id='timeline-orca',
