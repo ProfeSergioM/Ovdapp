@@ -637,7 +637,7 @@ def update_date(n):
 
 @app.callback(
     Output('fechas','min_date_allowed'),
-    [Input('dropdown_volcanes','value')],prevent_initial_call=True
+    [Input('dropdown_volcanes','value')]
     )
 def update_fechaini(volcan):
     alertas_df =alertas('2010-01-01','2015-01-01',volcan)
