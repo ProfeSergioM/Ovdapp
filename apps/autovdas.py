@@ -169,14 +169,18 @@ def helicorder(detect,horas):
         fig.update_yaxes(row=i,range=[-scale,scale],showticklabels=False)
         fig.add_annotation(go.layout.Annotation(x=0,y=0,font=dict(color='white'),
                                         xanchor='right',yanchor='middle',xref='paper',
-                                        yref='y'+str(i+1),text=tituloy,showarrow=False))     
+                                        yref='y'+str(i+1),text=tituloy,showarrow=False))  
+        evs = evs.sort_values(by='DRc',ascending=False)
+        e=0
         for index,row in evs.iterrows():
             DR = str(int(row.DRc))
             lev = go.Scatter(x=[index,index],y=[-scale/2,scale/2],showlegend=False,hoverinfo='x',line=dict(color='red'))
             fig.append_trace(lev,i+1,1)
-            fig.add_annotation(go.layout.Annotation(x=index,y=scale/2,font=dict(color='white'),
-                                    xanchor='right',yanchor='middle',xref='x'+str(i+1),
-                                    yref='y'+str(i+1),text=DR+r' cm<sup>2</sup> ',showarrow=False)) 
+            if e==0:
+                fig.add_annotation(go.layout.Annotation(x=index,y=scale,font=dict(color='white'),
+                                        xanchor='center',yanchor='middle',xref='x'+str(i+1),
+                                        yref='y'+str(i+1),text=DR+r' cm<sup>2</sup> ',showarrow=False)) 
+            e=+1
     for minu in range(0,11):
         fig.add_annotation(go.layout.Annotation(x=minu*0.1,y=0,font=dict(color='white'),
                                         xanchor='center',yanchor='top',xref='paper',
