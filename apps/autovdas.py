@@ -152,7 +152,7 @@ def helicorder(detect,horas):
                                         yref='y'+str(i+1),text=str(scale*2)+' um/s',showarrow=False)) 
             fig.append_trace(lev,i+1,1)
         tituloy = str(min(filas[i].index))[11:16]
-        if tituloy in ['00:00','06:00','12:00','18:00']:
+        if (tituloy in ['00:00','06:00','12:00','18:00']) or i==0:
             diatxt=str(min(filas[i].index))[8:10]+'-'+str(min(filas[i].index))[5:7]
             fig.add_annotation(go.layout.Annotation(x=0,y=0.5,font=dict(color='white'),
                                         xanchor='right',yanchor='bottom',xref='paper',
