@@ -161,7 +161,8 @@ def helicorder(detect):
                                   ,y=filas[i].amp,
                                   showlegend=False,
                                   hoverinfo='x+y',
-                                  line=dict(color='rgba(66,155,245,1)'))
+                                  line=dict(color='rgba(66,155,245,1)',width=0.5)
+                                  )
         fig.append_trace(alertaplot,i+1,1)
         fig.update_xaxes(showticklabels=False,range=[min(filas[i].index),max(filas[i].index)],row=i+1)
         fig.update_yaxes(row=i,range=[-scale,scale],showticklabels=False)

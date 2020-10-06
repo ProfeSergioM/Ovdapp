@@ -126,3 +126,4 @@ assets/timelapses/Yate_Puelo.gif
 *.pyc
 *.pyc
 *.pyc
+apps/__pycache__/autovdas.cpython-38.pyc
