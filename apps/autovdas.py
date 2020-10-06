@@ -190,7 +190,7 @@ def helicorder(detect,horas):
     fig.update_xaxes(row=i+1,tickformat="%M",showticklabels=False,title='Minutos')  
         
     fig.layout.template = 'plotly_dark'
-    fig.update_layout(bargap=0,margin={"r":10,"t":25,"l":55,"b":30},
+    fig.update_layout(bargap=0,margin={"r":10,"t":25,"l":60,"b":30},
                     
     title={
     'text':'Estación VN2',
