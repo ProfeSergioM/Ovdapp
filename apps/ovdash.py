@@ -15,7 +15,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
-volcan_default='Copahue'
+volcan_default='Melimoyu'
 import datetime as dt
 def get_fechahoy(): 
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=366), '%Y-%m-%d')
@@ -146,9 +146,13 @@ def alertas(ini,fin,volcan):
     fecha_busqueda= datetime.strftime(datetime.strptime(fin,'%Y-%m-%d')-timedelta(days=1),'%Y-%m-%d')
     while datetime.strptime(fecha_busqueda,'%Y-%m-%d') > datetime(int(ini[0:4]),int(ini[5:7]),int(ini[8:10]),0,0): 
         aer = gdb.extraer_alerta_x_dia(volcan,fecha_busqueda)
-        fecha_busqueda = datetime.strftime(datetime.strptime(aer[1],'%d/%m/%Y')-timedelta(days=1),'%Y-%m-%d')
-        df1.append(fecha_busqueda)
-        df2.append(aer[0])
+        if aer[1]=='Alerta inicial':
+            break
+        else:
+            fecha_busqueda = datetime.strftime(datetime.strptime(aer[1],'%d/%m/%Y')-timedelta(days=1),'%Y-%m-%d')
+            df1.append(fecha_busqueda)
+            df2.append(aer[0])
+        
     df1 = [fin]+df1
     df2 = [df2[0]]+df2
     df = pd.DataFrame([df1,df2]).T.set_index(0).rename(columns={1:'alerta'})
@@ -604,8 +608,9 @@ def mapa(ir,cajita,volcan,fi,ff):
     else:
         fini,ffin=fi,ff
 
-    print(ctx.triggered[0]['value'])
-    if ctx.triggered[0]['value'] not in ['null',None]:
+    if (ctx.triggered[0]['prop_id']=='cajita.children') and (ctx.triggered[0]['value']!=None):
+    #if ctx.triggered[0]['value'] not in ['null',None]:
+    #    print(ctx.triggered[0])
         cajita = json.loads(cajita)
         xi = cajita['xaxis2.range[0]'][0:10]
         xf = cajita['xaxis2.range[1]'][0:10]
@@ -627,5 +632,17 @@ def update_date(n):
     import datetime as dt
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=365), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
-    print('Actualizada fecha ini fin!')
     return fini,ffin
+
+
+@app.callback(
+    Output('fechas','min_date_allowed'),
+    [Input('dropdown_volcanes','value')],prevent_initial_call=True
+    )
+def update_fechaini(volcan):
+    alertas_df =alertas('2010-01-01','2015-01-01',volcan)
+    inimo = str(alertas_df.head(1).index[0])[0:10]
+    return inimo
+    
+
+    
