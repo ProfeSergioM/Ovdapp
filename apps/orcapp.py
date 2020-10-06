@@ -42,6 +42,23 @@ def get_usgs(fini,ffin):
     df = pd.concat(df)
     return df
 
+freqconteo = dcc.Dropdown(id='freqconteo',
+    options=[
+        {'label': 'Eventos/hora', 'value': 'H'},
+        {'label': 'Eventos/día', 'value': 'D'},
+    ],
+    value='H',
+        multi=False,
+        searchable=False,
+        clearable=False,
+    style=
+                                    { 
+                                      'color': '#212121',
+                                      'background-color': '#212121',
+                                    } 
+)  
+
+
 fechas_picker = dcc.DatePickerRange(
     id='fechas',
     start_date_placeholder_text="Inicio",
@@ -71,28 +88,30 @@ counter_reloj = dcc.Interval(
           n_intervals=0
       )
 
-def crear_figura(rangef,fini,ffin):
+def crear_figura(rangef,fini,ffin,countev_period):
+    if countev_period=='H':name='ev/hora'
+    elif countev_period=='D':name='ev/día'
     ffinxaxis = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     df = pd.read_pickle('//172.16.40.10/Sismologia/OVV/Orca/Orca.pkl')
     df = df.set_index('inicio')
     df_x_ev = df.copy()
 
-    df = df.resample('H').count()
-    df = df.rename(columns={'ampl':'ev/hora'})
+    df = df.resample(countev_period).count()
+    df = df.rename(columns={'ampl':name})
     df.index = df.index.rename('Fecha (día)')
-    df['cumsumev']=df['ev/hora'].cumsum()
+    df['cumsumev']=df[name].cumsum()
     
     df_RSAM = fut.get_fastRSAM2(fini,ffin,'JUB',rangef[0],rangef[1],1,True,'15T')               
     
     fig = make_subplots(rows=4, cols=1,shared_xaxes=True, vertical_spacing=0.02)
     fig.add_trace(
-    go.Bar( x=df.index, y=df['ev/hora'],marker= { "color" : 'white'},name='Ev/hora'),
+    go.Bar( x=df.index, y=df[name],marker= { "color" : 'white'},name=name),
     row=1, col=1
     )
 
     
     fig.add_trace(
-    go.Scattergl( x=df.index, y=df['cumsumev'],name='Acum. ev/hora',line=dict(color='crimson')),
+    go.Scattergl( x=df.index, y=df['cumsumev'],name='Acum. '+name,line=dict(color='crimson')),
     row=1, col=1
     )
     
@@ -135,11 +154,11 @@ def crear_figura(rangef,fini,ffin):
                   )
     
     fig['data'][1].update(yaxis='y5')
-    fig['layout']['yaxis5']=dict(overlaying='y1',side='right',title='Acum. ev/hora',title_font=dict(color='crimson'))
+    fig['layout']['yaxis5']=dict(overlaying='y1',side='right',title='Acum. '+name,title_font=dict(color='crimson'))
     
     
     
-    fig.update_yaxes(title_text="ev/hora", row=1)
+    fig.update_yaxes(title_text=name, row=1)
     fig.update_yaxes(title_text="um/s", row=2)
     fig.update_yaxes(type="log",row=2)
     fig.update_yaxes(type="log",row=4,range=[-2,5])
@@ -269,7 +288,9 @@ controles = html.Div([
         marks=arange(0,11,1)),
     html.Div(html.P('Intervalo de fechas',id='titulo-fecha')),
     fechas_picker,
-    html.Div(dbc.Button("Enviar", color="primary", id="submit-filtro"),style={'text-align':'right'})
+    html.Div(html.P('Periodo de conteo de eventos',id='titulo-fecha')),
+    freqconteo,
+    html.Div(dbc.Button("Enviar", color="primary", id="submit-filtro"),style={'text-align':'right'},className='m-1')
     
     
     ])
@@ -301,10 +322,10 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
 @app.callback(
     [Output("colgrafica", "children"),Output("colmapa", "children")],
     [Input('interval-component-gif', 'n_intervals'),Input("submit-filtro", "n_clicks")],
-    [State('RSAM-range-slider', 'value'),State('fechas','start_date'),State('fechas','end_date')]
+    [State('RSAM-range-slider', 'value'),State('fechas','start_date'),State('fechas','end_date'),State('freqconteo','value')]
 )
-def update_cam_fija(n,click,rangef,fini,ffin):
-    fig = crear_figura(rangef,fini,ffin)
+def update_cam_fija(n,click,rangef,fini,ffin,freqconteo):
+    fig = crear_figura(rangef,fini,ffin,freqconteo)
     grafico = html.Div(children=[
         dcc.Graph(
             id='timeline-orca',
