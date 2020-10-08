@@ -43,28 +43,39 @@ def dibujar_mapa(evs,sel):
         volcanes_star.append(dl.Marker(position=[row.latitud,row.longitud],zIndexOffset=-5000,children=[dl.Popup(html.Table([html.Tr([html.Td(row.nombre)])]))],
                                     icon=dict(iconUrl=iconUrl_volcan, iconSize=[7,7],iconAnchor=[7, 7]),id='estrellita'))
     evs = []
+    evsinputs = []
     for index,row in evnos.iterrows():
-        evs.append(dl.CircleMarker(center=[row.latitud,row.longitud],
+        evs.append(dl.CircleMarker(id='evento'+str(row.idevento),
+                                   center=[row.latitud,row.longitud],
                            radius=row.ml*4,
                            color='#ffffff',
                            fillColor='#'+ffig.colores_cla_hex(row.tipoevento)[:-2],
                            weight=1,
                            fillOpacity=0.75))
-    seleccionado = dl.CircleMarker(center=[evsel.latitud.iloc[0],evsel.longitud.iloc[0]],
+        evsinputs.append(Input('evento'+str(row.idevento),'n_clicks'))
+    seleccionado = dl.CircleMarker(id='evento'+str(evsel.idevento.iloc[0]),center=[evsel.latitud.iloc[0],evsel.longitud.iloc[0]],
                            radius=evsel.ml.iloc[0]*4,
                            color='#000000',
                            fillColor='white',
                            weight=1,
                            fillOpacity=1)
     
+    evsinputs.append(Input('evento'+str(evsel.idevento.iloc[0]),'n_clicks'))
+    
     escala = dl.ScaleControl(imperial=False)
     contenidomapa = [dl.TileLayer(id="tiles", url=tileurl),escala,*volcanes_star,*evs,seleccionado]
-    mapa = dl.Map(contenidomapa,style={'width': '100%', 'height': '75vh', 'margin': "auto", "display": "block","z-index":"0"}
-                    ,center=center,zoom=zoom,id='mapaloc_electriceye'
-                    )        
+    if sel==0:
+        mapa = dl.Map(contenidomapa,style={'width': '100%', 'height': '75vh', 'margin': "auto", "display": "block","z-index":"0"}
+                        ,center=center,zoom=zoom,id='mapaloc_electriceye'
+                        )   
+    else:
+        mapa = dl.Map(contenidomapa,style={'width': '100%', 'height': '75vh', 'margin': "auto", "display": "block","z-index":"0"}
+                        ,center=center,id='mapaloc_electriceye'
+                        )   
+        
 
  
-    return mapa
+    return mapa,evsinputs
 
 def get_fechahoy(): 
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
@@ -83,7 +94,7 @@ def get_lista(ini=True,sel=0):
     for index,row in eventos.iterrows():
         volcan = volcanes[volcanes.id==row.idvolc].nombre
         fechastr = (str(row.fecha)[0:19])
-        texto = fechastr+ ' - '+row.tipoevento+' en '+volcan
+        texto = fechastr+ ' - '+row.tipoevento+', ML='+str(row.ml)+' en '+volcan
         if ini==True:
             if i==0:
                 listgroupitems_eventos.append(dbc.ListGroupItem(texto,id=str(row.idevento),active=True))
@@ -98,7 +109,7 @@ def get_lista(ini=True,sel=0):
         i+=1
     return listgroupitems_eventos, inputs_listaev,eventos,sel
 
-counter_imgfija = dcc.Interval(id='interval-component-ev',interval=60*1000,n_intervals=0)
+counter_imgfija = dcc.Interval(id='interval-component-ev',interval=60*1000*2,n_intervals=0)
 navbar = dbc.Navbar(
     [
         html.A(
@@ -124,7 +135,8 @@ navbar = dbc.Navbar(
 
 
 listaev,inputs,eventos,sel = get_lista()
-mapa = dibujar_mapa(eventos,sel)
+mapa,evsinputs= dibujar_mapa(eventos,sel)
+
 
 
 card_listaeventos = dbc.Card([dbc.CardHeader('Listado de eventos destacados'),
@@ -135,13 +147,12 @@ card_listaeventos = dbc.Card([dbc.CardHeader('Listado de eventos destacados'),
                           ],outline=True,color='light',className='m-1')
 
 card_mapaeventos = dbc.Card([dbc.CardHeader('Mapa de localizaciones'),
-                          dbc.CardBody([html.Div(id='cardbody_mapa')])
+                          dbc.CardBody(children=mapa,id='cardbody_mapa')
                           ]
                             ,outline=True,color='light',className='m-1')
 
-card_datoseventos = dcc.Loading(id='loading-card_datos',type='circle',children=[
-                dbc.Card([dbc.CardHeader('Datos del evento'),
-                          dbc.CardBody([html.Div(id='body_card_datoseventos')])],outline=True,color='light',className='m-1')])
+card_datoseventos = dbc.Card([dbc.CardHeader('Datos del evento'),
+                          dbc.CardBody(html.Div(id='body_card_datoseventos'))],outline=True,color='light',className='m-1')
 
 
 
@@ -154,17 +165,21 @@ layout = (navbar,html.Div(children=[dbc.Row([dbc.Col([card_listaeventos],width=4
 
 
 
+
 @app.callback(
-    [Output('bodyevssinloading','children'),Output('cardbody_mapa','children')],
-    [Input('interval-component-ev','n_intervals')]+inputs
+    [Output('bodyevssinloading','children'),Output('cardbody_mapa','children'),Output('body_card_datoseventos','children')],
+    [Input('interval-component-ev','n_intervals')]+inputs+evsinputs,prevent_initial_call=True
     )
 def get_eventos(counter,*evs):
     ctx = dash.callback_context
     trigger = ctx.triggered[0]['prop_id'].split('.')
-    
 
     if trigger[1]=='n_clicks':
-        listgroupitems_eventos,inputs_listaev,eventosdf,sel  = get_lista(ini=False,sel=trigger[0])
+        if trigger[0][0:6]!='evento':
+            listgroupitems_eventos,inputs_listaev,eventosdf,sel  = get_lista(ini=False,sel=trigger[0])
+        else:
+            listgroupitems_eventos,inputs_listaev,eventosdf,sel  = get_lista(ini=False,sel=int(trigger[0][6:]))
+            
     else:
         print('inicial!')
         listgroupitems_eventos,inputs_listaev,eventosdf,sel  = get_lista(ini=True)
@@ -173,7 +188,9 @@ def get_eventos(counter,*evs):
     listgroupitems_eventos,id='listgroup'
     )
     
-    mapa = dibujar_mapa(eventosdf,sel)
-    return listgroup_eventos,mapa
+    mapa,evsinputs = dibujar_mapa(eventosdf,sel)
+    
+    datosev=sel
+    return listgroup_eventos,mapa,datosev
 
 
