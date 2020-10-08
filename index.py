@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import ovdash,orcapp,ovdapp,locali6,autovdas
+from apps import ovdash,orcapp,ovdapp,locali6,autovdas,electriceye
 
 
 app.layout = html.Div([
@@ -26,6 +26,8 @@ def display_page(pathname):
         return autovdas.layout
     elif pathname == '/apps/locali6':
         return locali6.layout
+    elif pathname == '/apps/electriceye':
+        return electriceye.layout
     elif pathname == '/':
         return ovdapp.layout
     else:

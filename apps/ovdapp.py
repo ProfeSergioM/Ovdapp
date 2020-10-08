@@ -99,9 +99,21 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes)
                 dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/autovdas',target='_blank'),
             ]),],)
         
+        card_electriceye = dbc.Card([
+        dbc.CardImg(src=app.get_asset_url('img/eleeye_thumb.png'), top=True),
+        dbc.CardBody([
+                html.H4("Electric Eye", className="card-title"),
+                html.P(
+                    "Monitoreo de últimos sismos localizados. También permite generar REAVs de estos.",
+                    className="card-text",
+                ),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/electrieye',target='_blank'),
+            ]),],)
+        
         contenido = html.Div([dbc.Row([dbc.Col(card_orcapp,width=2),
                                        dbc.Col(card_ovdash,width=2),
-                                       dbc.Col(card_autovdas,width=2)])])
+                                       dbc.Col(card_autovdas,width=2),
+                                       dbc.Col(card_electriceye,width=2)])])
         return contenido
     elif button_id == "procesamiento-button":
         card_altcol = dbc.Card(
