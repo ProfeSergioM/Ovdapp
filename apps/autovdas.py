@@ -270,7 +270,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
                   )
     fig.update_yaxes(row=i,range=[0,max(dfdr['DRc'])*1.5])        
     fig.update_yaxes(title_text="cm*cm", row=i)
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(dfdr['DRc']),font=dict(color='white'),
+    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(dfdr['DRc'])*1.5,font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='DR/ev',showarrow=False))  
     
@@ -330,7 +330,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     fig.update_yaxes(title_text="um/s", row=i)
     fig.update_yaxes(row=i,range=[0,max(df['ampl'])*1.5])
     #fig.update_yaxes(type="log",row=i)
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['ampl']),font=dict(color='white'),
+    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['ampl'])*1.5,font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='Amplitud/ev',showarrow=False))  
     fig.add_shape(
@@ -358,7 +358,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
                   )
     fig.update_yaxes(title_text="s", row=i)
     fig.update_yaxes(row=i,range=[0,max(df['duracion'])*1.5])
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['duracion']),font=dict(color='white'),
+    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['duracion'])*1.5,font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='Duración/ev',showarrow=False))  
    
