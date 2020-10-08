@@ -346,6 +346,24 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     showlegend=False
     )
     fig.layout.template = 'plotly_dark'
+    
+    
+    fig.update_layout(
+        shapes=[
+            # 1st highlight during Feb 4 - Feb 6
+     dict(
+                type="rect",
+                xref="paper",
+                yref="paper",
+                x0=0,
+                y0=0,
+                x1=1,
+                y1=1,
+                fillcolor="#141d26",
+                opacity=0.5,
+                layer="below",
+                line_width=0,
+            )])
     return fig
 
 
@@ -537,7 +555,7 @@ def update_date(n,volcan):
         )
     ])
     helicard = dbc.Card([
-        dbc.CardHeader('Sismograma - Última hora'),
+        dbc.CardHeader('Sismograma - Últimas 2 horas'),
         dbc.CardBody(heli)
         
         ],outline=True,color='light')
