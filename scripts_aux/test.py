@@ -10,5 +10,8 @@ import datetime as dt
 import ovdas_ovdapp_lib as oap
 import pandas as pd
 
-df = gdb.extraer_eventos('2020-01-01', '2020-02-01', 'NevChillan')
+df = gdb.extraer_eventos('2020-01-01', '2020-01-02', 'NevChillan')
 df= pd.DataFrame(df)
+
+volcanes =gdb.get_metadata_volcan('*',rep='y')
+volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
