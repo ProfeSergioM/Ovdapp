@@ -268,6 +268,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     fig.update_traces(opacity=0.5,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
                   row=i,
                   )
+    fig.update_yaxes(row=i,range=[0,max(dfdr['DRc'])*1.5])        
     fig.update_yaxes(title_text="cm*cm", row=i)
     fig.add_annotation(go.layout.Annotation(x=0.01,y=max(dfdr['DRc']),font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
@@ -280,7 +281,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
             x0=0,
             y0=0,
             x1=1,
-            y1=max(dfdr['DRc']),
+            y1=max(dfdr['DRc'])*1.5,
             fillcolor="#141d26",
             opacity=0.5,
             layer="below",
@@ -327,6 +328,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
                   row=i,
                   )
     fig.update_yaxes(title_text="um/s", row=i)
+    fig.update_yaxes(row=i,range=[0,max(df['ampl'])*1.5])
     #fig.update_yaxes(type="log",row=i)
     fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['ampl']),font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
@@ -338,14 +340,14 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
             x0=0,
             y0=0,
             x1=1,
-            y1=max(df['ampl']),
+            y1=max(df['ampl'])*1.5,
             fillcolor="#141d26",
             opacity=0.5,
             layer="below",
             line_width=0         
             )
     i+=1
-    
+    ##################################Duracion
     fig.add_trace(
     go.Scattergl( x=df.index, y=df['duracion'], mode='markers',name='Duración',
                marker= {"size":markersize, "color" : 'white'}),
@@ -355,6 +357,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
                   row=i,
                   )
     fig.update_yaxes(title_text="s", row=i)
+    fig.update_yaxes(row=i,range=[0,max(df['duracion'])*1.5])
     fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['duracion']),font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='Duración/ev',showarrow=False))  
@@ -373,7 +376,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
             x0=0,
             y0=0,
             x1=1,
-            y1=max(df['duracion']),
+            y1=max(df['duracion'])*1.5,
             fillcolor="#141d26",
             opacity=0.5,
             layer="below",
