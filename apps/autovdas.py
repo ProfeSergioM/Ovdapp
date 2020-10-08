@@ -213,10 +213,11 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     #ampslogs=np.power(df['ampl'],0.2)/1
     tipoevs = len(df.tipoev.unique())
     
-    fig = make_subplots(rows=tipoevs+5, cols=1,shared_xaxes=True, vertical_spacing=0.02)
+    fig = make_subplots(rows=tipoevs+5, cols=1,shared_xaxes=True, vertical_spacing=0.025)
     
     i=1
     for tipoev in df.tipoev.unique():
+
         fig.add_trace(
         go.Bar( x=df_count.index, y=df_count[tipoev],marker= { "color" : 'white'},name='Ev/hora'),
         row=i, col=1
@@ -243,6 +244,19 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df_RSAM.fastRSAM)*1.5,font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='RSAM ('+estaRSAM+') '+str(rangef[0])+ ' - '+ str(rangef[1])+ ' Hz',showarrow=False))
+    fig.add_shape(
+            type="rect",
+            xref="paper",
+            yref='y'+str(i),
+            x0=0,
+            y0=0,
+            x1=1,
+            y1=max(df_RSAM.fastRSAM)*1.5,
+            fillcolor="#141d26",
+            opacity=0.5,
+            layer="below",
+            line_width=0         
+            )
     i+=1
     #######################DR
     dfdr = df[df.tipoev=='LP']
@@ -259,6 +273,19 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='DR/ev',showarrow=False))  
     
+    fig.add_shape(
+            type="rect",
+            xref="paper",
+            yref='y'+str(i),
+            x0=0,
+            y0=0,
+            x1=1,
+            y1=max(dfdr['DRc']),
+            fillcolor="#141d26",
+            opacity=0.5,
+            layer="below",
+            line_width=0         
+            )
     i+=1
     #######################freq
 
@@ -276,6 +303,19 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
                                             yref='y'+str(i),text='Frecuencia dom/ev',showarrow=False))  
     fig.update_yaxes(type="log",row=i)
     fig.update_yaxes(row=i,range=[-1,1],dtick=1)
+    fig.add_shape(
+            type="rect",
+            xref="paper",
+            yref='y'+str(i),
+            x0=0,
+            y0=0,
+            x1=1,
+            y1=10,
+            fillcolor="#141d26",
+            opacity=0.5,
+            layer="below",
+            line_width=0         
+            )
     i+=1
     #################################AMP
     fig.add_trace(
@@ -291,6 +331,19 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['ampl']),font=dict(color='white'),
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='Amplitud/ev',showarrow=False))  
+    fig.add_shape(
+            type="rect",
+            xref="paper",
+            yref='y'+str(i),
+            x0=0,
+            y0=0,
+            x1=1,
+            y1=max(df['ampl']),
+            fillcolor="#141d26",
+            opacity=0.5,
+            layer="below",
+            line_width=0         
+            )
     i+=1
     
     fig.add_trace(
@@ -313,6 +366,19 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     
     fig.update_yaxes(title_text="um/s", row=i)
     fig.update_xaxes(title_text="Fecha", row=i)
+    fig.add_shape(
+            type="rect",
+            xref="paper",
+            yref='y'+str(i),
+            x0=0,
+            y0=0,
+            x1=1,
+            y1=max(df['duracion']),
+            fillcolor="#141d26",
+            opacity=0.5,
+            layer="below",
+            line_width=0         
+            )
     i+=1
     
     
@@ -325,6 +391,20 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
         fig['data'][j].update(yaxis='y'+str(i))
         fig['layout']['yaxis'+str(i)]=dict(overlaying='y'+str(k),side='right',title='Acum. ev/hora',title_font=dict(color='crimson'))
         #fig.update_yaxes(title_text="ev/hora", row=j)
+        
+        fig.add_shape(
+                type="rect",
+                xref="paper",
+                yref='y'+str(i),
+                x0=0,
+                y0=0,
+                x1=1,
+                y1=max(df_count[tipoev+'cumsum']),
+                fillcolor="#141d26",
+                opacity=0.5,
+                layer="below",
+                line_width=0         
+                )
         i+=1
         j+=2
         k+=1
@@ -348,22 +428,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     fig.layout.template = 'plotly_dark'
     
     
-    fig.update_layout(
-        shapes=[
-            # 1st highlight during Feb 4 - Feb 6
-     dict(
-                type="rect",
-                xref="paper",
-                yref="paper",
-                x0=0,
-                y0=0,
-                x1=1,
-                y1=1,
-                fillcolor="#141d26",
-                opacity=0.5,
-                layer="below",
-                line_width=0,
-            )])
+
     return fig
 
 
