@@ -115,6 +115,7 @@ def get_lista(ini=True,sel=0):
 
 
 def get_carddatoev(eventosel,volcansel):
+
     result = client.distaz(stalat=volcansel.latitud.iloc[0],
                            stalon=volcansel.longitud.iloc[0],
                            evtlat=eventosel.latitud.iloc[0],
@@ -123,16 +124,17 @@ def get_carddatoev(eventosel,volcansel):
     direccion_largo = ffut.direccion_geo(result['backazimuth'])[1]
     distancia = np.round(result['distancemeters']/1000,1)
     titulo='ML '+str(eventosel.ml.iloc[0])+' - '+str(distancia)+' km al '+direccion+' del '+volcansel.vol_tipo.iloc[0]+' '+volcansel.nombre.iloc[0]
+    subtitulo1 = 'Fecha : ' +str(eventosel.fecha.iloc[0])[0:19].replace('T',' ')
+    subtitulo2 = 'Localización : Latitud: '+str(eventosel.latitud.iloc[0])+'°, Longitud:'+str(eventosel.longitud.iloc[0])+'°'
+    subtitulo3 = 'Profundidad : '+str(eventosel.profundidad.iloc[0])+' km (bajo referencia)'
     card = dbc.Card(
     dbc.CardBody(
         [
             html.H4(titulo, className="card-title"),
-            html.H6("Card subtitle", className="card-subtitle"),
-            html.P(
-                "Some quick example text to build on the card title and make "
-                "up the bulk of the card's content.",
-                className="card-text",
-            ),
+            html.P(subtitulo1, className="card-subtitle"),
+            html.P(subtitulo2, className="card-subtitle"),
+            html.P(subtitulo3, className="card-subtitle"),
+
             dbc.CardLink("Card link", href="#"),
             dbc.CardLink("External link", href="https://google.com"),
         ]
@@ -220,8 +222,7 @@ def get_eventos(counter,*evs):
     )
     
     mapa = dibujar_mapa(eventosdf)
-    
-    cajita =  json.dumps(eventosdf.to_json(), indent=2)
+    cajita =  json.dumps(eventosdf.to_json(date_format='iso'), indent=2)
  
     return listgroup_eventos,mapa,cajita
 
@@ -262,6 +263,6 @@ def elegir_evento(values,marker,cajita,active,panes):
     sizesel = eventosel.ml.iloc[0]*sizescale
     colorev[index_sel]=dict(iconUrl=app.get_asset_url('img/greydot.fw.png?random='+str(random())) , 
                                           iconSize=[sizesel,sizesel],iconAnchor=[sizesel/2,sizesel/2])
-    
+
     datosev = get_carddatoev(eventosel,volcansel)
     return list(activelist),colorev,list(panelist),zoom,center,datosev
