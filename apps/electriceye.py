@@ -36,7 +36,7 @@ def dibujar_mapa(eventos):
     for index,row in volcanes.iterrows():
         volcanes_star.append(dl.Marker(position=[row.latitud,row.longitud],zIndexOffset=10000,
                                        children=[dl.Popup(html.Table([html.Tr([html.Td(row.nombre)])]))],
-                                    icon=dict(iconUrl=iconUrl_volcan, iconSize=[7,7],iconAnchor=[7/2, 7/2]),id='estrellita'))
+                                    icon=dict(iconUrl=iconUrl_volcan, iconSize=[7,7]),id='estrellita'))
     evs=[]
     i=0
     for index,row in eventos.iterrows():
@@ -257,11 +257,11 @@ def elegir_evento(values,marker,cajita,active,panes):
     for index,row in eventos.iterrows():
         size=sizescale*row.ml
         colorev.append(dict(iconUrl=app.get_asset_url('img/'+row.tipoevento+'.png?random='+str(random())) , 
-                                          iconSize=[size,size],iconAnchor=[size,size]))
+                                          iconSize=[size,size],iconAnchor=[size/2,size/2]))
     eventosel=eventos[eventos.index==index_sel]
     sizesel = eventosel.ml.iloc[0]*sizescale
     colorev[index_sel]=dict(iconUrl=app.get_asset_url('img/greydot.fw.png?random='+str(random())) , 
-                                          iconSize=[sizesel,sizesel],iconAnchor=[sizesel,sizesel])
+                                          iconSize=[sizesel,sizesel],iconAnchor=[sizesel/2,sizesel/2])
     
     datosev = get_carddatoev(eventosel,volcansel)
     return list(activelist),colorev,list(panelist),zoom,center,datosev
