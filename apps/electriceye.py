@@ -136,8 +136,8 @@ def get_carddatoev(eventosel,volcansel):
     filas =     html.Tbody([fila1,fila2,fila3,fila4])
     table = dbc.Table(filas,bordered=True, dark=True,hover=True,responsive=True,striped=True)
     bg=dbc.ButtonGroup(   [
-        dbc.Button("Generar borrador REAV", id='btn-reav'),
-        dbc.Button("Generar correo", id='btn-correo')
+        dbc.Button("Generar borrador REAV", id='btn-reav')
+        #dbc.Button("Generar correo", id='btn-correo')
                                     ],vertical=True,style={'width':'100%'}
         
         )
