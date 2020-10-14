@@ -8,6 +8,8 @@ import dash
 import json
 import numpy as np
 import dash_leaflet as dl
+from dash_extensions import Download
+from dash_extensions.snippets import send_bytes
 import plotly.graph_objects as go
 import dash_html_components as html
 import dash_core_components as dcc
@@ -19,6 +21,7 @@ import pandas as pd
 from obspy.clients.iris import Client
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_getfromdb_lib as gdb
+import ovdas_doc_lib as odl
 import ovdas_figure_lib as ffig
 import ovdas_future_lib as ffut
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -34,7 +37,7 @@ client = Client()
 def dibujar_mapa(eventos):
     volcanes_star=[]
     for index,row in volcanes.iterrows():
-        volcanes_star.append(dl.Marker(position=[row.latitud,row.longitud],zIndexOffset=10000,
+        volcanes_star.append(dl.Marker(position=[row.latitud,row.longitud],zIndexOffset=-10000,
                                        children=[dl.Popup(html.Table([html.Tr([html.Td(row.nombre)])]))],
                                     icon=dict(iconUrl=iconUrl_volcan, iconSize=[7,7]),id='estrellita'))
     evs=[]
@@ -124,19 +127,26 @@ def get_carddatoev(eventosel,volcansel):
     direccion_largo = ffut.direccion_geo(result['backazimuth'])[1]
     distancia = np.round(result['distancemeters']/1000,1)
     titulo='ML '+str(eventosel.ml.iloc[0])+' - '+str(distancia)+' km al '+direccion+' del '+volcansel.vol_tipo.iloc[0]+' '+volcansel.nombre.iloc[0]
-    subtitulo1 = 'Fecha : ' +str(eventosel.fecha.iloc[0])[0:19].replace('T',' ')
-    subtitulo2 = 'Localización : Latitud: '+str(eventosel.latitud.iloc[0])+'°, Longitud:'+str(eventosel.longitud.iloc[0])+'°'
-    subtitulo3 = 'Profundidad : '+str(eventosel.profundidad.iloc[0])+' km (bajo referencia)'
+
+    
+    fila1 =  html.Tr([html.Td("Fecha"), html.Td(str(eventosel.fecha.iloc[0])[0:19].replace('T',' '))])
+    fila2 =  html.Tr([html.Td("Latitud"), html.Td(str(eventosel.latitud.iloc[0])+'°')])
+    fila3 =  html.Tr([html.Td("Longitud"), html.Td(str(eventosel.longitud.iloc[0])+'°')])
+    fila4 =  html.Tr([html.Td("Profundidad"), html.Td(str(eventosel.profundidad.iloc[0])+ 'km (bajo referencia)')])
+    filas =     html.Tbody([fila1,fila2,fila3,fila4])
+    table = dbc.Table(filas,bordered=True, dark=True,hover=True,responsive=True,striped=True)
+    bg=dbc.ButtonGroup(   [
+        dbc.Button("Generar borrador REAV", id='btn-reav'),
+        dbc.Button("Generar correo", id='btn-correo')
+                                    ],vertical=True,style={'width':'100%'}
+        
+        )
     card = dbc.Card(
     dbc.CardBody(
         [
             html.H4(titulo, className="card-title"),
-            html.P(subtitulo1, className="card-subtitle"),
-            html.P(subtitulo2, className="card-subtitle"),
-            html.P(subtitulo3, className="card-subtitle"),
+            table,bg
 
-            dbc.CardLink("Card link", href="#"),
-            dbc.CardLink("External link", href="https://google.com"),
         ]
     ),
     style={"width": "100%",'height':'100%'},
@@ -188,16 +198,29 @@ card_mapaeventos = dbc.Card([dbc.CardHeader('Mapa de localizaciones'),
 card_datoseventos = dbc.Card([dbc.CardHeader('Datos del evento'),
                           dbc.CardBody(html.Div(id='body_card_datoseventos',style={'height':'100%'}))],outline=True,color='light',className='m-1',style={'height':'100%'})
 
+modal = html.Div(
+    [Download(id="download-electriceye"),
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Finalizado!"),
+                dbc.ModalBody(dbc.Alert("Borrador de REAV finalizado, puede cerrar esta ventana =)", color="success")),
+                dbc.ModalFooter(
+                    dbc.Button("Close", id="close-modal", className="ml-auto")
+                ),
+            ],
+            id="modal",
+        ),
+    ]
+)
 
 
 layout = (navbar,html.Div(children=[dbc.Row([dbc.Col([card_listaeventos],width=4),
                                       dbc.Col([card_mapaeventos],width=4),
                                       dbc.Col([card_datoseventos],width=4)],
                                      id='layout-electrieye')]
-                   ),counter_imgfija,html.Div(id='cajita-electriceye', style={'display': 'none'})
-          )
-
-
+                   ),counter_imgfija,html.Div(id='cajita-electriceye', style={'display': 'none'}),
+                                     html.Div(id='cajita2-electriceye', style={'display': 'none'})
+          ,dcc.Loading(modal, style={'position':'fixed','left':'50%','top':'50%'}))
 
 @app.callback(
     [Output('bodyevssinloading','children'),Output('cardbody_mapa','children'),Output('cajita-electriceye', 'children')],
@@ -228,7 +251,7 @@ def get_eventos(counter,*evs):
 
 @app.callback([Output({'type': 'evento-listgroupitem', 'index': ALL}, 'active'),Output({'type': 'evento-mapa', 'index': ALL}, 'icon')
                ,Output({'type': 'evento-mapa', 'index': ALL}, 'zIndexOffset'),Output('mapaloc_electriceye','zoom'),Output('mapaloc_electriceye','center')
-               ,Output('body_card_datoseventos','children')],
+               ,Output('body_card_datoseventos','children'),Output('cajita2-electriceye', 'children')],
               [Input({'type': 'evento-listgroupitem', 'index': ALL}, 'n_clicks'),
                Input({'type': 'evento-mapa', 'index': ALL}, 'n_clicks'),
                Input('cajita-electriceye', 'children')],
@@ -240,7 +263,7 @@ def elegir_evento(values,marker,cajita,active,panes):
     eventos = pd.read_json(json.loads(cajita))
     if (dash.callback_context.triggered[0]['value'] == None) or (dash.callback_context.triggered[0]['prop_id']=='cajita-electriceye.children'):
         index_sel=0
-        zoom=2
+        zoom=3
         center=[-30,-70]  
         
     else:
@@ -265,4 +288,26 @@ def elegir_evento(values,marker,cajita,active,panes):
                                           iconSize=[sizesel,sizesel],iconAnchor=[sizesel/2,sizesel/2])
 
     datosev = get_carddatoev(eventosel,volcansel)
-    return list(activelist),colorev,list(panelist),zoom,center,datosev
+    return list(activelist),colorev,list(panelist),zoom,center,datosev,json.dumps(eventosel.to_json(date_format='iso'), indent=2)
+
+
+  
+
+
+@app.callback(
+    [Output("download-electriceye", "data"),Output("modal", "is_open")],
+    [Input("btn-reav",'n_clicks'),Input("close-modal",'n_clicks')],
+    [State("cajita2-electriceye",'children'),State("modal", "is_open")],prevent_initial_call=True
+    )
+def crear_info(clickreav,close_modal,cajita2,is_open):
+    if dash.callback_context.triggered[0]['value'] is not None:
+        if dash.callback_context.triggered[0]['prop_id'] =='btn-reav.n_clicks':
+            evento= pd.read_json(json.loads(cajita2))
+            document,filename = odl.REAV_ovdapp(evento)
+            def to_reav(ruta):
+                document.save(ruta)
+            return send_bytes(to_reav,filename),not is_open
+        elif dash.callback_context.triggered[0]['prop_id'] =='close-modal.n_clicks':
+            return dash.no_update,not is_open
+    else:
+        return dash.no_update,dash.no_update
