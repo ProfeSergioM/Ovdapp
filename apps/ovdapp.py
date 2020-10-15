@@ -31,7 +31,7 @@ sidebar = html.Div(
         html.H2("Ovdapp", className="display-4"),
         html.Hr(),
         html.P(
-            "Aplicaciones del grupo de automatización del Ovdas", className="lead"
+            "Todo lo relacionado al monitoreo volcánico instrumental del Ovdas", className="lead"
         ),
         dbc.ButtonGroup(
     [
@@ -39,7 +39,8 @@ sidebar = html.Div(
         dbc.Button("Dashboards",id="dashboards-button"),
         dbc.Button("Procesamiento",id='procesamiento-button'),
         dbc.Button("Revisión",id='revision-button'),
-        dbc.Button("Reportes",id='reportes-button')
+        dbc.Button("Reportes",id='reportes-button'),
+        dbc.Button("Información de interés",id='info-button')
     ],
     vertical=True,style={'width':'100%'}
 ),
@@ -55,9 +56,9 @@ layout = html.Div([sidebar, content])
 @app.callback(
     Output("contenido", "children"), 
     [Input("inicio-button", "n_clicks"),Input("dashboards-button", "n_clicks"),
-     Input("procesamiento-button", "n_clicks"),Input("revision-button", "n_clicks"),Input("reportes-button", "n_clicks")]
+     Input("procesamiento-button", "n_clicks"),Input("revision-button", "n_clicks"),Input("reportes-button", "n_clicks"),Input("info-button", "n_clicks")]
 )
-def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes):
+def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,n_info):
     ctx = dash.callback_context
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     
@@ -214,6 +215,22 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes)
                     className="card-text",
                 ),
                 dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/locali6',target='_blank'),
+            ]),],)
+        
+
+        
+        
+        contenido = html.Div([dbc.Row([dbc.Col(card_locali6,width=2)])])
+    elif button_id == "info-button":
+        card_locali6 = dbc.Card([
+        dbc.CardImg(src=app.get_asset_url('img/hangar18_thumb.png'), top=True),
+        dbc.CardBody([
+                html.H4("Hangar 18", className="card-title"),
+                html.P(
+                    "Información crítica de monitoreo (Criterios) ",
+                    className="card-text",
+                ),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/hangar18',target='_blank'),
             ]),],)
         
 

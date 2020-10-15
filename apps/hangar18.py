@@ -95,16 +95,19 @@ def on_button_click(n_inicio,n_reavs):
     ]
     )
 
-        lista_criterios_NevChillan = dbc.ListGroup(
-    [dbc.ListGroupItemHeading("C.V. Nevados de Chillán"),
-        dbc.ListGroupItem("Emisión de columna eruptiva por sobre los 2000 m sobre el punto de emisión", color="info"),
-  ]
-    )
+        lista_criterios_NevChillan = dbc.ListGroup( [dbc.ListGroupItemHeading("C.V. Nevados de Chillán"),
+        dbc.ListGroupItem("Emisión de columna eruptiva por sobre los 2000 m sobre el punto de emisión", color="info")])
+        lista_criterios_Villarrica = dbc.ListGroup( [dbc.ListGroupItemHeading("Vn. Villarrica"),
+        dbc.ListGroupItem("Registro de material particulado en columna de desgasificación (inclusive incandescencias nocturnas con emisiones pulsátiles)", color="info"),
+        dbc.ListGroupItem("Registro de un evento sísmico tipo LP, EX, TR, TO, VLP o HB con un desplazamiento reducido (DR) igual o superior a 30 cm*cm", color="info")
+        
+        ])                                             
         lista_criterios_particular = dbc.ListGroup(
             dbc.ListGroupItem(
                     [
                         
-                              lista_criterios_NevChillan
+                              lista_criterios_NevChillan,
+                              lista_criterios_Villarrica
            ,
                     ]
                 )
