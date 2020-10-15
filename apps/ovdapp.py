@@ -221,6 +221,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
         
         
         contenido = html.Div([dbc.Row([dbc.Col(card_locali6,width=2)])])
+        return contenido
     elif button_id == "info-button":
         card_locali6 = dbc.Card([
         dbc.CardImg(src=app.get_asset_url('img/hangar18_thumb.png'), top=True),
