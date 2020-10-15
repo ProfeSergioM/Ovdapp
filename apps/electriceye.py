@@ -62,7 +62,7 @@ def dibujar_mapa(eventos):
             legend_entry.append(html.Td(html.Div([icono,'  '+entrada])))
     else:
         legend_entry=[]
-    leyenda_tabla = html.Table(html.Tr(legend_entry),id='tablita')    
+    leyenda_tabla = html.Table(html.Tr(legend_entry,style={'display':'table-cell'}),id='tablita')    
     leyenda = html.Div(leyenda_tabla, style={"position": "absolute", "top": "10px", "right": "10px", "z-index": "1000"})
     
     
@@ -70,7 +70,7 @@ def dibujar_mapa(eventos):
     for i in range(1,4):
         icono = html.Img(src=sym,height=7*i,width=7*i)
         leyenda_ml_tabla_entry.append(html.Td(html.Div([icono,' '+str(i)+'.0'])))
-    leyenda_ml_tabla = html.Table(html.Tr(leyenda_ml_tabla_entry))
+    leyenda_ml_tabla = html.Table(html.Tr(leyenda_ml_tabla_entry,style={'display':'table-cell'}))
     leyenda_ml = html.Div(leyenda_ml_tabla, style={"position": "absolute", "bottom": "20px", "right": "10px", "z-index": "1000"})
     
     contenidomapa = [dl.TileLayer(id="tiles", url=tileurl),escala,leyenda,leyenda_ml,*volcanes_star,*evs]
