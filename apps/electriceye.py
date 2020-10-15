@@ -39,7 +39,7 @@ def dibujar_mapa(eventos):
     for index,row in volcanes.iterrows():
         volcanes_star.append(dl.Marker(position=[row.latitud,row.longitud],zIndexOffset=-10000,
                                        children=[dl.Popup(html.Table([html.Tr([html.Td(row.nombre)])]))],
-                                    icon=dict(iconUrl=iconUrl_volcan, iconSize=[7,7]),id='estrellita'))
+                                    icon=dict(iconUrl=iconUrl_volcan, iconSize=[10,10]),id='estrellita'))
     evs=[]
     i=0
     for index,row in eventos.iterrows():
@@ -52,15 +52,34 @@ def dibujar_mapa(eventos):
 
     
     escala = dl.ScaleControl(imperial=False)
-    contenidomapa = [dl.TileLayer(id="tiles", url=tileurl),escala,*volcanes_star,*evs]
+    
+    legend_entry=['Tipo de evento']
+    if len(eventos)>0:
+        for entrada in eventos.tipoevento.unique():
+            sym=app.get_asset_url('img/'+entrada+'.png?random='+str(random())) 
+            if entrada=='LV':entrada='VLP'
+            icono = html.Img(src=sym,height=10,width=10)
+            legend_entry.append(html.Td(html.Div([icono,'  '+entrada])))
+    else:
+        legend_entry=[]
+    leyenda_tabla = html.Table(html.Tr(legend_entry),id='tablita')    
+    leyenda = html.Div(leyenda_tabla, style={"position": "absolute", "top": "10px", "right": "10px", "z-index": "1000"})
+    
+    
+    leyenda_ml_tabla_entry=['ML']
+    for i in range(1,4):
+        icono = html.Img(src=sym,height=7*i,width=7*i)
+        leyenda_ml_tabla_entry.append(html.Td(html.Div([icono,' '+str(i)+'.0'])))
+    leyenda_ml_tabla = html.Table(html.Tr(leyenda_ml_tabla_entry))
+    leyenda_ml = html.Div(leyenda_ml_tabla, style={"position": "absolute", "bottom": "20px", "right": "10px", "z-index": "1000"})
+    
+    contenidomapa = [dl.TileLayer(id="tiles", url=tileurl),escala,leyenda,leyenda_ml,*volcanes_star,*evs]
 
-    mapa = dl.Map(contenidomapa,style={'width': '100%', 'height': '75vh', 'margin': "auto", "display": "block","z-index":"0"}
+
+    
+    mapa = dl.Map(contenidomapa,style={'width': '100%', 'height': '100%', 'margin': "auto", "display": "block","z-index":"0"}
                     ,center=[-30,-70],zoom=3,id='mapaloc_electriceye'
                     )   
- 
-        
-
- 
     return mapa
 
 def get_fechahoy(): 
@@ -188,15 +207,16 @@ card_listaeventos = dbc.Card([dbc.CardHeader('Listado de eventos destacados'),
                                                    
                                                    children=[html.Div(id='body_card_listaeventos')]),
                                        style={'overflow':'auto',"height": "75vh"},id='bodyevssinloading')
-                          ],outline=True,color='light',className='m-1')
+                          ],outline=True,color='light',className='m-1',style={'height':'100%'})
 
 card_mapaeventos = dbc.Card([dbc.CardHeader('Mapa de localizaciones'),
                           dbc.CardBody(id='cardbody_mapa')
                           ]
-                            ,outline=True,color='light',className='m-1')
+                            ,outline=True,color='light',className='m-1',style={'height':'100%'})
 
 card_datoseventos = dbc.Card([dbc.CardHeader('Datos del evento'),
-                          dbc.CardBody(html.Div(id='body_card_datoseventos',style={'height':'100%'}))],outline=True,color='light',className='m-1',style={'height':'100%'})
+                          dbc.CardBody(html.Div(id='body_card_datoseventos',style={'height':'100%'}))
+                          ],outline=True,color='light',className='m-1',style={'height':'100%'})
 
 modal = html.Div(
     [Download(id="download-electriceye"),
