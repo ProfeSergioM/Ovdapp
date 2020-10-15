@@ -32,7 +32,8 @@ tileurl =  'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}'
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 iconUrl_volcan = app.get_asset_url('img/triangle.fw.png?random='+str(random())) 
-sizescale=7
+sizescaleml=7
+sizescaledr=1/20
 client = Client()
 def dibujar_mapa(eventos):
     volcanes_star=[]
@@ -43,8 +44,19 @@ def dibujar_mapa(eventos):
     evs=[]
     i=0
     for index,row in eventos.iterrows():
-        size=row.ml*sizescale
-        evs.append(dl.Marker(position=[row.latitud,row.longitud],zIndexOffset=-5000,
+        if row.latitud==0:
+            lat = (volcanes[volcanes.id==row.idvolc].latitud.iloc[0])
+            lon = (volcanes[volcanes.id==row.idvolc].longitud.iloc[0])
+            size=0
+        else:
+            lat = row.latitud
+            lon = row.longitud
+            if row.tipoevento in ['VT','VD']:
+                size=row.ml*sizescaleml
+            else:
+                size=sizescaledr*row.dr
+            
+        evs.append(dl.Marker(position=[lat,lon],zIndexOffset=-5000,
                                     icon=dict(iconUrl=app.get_asset_url('img/'+row.tipoevento+'.png?random='+str(random())) , 
                                               iconSize=[size,size],iconAnchor=[size/2,size/2]),id={'type':'evento-mapa','index':i}))
         i=i+1
@@ -55,6 +67,7 @@ def dibujar_mapa(eventos):
     
     legend_entry=['Tipo de evento']
     if len(eventos)>0:
+        eventos=eventos[eventos.profundidad!=-1]
         for entrada in eventos.tipoevento.unique():
             sym=app.get_asset_url('img/'+entrada+'.png?random='+str(random())) 
             if entrada=='LV':entrada='VLP'
@@ -73,7 +86,16 @@ def dibujar_mapa(eventos):
     leyenda_ml_tabla = html.Table(html.Tr(leyenda_ml_tabla_entry,style={'display':'table-cell'}))
     leyenda_ml = html.Div(leyenda_ml_tabla, style={"position": "absolute", "bottom": "20px", "right": "10px", "z-index": "1000"})
     
-    contenidomapa = [dl.TileLayer(id="tiles", url=tileurl),escala,leyenda,leyenda_ml,*volcanes_star,*evs]
+    if any(item in ['LP','EX','TO','TR','LV'] for item in eventos.tipoevento.unique()):
+        leyenda_dr_tabla_entry=['DR']
+        sym=app.get_asset_url('img/DR.png?random='+str(random()))
+        for i in [100,250,500]:
+            icono = html.Img(src=sym,height=i*sizescaledr,width=i*sizescaledr)
+            leyenda_dr_tabla_entry.append(html.Td(html.Div([icono,' '+str(int(i))])))    
+            leyenda_dr_tabla = html.Table(html.Tr(leyenda_dr_tabla_entry,style={'display':'table-cell'}))
+            leyenda_dr = html.Div(leyenda_dr_tabla, style={"position": "absolute", "bottom": "20px", "left": "10px", "z-index": "1000"})    
+    
+    contenidomapa = [dl.TileLayer(id="tiles", url=tileurl),escala,leyenda,leyenda_ml,leyenda_dr,*volcanes_star,*evs]
 
 
     
@@ -87,12 +109,29 @@ def get_fechahoy():
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     return fini,ffin
 
-def get_lista(ini=True,sel=0):
-    
+def get_eventos_destacados():
     inicio,final=get_fechahoy()
-    eventos = gdb.extraer_eventos(inicio,final,volcan='*',ML='>2')
+    eventos = gdb.extraer_eventos(inicio,final,volcan='*')
     eventos = pd.DataFrame(eventos)
+    #ml general
+    eventosml = eventos[eventos.ml>2]
+    #dr general
+    eventosdr = eventos[eventos.dr>=500]
+    #dr villarrica
+    eventosdr_villarrica = eventos[(eventos.idvolc==28) & (eventos.dr>=30)]
+    
+    eventos = pd.concat([eventosml,eventosdr,eventosdr_villarrica])
     eventos = eventos.sort_values(by='fecha',ascending=False).head(20)
+    eventos.fecha = eventos.fecha.astype('datetime64[s]')
+    eventos = eventos.drop_duplicates(subset='fecha', keep="first")
+    eventos = eventos.fillna({'profundidad':-1,'ml':0})
+    eventos.latitud = np.where(eventos.latitud.isnull(),eventos.idvolc.map(volcanes.set_index('id')['latitud']),eventos['latitud']).astype(float)
+    eventos.longitud = np.where(eventos.longitud.isnull(),eventos.idvolc.map(volcanes.set_index('id')['longitud']),eventos['longitud']).astype(float)
+    return eventos
+
+def get_lista(ini=True,sel=0):
+    eventos = get_eventos_destacados()
+
     listgroupitems_eventos=[]
     inputs_listaev =[]
     i=0
@@ -108,14 +147,26 @@ def get_lista(ini=True,sel=0):
         direccion = ffut.direccion_geo(result['backazimuth'])[0]
         direccion_largo = ffut.direccion_geo(result['backazimuth'])[1]
         distancia = np.round(result['distancemeters']/1000,1)
-                            
-        texto1 = str(distancia)+' km al '+direccion+' del '+volcanes[volcanes.id==row.idvolc].vol_tipocorto+' '+volcan
+        if row.profundidad==-1:
+            texto1='Sin localizacion - '+volcanes[volcanes.id==row.idvolc].vol_tipocorto+' '+volcan
+            tituloprof=''
+            prof=''
+        else:
+            texto1 = str(distancia)+' km al '+direccion+' del '+volcanes[volcanes.id==row.idvolc].vol_tipocorto+' '+volcan
+            tituloprof='Prof'
+            prof=str(np.round(row.profundidad,1))+' km'
         fechastr = (str(row.fecha)[0:19])
+        if row.tipoevento in ['VT','VD','HB']:
+            tituloenergia = 'ML'
+            energia = row.ml
+        else:
+            tituloenergia = 'DR'
+            energia = int(row.dr)
         texto = fechastr+ ' - '+row.tipoevento
-        divtext = html.Div([dbc.Row([dbc.Col(texto1,width=10),dbc.Col('Prof',width=2)],no_gutters=True),
-                         dbc.Row([dbc.Col(texto,width=10),dbc.Col(str(np.round(row.profundidad,1))+' km',width=2)],no_gutters=True)])
-        divML = html.Div([dbc.Row(['ML'],style={'font-weight':'bold','color':'white'}),
-                          dbc.Row([row.ml],style={'font-weight':'bold','color':'white'})])
+        divtext = html.Div([dbc.Row([dbc.Col(texto1,width=10),dbc.Col(tituloprof,width=2)],no_gutters=True),
+                         dbc.Row([dbc.Col(texto,width=10),dbc.Col(prof,width=2)],no_gutters=True)])
+        divML = html.Div([dbc.Row([tituloenergia],style={'font-weight':'bold','color':'white'}),
+                          dbc.Row([energia],style={'font-weight':'bold','color':'white'})])
         texto = dbc.Row([dbc.Col(divML,width=1),dbc.Col(divtext,width=11)],no_gutters=True)
         
 
@@ -145,9 +196,8 @@ def get_carddatoev(eventosel,volcansel):
     direccion = ffut.direccion_geo(result['backazimuth'])[0]
     direccion_largo = ffut.direccion_geo(result['backazimuth'])[1]
     distancia = np.round(result['distancemeters']/1000,1)
-    titulo='ML '+str(eventosel.ml.iloc[0])+' - '+str(distancia)+' km al '+direccion+' del '+volcansel.vol_tipo.iloc[0]+' '+volcansel.nombre.iloc[0]
-
     
+    titulo='ML '+str(eventosel.ml.iloc[0])+' - '+str(distancia)+' km al '+direccion+' del '+volcansel.vol_tipo.iloc[0]+' '+volcansel.nombre.iloc[0]
     fila1 =  html.Tr([html.Td("Fecha"), html.Td(str(eventosel.fecha.iloc[0])[0:19].replace('T',' '))])
     fila2 =  html.Tr([html.Td("Latitud"), html.Td(str(eventosel.latitud.iloc[0])+'°')])
     fila3 =  html.Tr([html.Td("Longitud"), html.Td(str(eventosel.longitud.iloc[0])+'°')])
@@ -160,6 +210,9 @@ def get_carddatoev(eventosel,volcansel):
                                     ],vertical=True,style={'width':'100%'}
         
         )
+    if eventosel.profundidad.iloc[0]==-1:
+        table=[]
+        titulo = "Sin localización"
     card = dbc.Card(
     dbc.CardBody(
         [
@@ -290,7 +343,10 @@ def elegir_evento(values,marker,cajita,active,panes):
         zoom=7
         index_sel = int(dash.callback_context.triggered[0]['prop_id'].split('.')[0].split(',')[0][9:])
         
+
+        
         center = [eventos[eventos.index==index_sel].latitud.iloc[0],eventos[eventos.index==index_sel].longitud.iloc[0]]
+        
     volcansel = volcanes[volcanes.id==eventos[eventos.index==index_sel].idvolc.iloc[0]]  
     activelist=np.full(len(values),False)
     activelist[index_sel]=True
@@ -299,12 +355,21 @@ def elegir_evento(values,marker,cajita,active,panes):
     panelist=np.full(len(values),-5000)
     panelist[index_sel]=5000
     for index,row in eventos.iterrows():
-        size=sizescale*row.ml
+        if row.tipoevento in ['VT','VD']:
+            size=sizescaleml*row.ml
+        else:
+            size=sizescaledr*row.dr
         colorev.append(dict(iconUrl=app.get_asset_url('img/'+row.tipoevento+'.png?random='+str(random())) , 
                                           iconSize=[size,size],iconAnchor=[size/2,size/2]))
     eventosel=eventos[eventos.index==index_sel]
-    sizesel = eventosel.ml.iloc[0]*sizescale
-    colorev[index_sel]=dict(iconUrl=app.get_asset_url('img/greydot.fw.png?random='+str(random())) , 
+    if eventosel.tipoevento.iloc[0] in ['VT','VD']:
+        sizesel = eventosel.ml.iloc[0]*sizescaleml
+        icono=app.get_asset_url('img/greydot.fw.png?random='+str(random()))
+    else:
+        sizesel = eventosel.dr.iloc[0]*sizescaledr
+        icono=app.get_asset_url('img/DR.png?random='+str(random()))
+        
+    colorev[index_sel]=dict(iconUrl=icono , 
                                           iconSize=[sizesel,sizesel],iconAnchor=[sizesel/2,sizesel/2])
 
     datosev = get_carddatoev(eventosel,volcansel)

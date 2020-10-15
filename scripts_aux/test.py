@@ -9,9 +9,28 @@ import ovdas_SeismicProc_lib as sp
 import datetime as dt
 import ovdas_ovdapp_lib as oap
 import pandas as pd
-
-df = gdb.extraer_eventos('2020-01-01', '2020-01-02', 'NevChillan')
-df= pd.DataFrame(df)
-
+import numpy as np
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
+def get_fechahoy(): 
+    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
+    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
+    return fini,ffin
+
+inicio,final=get_fechahoy()
+eventos = gdb.extraer_eventos(inicio,final,volcan='*')
+eventos = pd.DataFrame(eventos)
+#ml general
+eventosml = eventos[eventos.ml>2]
+#dr general
+eventosdr = eventos[eventos.dr>=500]
+#dr villarrica
+eventosdr_villarrica = eventos[(eventos.idvolc==28) & (eventos.dr>=30)]
+
+eventos = pd.concat([eventosml,eventosdr,eventosdr_villarrica])
+eventos = eventos.sort_values(by='fecha',ascending=False).head(20)
+eventos.fecha = eventos.fecha.astype('datetime64[s]')
+eventos = eventos.drop_duplicates(subset='fecha', keep="first")
+eventos = eventos.fillna({'profundidad':-1,'ml':0})
+eventos.latitud = np.where(eventos.latitud.isnull(),eventos.idvolc.map(volcanes.set_index('id')['latitud']),eventos['latitud']).astype(float)
+eventos.longitud = np.where(eventos.longitud.isnull(),eventos.idvolc.map(volcanes.set_index('id')['longitud']),eventos['longitud']).astype(float)
