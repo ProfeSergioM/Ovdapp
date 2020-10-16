@@ -12,7 +12,7 @@ import pandas as pd
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_getfromdb_lib as gdb
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
+PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))  
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 volcan_default='Melimoyu'
@@ -449,15 +449,13 @@ fechas_picker = dcc.DatePickerRange(
 )  
 
 search_bar = dbc.Row(
-   [       dbc.Col(volcan_selector,width=5,id='dropdown_wrapper'),
-       dbc.Col(fechas_picker,width=5),
-       dbc.Col(
-           dbc.Button("Enviar", color="primary",id='enviar', n_clicks=0),width=3.5
-           
-       ),
+   [       dbc.Col(volcan_selector,width=4,id='dropdown_wrapper'),
+           dbc.Col(fechas_picker,width=5),
+           dbc.Col(dbc.Button("Enviar", color="primary",id='enviar', n_clicks=0),width=1),
+           dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.23:8080/'),width=1)
        
    ],
-justify="between"
+justify="between",no_gutters=True
 ) 
 
 navbar = dbc.Navbar(
@@ -466,8 +464,9 @@ navbar = dbc.Navbar(
             # Use row and col to control vertical alignment of logo / brand
             dbc.Row(
                 [
-                    dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px"),width=2),
-                    dbc.Col(dbc.NavbarBrand("Resumen de parámetros de monitoreo"))
+                    dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=2),
+                    dbc.Col(dbc.NavbarBrand("Ovdash"),width=9),
+                    
                     
                 ],
                 align="left",

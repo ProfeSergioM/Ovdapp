@@ -22,10 +22,11 @@ from obspy.clients.iris import Client
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_getfromdb_lib as gdb
 import ovdas_doc_lib as odl
+from random import random
 import ovdas_figure_lib as ffig
 import ovdas_future_lib as ffut
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
+PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))  
 import datetime as dt
 from random import random
 tileurl =  'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}'
@@ -232,18 +233,19 @@ navbar = dbc.Navbar(
             # Use row and col to control vertical alignment of logo / brand
             dbc.Row(
                 [
-                    dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px"),width=2),
-                    dbc.Col(dbc.NavbarBrand("Últimos eventos destacados - Electric Eye"))
+                    dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=1),
+                    dbc.Col(dbc.NavbarBrand("Últimos eventos destacados - Electric Eye"),width=10),
+                    dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.23:8080/'),width=1)
                     
                 ],
-                align="left",
+                align="left",style={'width':'100%'},
                 no_gutters=True,
             ),
           
-                style={ 'width':'60%', 'margin-left':'0px' }
+                style={ 'width':'100%', 'margin-left':'0px' }
         ),
         dbc.NavbarToggler(id="navbar-toggler"),
-        dbc.Collapse([], id="navbar-collapse", navbar=True),
+
     ],
     color="dark",
     dark=True,

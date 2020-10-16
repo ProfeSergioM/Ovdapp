@@ -435,19 +435,20 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     return fig
 
 
-PLOTLY_LOGO = app.get_asset_url('img/orca_volcano.fw.jpg?random='+str(random()))       
+PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))  
 navbar = dbc.Navbar(
 [
 
     # Use row and col to control vertical alignment of logo / brand
     dbc.Row(
         [
-            dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=2),
-            dbc.Col(dbc.NavbarBrand("Proyecto de monitoreo sísmico automático OVV",style={'color':'white'}),width=8)
+            dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=1),
+            dbc.Col(dbc.NavbarBrand("Proyecto de monitoreo sísmico automático OVV",style={'color':'white'}),width=10),
+            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.23:8080/'),width=1)
             
             
         ],justify="left",
-    )
+    style={'width':'100%'})
 
 ],
 color="#141d26",

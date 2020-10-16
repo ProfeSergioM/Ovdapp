@@ -44,6 +44,10 @@ app.clientside_callback(
             document.title = 'Ovdapp - Orcapp'
         } else if (tab_value === '/apps/locali6') {
             document.title = 'Ovdapp - Locali6'
+        } else if (tab_value === '/apps/autovdas') {
+            document.title = 'Ovdapp - AutOvdas'
+        } else if (tab_value === '/apps/electriceye') {
+            document.title = 'Ovdapp - Electric Eye'
         }
     }
     """,

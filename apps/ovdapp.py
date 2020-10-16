@@ -74,7 +74,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "en las pantallas de crisis.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/ovdash',target='_blank'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/ovdash'),
             ]),],)
         
         card_orcapp = dbc.Card([
@@ -86,7 +86,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "de actividad sísmica del volcán Orca.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/orcapp',target='_blank'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/orcapp'),
             ]),],)
 
         card_autovdas = dbc.Card([
@@ -97,7 +97,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "Proyecto de monitoreo automático de señales sísmicas.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/autovdas',target='_blank'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/autovdas'),
             ]),],)
         
         card_electriceye = dbc.Card([
@@ -108,7 +108,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "Monitoreo de últimos sismos localizados. También permite generar REAVs de estos.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/electriceye',target='_blank'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/electriceye'),
             ]),],)
         
         contenido = html.Div([dbc.Row([dbc.Col(card_orcapp,width=2),
