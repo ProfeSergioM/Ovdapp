@@ -199,4 +199,3 @@ dependencies:
     - pyqt5-sip==4.19.18
     - pyqtwebengine==5.12.1
     - smmap2==2.0.5
-    - sphinx-rtd-theme==0.4.3
