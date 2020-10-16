@@ -70,7 +70,7 @@ def dibujar_mapa(eventos):
     if len(eventos)>0:
         eventos=eventos[eventos.profundidad!=-1]
         for entrada in eventos.tipoevento.unique():
-            sym=app.get_asset_url('img/greydot.fw.png?random='+str(random())) 
+            sym=app.get_asset_url('img/'+entrada+'.png?random='+str(random())) 
             if entrada=='LV':entrada='VLP'
             icono = html.Img(src=sym,height=10,width=10)
             legend_entry.append(html.Td(html.Div([icono,'  '+entrada])))
@@ -81,6 +81,7 @@ def dibujar_mapa(eventos):
     
     
     leyenda_ml_tabla_entry=['ML']
+    sym=app.get_asset_url('img/greydot.fw.png?random='+str(random())) 
     for i in range(1,4):
         icono = html.Img(src=sym,height=7*i,width=7*i)
         leyenda_ml_tabla_entry.append(html.Td(html.Div([icono,' '+str(i)+'.0'])))
