@@ -1,4 +1,4 @@
-name: ovdapp_env
+name: py2kml
 channels:
   - plotly
   - anaconda
@@ -200,3 +200,5 @@ dependencies:
     - pyqtwebengine==5.12.1
     - smmap2==2.0.5
     - sphinx-rtd-theme==0.4.3
+prefix: C:\Users\sergio\Anaconda3\envs\py2kml
+
