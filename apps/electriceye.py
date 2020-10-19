@@ -118,7 +118,7 @@ def get_eventos_destacados():
     #ml general
     eventosml = eventos[eventos.ml>2]
     #dr general
-    eventosdr = eventos[eventos.dr>=500]
+    eventosdr = eventos[eventos.dr>=250]
     #dr villarrica
     eventosdr_villarrica = eventos[(eventos.idvolc==28) & (eventos.dr>=30)]
     
