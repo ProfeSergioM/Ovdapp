@@ -37,6 +37,7 @@ sizescaleml=7
 sizescaledr=1/20
 client = Client()
 def dibujar_mapa(eventos):
+
     volcanes_star=[]
     for index,row in volcanes.iterrows():
         volcanes_star.append(dl.Marker(position=[row.latitud,row.longitud],zIndexOffset=-10000,
@@ -68,8 +69,8 @@ def dibujar_mapa(eventos):
     
     legend_entry=['Tipo de evento']
     if len(eventos)>0:
-        eventos=eventos[eventos.profundidad!=-1]
-        for entrada in eventos.tipoevento.unique():
+        eventos2=eventos[eventos.profundidad!=-1]
+        for entrada in eventos2.tipoevento.unique():
             sym=app.get_asset_url('img/'+entrada+'.png?random='+str(random())) 
             if entrada=='LV':entrada='VLP'
             icono = html.Img(src=sym,height=10,width=10)
@@ -87,8 +88,8 @@ def dibujar_mapa(eventos):
         leyenda_ml_tabla_entry.append(html.Td(html.Div([icono,' '+str(i)+'.0'])))
     leyenda_ml_tabla = html.Table(html.Tr(leyenda_ml_tabla_entry,style={'display':'table-cell'}))
     leyenda_ml = html.Div(leyenda_ml_tabla, style={"position": "absolute", "bottom": "20px", "right": "10px", "z-index": "1000"})
-    
     if any(item in ['LP','EX','TO','TR','LV'] for item in eventos.tipoevento.unique()):
+        
         leyenda_dr_tabla_entry=['DR']
         sym=app.get_asset_url('img/DR.png?random='+str(random()))
         for i in [100,250,500]:
