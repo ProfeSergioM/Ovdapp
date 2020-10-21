@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct 21 11:34:09 2020
+
+@author: sergio
+"""
 import dash
 import json
 import dash_html_components as html
@@ -92,7 +98,7 @@ def dibujar_mapa(volcanes,volcan,fi,ff):
         leyenda,
         dbc.CardFooter('Mostrando eventos entre '+fi+' y '+ff)
         
-        ],outline=True,color='light', )
+        ],outline=True,color='light',className='m-1',style={'height':'100%'} )
     return mapa,evs
 
 def contar_evs(fini,ffin,volcan):
@@ -396,23 +402,7 @@ def list_camaras(volcan):
     if len(lista_camaras)==0:lista_camaras=[{'label':'Sin Cámaras','value':'Sin Cámaras'}]
     return lista_camaras
 
-counter_imggif = dcc.Interval(
-          id='interval-component-gif',
-          interval=60*1000*15, # in milliseconds
-          n_intervals=0
-      )
 
-counter_imgfija = dcc.Interval(
-          id='interval-component-fija',
-          interval=5*1000, # in milliseconds
-          n_intervals=0
-      )
-
-counter_timeline = dcc.Interval(
-          id='interval-component-timeline',
-          interval=60*1000*30, # in milliseconds
-          n_intervals=0
-      )
 
 lista_volcanes=[]
 for index, row in volcanes.iterrows():
@@ -447,27 +437,15 @@ fechas_picker = dcc.DatePickerRange(
                                       'background-color': '#212121',
                                     } 
 )  
-
-search_bar = dbc.Row(
-   [       dbc.Col(volcan_selector,width=4,id='dropdown_wrapper'),
+search_bar = dbc.Row([dbc.Col(volcan_selector,width=4,id='dropdown_wrapper'),
            dbc.Col(fechas_picker,width=5),
            dbc.Col(dbc.Button("Enviar", color="primary",id='enviar', n_clicks=0),width=1),
-           dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.23:8080/'),width=1)
-       
-   ],
-justify="between",no_gutters=True
-) 
+           dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.23:8080/',style={'width':'100%','padding-left':'2px','padding-right':'2px'}),width=1)
+   ],justify="between",no_gutters=True) 
 
-navbar = dbc.Navbar(
-    [
-        html.A(
-            # Use row and col to control vertical alignment of logo / brand
-            dbc.Row(
-                [
+navbar = dbc.Navbar([html.A(dbc.Row([
                     dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=2),
-                    dbc.Col(dbc.NavbarBrand("Ovdash"),width=9),
-                    
-                    
+                    dbc.Col(dbc.NavbarBrand("Ovdash"),width=9)
                 ],
                 align="left",
                 no_gutters=True,
@@ -482,49 +460,33 @@ navbar = dbc.Navbar(
     dark=True,
 )
 
+counter_cam = dcc.Interval(
+          id='interval-component-cams',
+          interval=30*1000, # in milliseconds
+          n_intervals=0
+      )
+
+counter_timeline = dcc.Interval(
+          id='interval-component-timeline',
+          interval=60*1000, # in milliseconds
+          n_intervals=0
+      )
+
+cajita = html.Div(id='cajita', style={'display': 'none'})
+
+layout = (navbar,html.Div(children=[dbc.Row([dbc.Col(width=3,id='content_camaras',style={'padding-left':'0px','padding-right':'0px'}),
+                                      dbc.Col(width=6,id='content_timeline',style={'padding-left':'0px','padding-right':'0px'}),
+                                      dbc.Col(width=3,id='content_mapa',style={'padding-left':'0px','padding-right':'0px'})],
+                                     id='layout-ovdash')]
+                   ),counter_cam,counter_timeline,cajita)
 
 
-
-
-
-'''
-camera_selector = dcc.Dropdown(
-    clearable=False,
-    id='dropdown_camaras',
-    options=lista_camaras,
-    value=lista_camaras[0],
-    multi=False,
-    style={'color': '#212121','background-color': '#212121','width':'100%'})
-            
-card_gif = dbc.Card([dbc.CardBody([gif.GifPlayer(autoplay=True,gif=app.get_asset_url('timelapses/'+camera_selector.value['value']+'.gif?a='+str(random())),
-    still='assets/'+camera_selector.value['value']+'.gif')],id='cardgif'),],style={"width": "100%"})
-
-card_fija = dbc.Card([dbc.CardImg(alt='Sin Cámara',id='cardfija',src=app.get_asset_url('fijas/'+camera_selector.value['value']+'.jpg?random='+str(random())))     
-                      ],style={"width": "100%"}) 
-
-
-camaras = html.Div([dbc.Row([camera_selector]),dbc.Row([dbc.Col([card_gif],width=6),dbc.Col([card_fija],width=6)],no_gutters=True)])
-
-
-card_fotos = dbc.Card([dbc.CardHeader('Cámaras IP'),dbc.CardBody(camaras, id='camaras_todas')],outline=True,color='light')
-'''
-
-card_timeline = dcc.Loading(id='loadingtimeline',type='circle',children=[
-    dbc.Card([dbc.CardHeader('Timeline'),dbc.CardBody([html.Div(id='body_timeline')]),dbc.CardFooter('*Información preliminar obtenida del análisis primario y procesamientos automáticos del Ovdas')],outline=True,color='light')])
-
-card_mapa = dcc.Loading(id='loadingmapa',type='circle',children=[
-                dbc.Card([dbc.CardHeader('Localizaciones'),dbc.CardBody([html.Div(id='body_mapa')])],outline=True,color='light')])
-
-layout = (navbar,html.Div(children=[dbc.Row([dbc.Col(id='camaras_todos',width=3),dbc.Col([card_timeline],width=6),dbc.Col([card_mapa],width=3)],id='row-timeline')],id='tab1content'),
-          html.Div(id='cajita', style={'display': 'none'}),counter_imggif,counter_imgfija,counter_timeline)
-
-     
 @app.callback(
-    [Output('camaras_todos','children')],
-    [Input('enviar','n_clicks')],
+    [Output('content_camaras','children')],
+    [Input('enviar','n_clicks'),Input('interval-component-cams', 'n_intervals')],
     [State('dropdown_volcanes','value')]    
 )
-def show_cams(ir,volcan):
+def content_camaras(ir,timer,volcan):
     lista_camaras = list_camaras(volcan)
     div_camaras = []
     for cam in lista_camaras:
@@ -533,70 +495,23 @@ def show_cams(ir,volcan):
         
         card_fija = dbc.Card([dbc.CardImg(alt='Sin Cámara',id='cardfija',src=app.get_asset_url('fijas/'+cam['value']+'.jpg?random='+str(random())))     
                               ],style={"width": "100%"})         
-        div_camaras.append(dbc.Row([dbc.Col([card_gif],width=6),dbc.Col([card_fija],width=6)],no_gutters=True))
-    card_fotos = dbc.Card([dbc.CardHeader('Cámaras IP'),dbc.CardBody(div_camaras, id='camaras_todas')],outline=True,color='light')
-    return [card_fotos]
-    
-           
-'''    
-@app.callback(
-    [Output("cardgif", "children")],
-    [Input('dropdown_camaras','value'),Input('interval-component-gif', 'n_intervals')]
-)
-def update_cam_gif(vista,timer_gif):
-    ctx = dash.callback_context
-    
-    if ctx.triggered[0]['prop_id'] in ['dropdown_camaras.value','interval-component-gif.n_intervals','.']:
-        if len(vista)==2:
-            rutavista = vista['value']
-        else:
-            rutavista = vista
+        div_camaras.append(dbc.Row([dbc.Col([card_gif],width=6),dbc.Col([card_fija],width=6)],no_gutters=True)) 
         
-        cardgif = [
-               gif.GifPlayer(autoplay=True,
-        gif=app.get_asset_url('timelapses/'+rutavista+'.gif?a='+str(random())),
-        still=app.get_asset_url('timelapses/'+rutavista+'.gif?a='+str(random())),
-                          )    
-            ]
-    return cardgif
-
+    content = dbc.Card([dbc.CardHeader('Cámaras web'),
+                              dbc.CardBody(dcc.Loading(id='loading-card_listaeventos',type='circle',
+                                                       
+                                                       children=div_camaras),
+                                           style={'overflow':'auto',"height": "75vh"},id='bodyevssinloading')
+                              ],outline=True,color='light',className='m-1',style={'height':'100%'})
+    
+    return [content]
 
 @app.callback(
-    [Output("cardfija", "src")],
-    [Input('dropdown_camaras','value'),Input('interval-component-fija', 'n_intervals'),Input('enviar','n_clicks')]
+    [Output('content_timeline','children')],
+    [Input('enviar','n_clicks'),Input('interval-component-timeline', 'n_intervals')],
+    [State('dropdown_volcanes','value'),State('fechas','start_date'),State('fechas','end_date')]    
 )
-def update_cam_fija(vista,timer,ir):
-    ctx = dash.callback_context
-    
-    if ctx.triggered[0]['prop_id'] in ['dropdown_camaras.value','interval-component-fija.n_intervals']:
-        if len(vista)==2:
-            rutavista = vista['value']
-        else:
-            rutavista = vista
-        
-        cardfija = [app.get_asset_url('fijas/'+rutavista+'.jpg?random='+str(random())) ]
-        return cardfija
-    else:raise dash.exceptions.PreventUpdate
-
-
-    
-@app.callback(
-    [Output('dropdown_camaras','options'),Output('dropdown_camaras','value')],
-    [Input(component_id='enviar', component_property='n_clicks')],
-     [State('dropdown_volcanes','value')]
-    )
-def elegir_volcan(ir,volcan):
-    lista_camaras = list_camaras(volcan)
-    return lista_camaras,lista_camaras[0]
-'''
-
-@app.callback(
-    [Output('body_timeline','children')],
-    [Input(component_id='enviar', component_property='n_clicks'),Input('interval-component-timeline', 'n_intervals')],
-     [State('dropdown_volcanes','value'),State('fechas','start_date'),
-     State('fechas','end_date')]
-    )
-def timeline(ir,counter,volcan,fi,ff):
+def content_timeline(ir,timer,volcan,fi,ff):
     ctx = dash.callback_context
     trigger = ctx.triggered[0]['prop_id']
     if trigger=='.':
@@ -612,13 +527,16 @@ def timeline(ir,counter,volcan,fi,ff):
     dfVRP = pd.read_json('http://172.16.47.22:8000/api/extraer_vrp?fechaini='+fini+'&fechafin='+ffin+'&volcan='+volcan+'&output=json')
     
     GNSS = get_lineaGNSS(fini, ffin, volcan)
-    contenido =  dcc.Graph(id='timeline_graph',figure=fig_timeline(fini,ffin,conteo,n_subplots,tipoev_list,volcanes,
+    timeline =  dcc.Graph(id='timeline_graph',figure=fig_timeline(fini,ffin,conteo,n_subplots,tipoev_list,volcanes,
                                                volcan,alturas,excede,alertas_df,rsam,dr,DOAS,dfVRP,GNSS),
-                           style={'height': '80vh'},responsive=True)
-    return [contenido]
-            
+                           style={'height': '100%'},responsive=True)
+    
+    content = dbc.Card([dbc.CardHeader('Timeline'),dbc.CardBody([timeline],style={'height':'75vh'}),dbc.CardFooter('*Información preliminar obtenida del análisis primario y procesamientos automáticos del Ovdas')],
+             outline=True,color='light',className='m-1',style={'height':'100%'})
+    return [content]
+
 @app.callback(
-    [Output('body_mapa','children')],
+    [Output('content_mapa','children')],
     [Input(component_id='enviar', component_property='n_clicks'),Input('cajita', 'children')],
      [State('dropdown_volcanes','value'),State('fechas','start_date'),
      State('fechas','end_date')]
@@ -641,31 +559,3 @@ def mapa(ir,cajita,volcan,fi,ff):
     else:
         mapadata,evs= dibujar_mapa(volcanes, volcan,fini,ffin)
     return [mapadata]
-   
-@app.callback(
-    Output('cajita', 'children'),
-    [Input('timeline_graph', 'relayoutData')])
-def display_relayout_data(relayoutData):
-    if relayoutData not in [{'autosize':True},None]:
-        return json.dumps(relayoutData, indent=2)
-    
-@app.callback([Output('fechas', 'start-date'),Output('fechas', 'end-date')],
-              [Input('interval-component-timeline', 'n_intervals')])
-def update_date(n):
-    import datetime as dt
-    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=365), '%Y-%m-%d')
-    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
-    return fini,ffin
-
-
-@app.callback(
-    Output('fechas','min_date_allowed'),
-    [Input('dropdown_volcanes','value')]
-    )
-def update_fechaini(volcan):
-    alertas_df =alertas('2010-01-01','2015-01-01',volcan)
-    inimo = str(alertas_df.head(1).index[0])[0:10]
-    return inimo
-    
-
-    

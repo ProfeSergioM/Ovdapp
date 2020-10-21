@@ -18,6 +18,7 @@ height:100%
 
 #page-content {
 height:100%;
+
 background-color:#111111;
 }
 
@@ -29,10 +30,12 @@ width:100vw!important ;}
 
 .navbar-brand {
 font-size:1.5rem!important;
+
 }
 
 .navbar {
 border-bottom: 1px solid rgba(120,120,120,0.5);
+width:99.6%;
 }
 
 table {
