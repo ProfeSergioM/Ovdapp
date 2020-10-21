@@ -3,10 +3,14 @@
 }
 
 #dropdown_wrapper .VirtualizedSelectFocusedOption {
-  background-color: #428bca;
+  background-color: red;
 }
 #dropdown_wrapper .VirtualizedSelectOption {
     color:white;
+}
+
+.VirtualizedSelectFocusedOption {
+  background-color: #2A9FD6!important;
 }
 
 .VirtualizedSelectOption {

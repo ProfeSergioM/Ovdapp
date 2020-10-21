@@ -24,6 +24,7 @@ import ovdas_getfromdb_lib as gdb
 import ovdas_doc_lib as odl
 import ovdas_figure_lib as ffig
 import ovdas_future_lib as ffut
+import ovdas_RAV2020_lib as rav2020
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 import datetime as dt
@@ -38,6 +39,20 @@ for index, row in volcanes.iterrows():
     lista_volcanes.append(volcan)  
 
 destacados_alertas = volcanes[volcanes.vol_alerta.isin([2,3,4])].nombre_db.unique()
+
+
+modal_go = html.Div([Download(id="download-holaRAV"),dbc.Modal(
+            [
+                dbc.ModalHeader("Importante!"),
+                dbc.ModalBody("This is the content of the modal",id='modalbody-holaRAV'),
+                dbc.ModalFooter(
+                    dbc.Button("Close", id="close-holaRAV", className="ml-auto")
+                ),
+            ],
+            id="modal-holaRAV",
+        )])
+
+modal_go = dcc.Loading(modal_go, style={'position':'fixed','left':'50%','top':'50%'})
 
 volcan_selector = dcc.Dropdown(
     clearable=False,
@@ -60,6 +75,7 @@ year_selector = dcc.Dropdown(
     options=years,
     value=2020,
     multi=False,
+    searchable=False,
     style=
                                     { 
                                       'color': '#212121',
@@ -73,6 +89,7 @@ month_selector = dcc.Dropdown(
     options= [{'label': year,'value':year} for year in range(1,13)],
     value=10,
     multi=False,
+    searchable=False,
     style=
                                     { 
                                       'color': '#212121',
@@ -120,74 +137,36 @@ sidebar = html.Div(
 
 content = html.Div(id="contenido-holaRAV", style=CONTENT_STYLE)
 
-layout = html.Div([sidebar, content])
+layout = html.Div([sidebar, content,modal_go])
 
-'''
-@app.callback(Output('dropdown_volcanes-holaRAV','options'),
-              [Input('dropdown_volcanes-holaRAV','options')])
-def first_load():
-    volcanes =gdb.get_metadata_volcan('*',rep='y')
-    volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
-    print(volcanes)
-    return dash.exceptions.PreventUpdate
-
-@app.callback(
-    Output("contenido-hangar18", "children"), 
-    [Input("inicio-button-hangar18", "n_clicks"),Input("seccion-reavs-hangar18", "n_clicks")]
+@app.callback([Output('modalbody-holaRAV','children'),Output("modal-holaRAV", "is_open"),Output("download-holaRAV", "data")],
+              [Input('ir-holaRAV','n_clicks'), Input("close-holaRAV", "n_clicks")],
+              [State('dropdown_month-holaRAV','value'),State('dropdown_year-holaRAV','value'),State("modal-holaRAV", "is_open")]
+              ,prevent_initial_call=True
 )
-def on_button_click(n_inicio,n_reavs):
+def lanzar_RAV(ir,close,month,year,is_open):
     ctx = dash.callback_context
-    button_id = ctx.triggered[0]['prop_id'].split('.')[0]
-    
-    if (button_id == "inicio-button-hangar18") or (ctx.triggered[0]['prop_id'] =='.'):
-        return "Bienvenido!"
-    elif button_id == "seccion-reavs-hangar18":
-        
-        lista_criterios_general = dbc.ListGroup(
-    [
-        dbc.ListGroupItem("Registro de un evento sísmico tipo VT o HB con un valor de magnitud local (ML) igual o superior a 3.0", color="info"),
-        dbc.ListGroupItem(("Registro de un evento sísmico tipo LP, EX, TR, TO,"+ 
-                          "VLP o HB con un valor de desplazamiento reducido (DR) igual o superior a 500 cm*cm"), color="info"),
-        dbc.ListGroupItem("Registro de un enjambre sísmico, es decir, la clasificación de 100 eventos sísmicos distribuidos en un periodo de tres horas", color="info")
-    ]
-    )
-
-        lista_criterios_NevChillan = dbc.ListGroup( [dbc.ListGroupItemHeading("C.V. Nevados de Chillán"),
-        dbc.ListGroupItem("Emisión de columna eruptiva por sobre los 2000 m sobre el punto de emisión", color="info")])
-        lista_criterios_Villarrica = dbc.ListGroup( [dbc.ListGroupItemHeading("Vn. Villarrica"),
-        dbc.ListGroupItem("Registro de material particulado en columna de desgasificación (inclusive incandescencias nocturnas con emisiones pulsátiles)", color="info"),
-        dbc.ListGroupItem("Registro de un evento sísmico tipo LP, EX, TR, TO, VLP o HB con un desplazamiento reducido (DR) igual o superior a 30 cm*cm", color="info")
-        
-        ])                                             
-        lista_criterios_particular = dbc.ListGroup(
-            dbc.ListGroupItem(
-                    [
-                        
-                              lista_criterios_NevChillan,
-                              lista_criterios_Villarrica
-           ,
-                    ]
-                )
-  
-    )
+    trigger = ctx.triggered[0]['prop_id']
+    if trigger == 'ir-holaRAV.n_clicks':
+        ultimo_mes = dt.date.today().replace(day=1)-dt.timedelta(days=1)
+        fecha_select = dt.date(year,month,1)
+        print(ultimo_mes,fecha_select)
+        print(ultimo_mes > fecha_select)
+        if (ultimo_mes > fecha_select)==True:
+            print('Generando RAV')
             
-        list_group = dbc.ListGroup(
-            [
-                dbc.ListGroupItem(
-                    [
-                        dbc.ListGroupItemHeading("Criterios EN GENERAL (para todos los sistemas volcánicos)"),
-                        lista_criterios_general,
-                    ]
-                ),
-                dbc.ListGroupItem(
-                    [
-                        dbc.ListGroupItemHeading("Criterios EN PARTICULAR (para un sistema volcánico en específico)"),
-                        lista_criterios_particular
-                    ]
-                ),
-            ]
-        )
-        
-        contenido = html.Div([list_group])
-        return contenido
-'''
+            document,filename = rav2020.main('2020-09')
+            def createrav(ruta):
+                document.save(ruta)
+  
+            return 'Listo!', not is_open,send_bytes(createrav,filename)
+        else:
+            if fecha_select == ultimo_mes+dt.timedelta(days=1):
+                print('Mes en curso')
+                return "Mes en curso, faltan datos para RAV!", not is_open
+            else:
+                print('BASTA')
+                return "¡De regreso al futuro! (fecha superior a hoy)", not is_open,dash.no_update
+    elif trigger=='close-holaRAV.n_clicks':
+        print('cerrado')
+        return [],not is_open,dash.no_update

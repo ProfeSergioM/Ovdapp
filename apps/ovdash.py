@@ -15,10 +15,10 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))  
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
-volcan_default='Melimoyu'
+volcan_default='Villarrica'
 import datetime as dt
 def get_fechahoy(): 
-    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=366), '%Y-%m-%d')
+    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=32), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     return fini,ffin
 
@@ -485,24 +485,29 @@ navbar = dbc.Navbar(
 
 
 
-lista_camaras = list_camaras(volcan_selector.value)
 
+
+'''
 camera_selector = dcc.Dropdown(
     clearable=False,
     id='dropdown_camaras',
     options=lista_camaras,
     value=lista_camaras[0],
     multi=False,
-    style={'color': '#212121','background-color': '#212121'})
+    style={'color': '#212121','background-color': '#212121','width':'100%'})
             
 card_gif = dbc.Card([dbc.CardBody([gif.GifPlayer(autoplay=True,gif=app.get_asset_url('timelapses/'+camera_selector.value['value']+'.gif?a='+str(random())),
     still='assets/'+camera_selector.value['value']+'.gif')],id='cardgif'),],style={"width": "100%"})
 
-card_fija = dbc.Card([dbc.CardHeader('Última hora ↑| Última imagen ↓'),
-                      dbc.CardImg(alt='Sin Cámara',id='cardfija',src=app.get_asset_url('fijas/'+camera_selector.value['value']+'.jpg?random='+str(random())))     
+card_fija = dbc.Card([dbc.CardImg(alt='Sin Cámara',id='cardfija',src=app.get_asset_url('fijas/'+camera_selector.value['value']+'.jpg?random='+str(random())))     
                       ],style={"width": "100%"}) 
 
-card_fotos = dbc.Card([dbc.CardHeader('Cámaras IP'),dbc.CardBody([camera_selector,card_gif,card_fija])],outline=True,color='light')
+
+camaras = html.Div([dbc.Row([camera_selector]),dbc.Row([dbc.Col([card_gif],width=6),dbc.Col([card_fija],width=6)],no_gutters=True)])
+
+
+card_fotos = dbc.Card([dbc.CardHeader('Cámaras IP'),dbc.CardBody(camaras, id='camaras_todas')],outline=True,color='light')
+'''
 
 card_timeline = dcc.Loading(id='loadingtimeline',type='circle',children=[
     dbc.Card([dbc.CardHeader('Timeline'),dbc.CardBody([html.Div(id='body_timeline')]),dbc.CardFooter('*Información preliminar obtenida del análisis primario y procesamientos automáticos del Ovdas')],outline=True,color='light')])
@@ -510,13 +515,30 @@ card_timeline = dcc.Loading(id='loadingtimeline',type='circle',children=[
 card_mapa = dcc.Loading(id='loadingmapa',type='circle',children=[
                 dbc.Card([dbc.CardHeader('Localizaciones'),dbc.CardBody([html.Div(id='body_mapa')])],outline=True,color='light')])
 
-layout = (navbar,html.Div(children=[dbc.Row([dbc.Col([card_fotos],width=2),dbc.Col([card_timeline],width=7),dbc.Col([card_mapa],width=3)],id='row-timeline')],id='tab1content'),
+layout = (navbar,html.Div(children=[dbc.Row([dbc.Col(id='camaras_todos',width=4),dbc.Col([card_timeline],width=5),dbc.Col([card_mapa],width=3)],id='row-timeline')],id='tab1content'),
           html.Div(id='cajita', style={'display': 'none'}),counter_imggif,counter_imgfija,counter_timeline)
 
      
-
-           
+@app.callback(
+    [Output('camaras_todos','children')],
+    [Input('enviar','n_clicks')],
+    [State('dropdown_volcanes','value')]    
+)
+def show_cams(ir,volcan):
+    lista_camaras = list_camaras(volcan)
+    div_camaras = []
+    for cam in lista_camaras:
+        card_gif = dbc.Card([dbc.CardBody([gif.GifPlayer(autoplay=True,gif=app.get_asset_url('timelapses/'+cam['value']+'.gif?a='+str(random())),
+            still='assets/'+cam['value']+'.gif')],id='cardgif'),],style={"width": "100%"})
+        
+        card_fija = dbc.Card([dbc.CardImg(alt='Sin Cámara',id='cardfija',src=app.get_asset_url('fijas/'+cam['value']+'.jpg?random='+str(random())))     
+                              ],style={"width": "100%"})         
+        div_camaras.append(dbc.Row([dbc.Col([card_gif],width=6),dbc.Col([card_fija],width=6)],no_gutters=True))
+    card_fotos = dbc.Card([dbc.CardHeader('Cámaras IP'),dbc.CardBody(div_camaras, id='camaras_todas')],outline=True,color='light')
+    return [card_fotos]
     
+           
+'''    
 @app.callback(
     [Output("cardgif", "children")],
     [Input('dropdown_camaras','value'),Input('interval-component-gif', 'n_intervals')]
@@ -555,6 +577,8 @@ def update_cam_fija(vista,timer,ir):
         cardfija = [app.get_asset_url('fijas/'+rutavista+'.jpg?random='+str(random())) ]
         return cardfija
     else:raise dash.exceptions.PreventUpdate
+
+
     
 @app.callback(
     [Output('dropdown_camaras','options'),Output('dropdown_camaras','value')],
@@ -564,7 +588,7 @@ def update_cam_fija(vista,timer,ir):
 def elegir_volcan(ir,volcan):
     lista_camaras = list_camaras(volcan)
     return lista_camaras,lista_camaras[0]
-
+'''
 
 @app.callback(
     [Output('body_timeline','children')],
