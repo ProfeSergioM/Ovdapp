@@ -515,7 +515,7 @@ card_timeline = dcc.Loading(id='loadingtimeline',type='circle',children=[
 card_mapa = dcc.Loading(id='loadingmapa',type='circle',children=[
                 dbc.Card([dbc.CardHeader('Localizaciones'),dbc.CardBody([html.Div(id='body_mapa')])],outline=True,color='light')])
 
-layout = (navbar,html.Div(children=[dbc.Row([dbc.Col(id='camaras_todos',width=4),dbc.Col([card_timeline],width=5),dbc.Col([card_mapa],width=3)],id='row-timeline')],id='tab1content'),
+layout = (navbar,html.Div(children=[dbc.Row([dbc.Col(id='camaras_todos',width=3),dbc.Col([card_timeline],width=6),dbc.Col([card_mapa],width=3)],id='row-timeline')],id='tab1content'),
           html.Div(id='cajita', style={'display': 'none'}),counter_imggif,counter_imgfija,counter_timeline)
 
      
