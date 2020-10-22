@@ -9,6 +9,7 @@ import json
 import dash_html_components as html
 import dash_core_components as dcc
 from app import app
+from dash.exceptions import PreventUpdate
 from random import random
 from dash.dependencies import Input, Output,State
 import dash_bootstrap_components as dbc
@@ -24,7 +25,7 @@ volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 volcan_default='Villarrica'
 import datetime as dt
 def get_fechahoy(): 
-    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=32), '%Y-%m-%d')
+    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=182), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     return fini,ffin
 
@@ -72,7 +73,7 @@ def dibujar_mapa(volcanes,volcan,fi,ff):
         #                            icon=dict(iconUrl=sym, iconSize=[10,10],iconAnchor=[5, 5]),id=str(row.idevento)))        
         
     contenidomapa = [dl.TileLayer(id="tiles", url=tileurl),escala,*evs,volcan_star]
-    mapa = dl.Map(contenidomapa,style={'width': '100%', 'height': '75vh', 'margin': "auto", "display": "block","z-index":"0"}
+    mapa = dl.Map(contenidomapa,style={'width': '100%', 'height': '100%', 'margin': "auto", "display": "block","z-index":"0"}
                     ,center=[lat_vol,lon_vol,
                                                                                    ],zoom=10,id='mapaloc'
                     )
@@ -96,7 +97,7 @@ def dibujar_mapa(volcanes,volcan,fi,ff):
     mapa = dbc.Card([
         dbc.CardBody(mapa),
         leyenda,
-        dbc.CardFooter('Mostrando eventos entre '+fi+' y '+ff)
+        dbc.CardFooter('Datos entre '+fi+' y '+ff)
         
         ],outline=True,color='light',className='m-1',style={'height':'100%'} )
     return mapa,evs
@@ -472,10 +473,16 @@ counter_timeline = dcc.Interval(
           n_intervals=0
       )
 
+
+timeline =  dcc.Loading(dcc.Graph(id='timeline_graph',style={'height': '100%'},responsive=True,animate=True),parent_style={'height':'100%'})
+
+content_cardtimeline = dbc.Card([dbc.CardHeader('Timeline'),dbc.CardBody([timeline],style={'height':'75vh'}),dbc.CardFooter('*Información preliminar obtenida del análisis primario y procesamientos automáticos del Ovdas')],
+         outline=True,color='light',className='m-1',style={'height':'100%'})
+
 cajita = html.Div(id='cajita', style={'display': 'none'})
 
 layout = (navbar,html.Div(children=[dbc.Row([dbc.Col(width=3,id='content_camaras',style={'padding-left':'0px','padding-right':'0px'}),
-                                      dbc.Col(width=6,id='content_timeline',style={'padding-left':'0px','padding-right':'0px'}),
+                                      dbc.Col([content_cardtimeline],width=6,id='content_timeline',style={'padding-left':'0px','padding-right':'0px'}),
                                       dbc.Col(width=3,id='content_mapa',style={'padding-left':'0px','padding-right':'0px'})],
                                      id='layout-ovdash')]
                    ),counter_cam,counter_timeline,cajita)
@@ -498,16 +505,16 @@ def content_camaras(ir,timer,volcan):
         div_camaras.append(dbc.Row([dbc.Col([card_gif],width=6),dbc.Col([card_fija],width=6)],no_gutters=True)) 
         
     content = dbc.Card([dbc.CardHeader('Cámaras web'),
-                              dbc.CardBody(dcc.Loading(id='loading-card_listaeventos',type='circle',
+                              dbc.CardBody(dcc.Loading(className="loading-container",id='loading-card_listaeventos',type='circle',
                                                        
-                                                       children=div_camaras),
+                                                       children=html.Div(div_camaras,style={'height':'100%'})),
                                            style={'overflow':'auto',"height": "75vh"},id='bodyevssinloading')
                               ],outline=True,color='light',className='m-1',style={'height':'100%'})
     
     return [content]
 
 @app.callback(
-    [Output('content_timeline','children')],
+    [Output('timeline_graph','figure')],
     [Input('enviar','n_clicks'),Input('interval-component-timeline', 'n_intervals')],
     [State('dropdown_volcanes','value'),State('fechas','start_date'),State('fechas','end_date')]    
 )
@@ -527,35 +534,53 @@ def content_timeline(ir,timer,volcan,fi,ff):
     dfVRP = pd.read_json('http://172.16.47.22:8000/api/extraer_vrp?fechaini='+fini+'&fechafin='+ffin+'&volcan='+volcan+'&output=json')
     
     GNSS = get_lineaGNSS(fini, ffin, volcan)
-    timeline =  dcc.Graph(id='timeline_graph',figure=fig_timeline(fini,ffin,conteo,n_subplots,tipoev_list,volcanes,
-                                               volcan,alturas,excede,alertas_df,rsam,dr,DOAS,dfVRP,GNSS),
-                           style={'height': '100%'},responsive=True)
-    
-    content = dbc.Card([dbc.CardHeader('Timeline'),dbc.CardBody([timeline],style={'height':'75vh'}),dbc.CardFooter('*Información preliminar obtenida del análisis primario y procesamientos automáticos del Ovdas')],
-             outline=True,color='light',className='m-1',style={'height':'100%'})
-    return [content]
+    figure=fig_timeline(fini,ffin,conteo,n_subplots,tipoev_list,volcanes,volcan,alturas,excede,alertas_df,rsam,dr,DOAS,dfVRP,GNSS)
+    return [figure]
 
 @app.callback(
     [Output('content_mapa','children')],
-    [Input(component_id='enviar', component_property='n_clicks'),Input('cajita', 'children')],
+    [Input(component_id='enviar', component_property='n_clicks'),Input('cajita', 'children'),Input('timeline_graph', 'relayoutData')],
      [State('dropdown_volcanes','value'),State('fechas','start_date'),
      State('fechas','end_date')]
     )
-def mapa(ir,cajita,volcan,fi,ff):
+def mapa(ir,cajita,relayoutData,volcan,fi,ff):
     ctx = dash.callback_context
     trigger = ctx.triggered[0]['prop_id']
-    if trigger=='.':
-        fini,ffin = get_fechahoy()
+    if trigger=='enviar.n_clicks':
+        mapadata,evs= dibujar_mapa(volcanes, volcan,fi,ff)
+        return [mapadata]
+    elif (trigger=='timeline_graph.relayoutData'):
+        listakeys = list(ctx.triggered[0]['value'].keys())
+        if ('autosize' in listakeys) ==True:
+            mapadata,evs= dibujar_mapa(volcanes, volcan,fi,ff)   
+            return [mapadata]
+        elif ('xaxis.range[0]' in listakeys) ==True:
+            xi = ctx.triggered[0]['value']['xaxis.range[0]'][0:10]
+            xf = ctx.triggered[0]['value']['xaxis.range[1]'][0:10]
+            mapadata,evs= dibujar_mapa(volcanes, volcan,xi,xf)  
+            return [mapadata]
+        elif ('xaxis.autorange' in listakeys) ==True:
+            mapadata,evs= dibujar_mapa(volcanes, volcan,fi,ff)   
+            return [mapadata]            
+        else:
+            raise PreventUpdate
     else:
-        fini,ffin=fi,ff
+        raise PreventUpdate
 
-    if (ctx.triggered[0]['prop_id']=='cajita.children') and (ctx.triggered[0]['value']!=None):
-    #if ctx.triggered[0]['value'] not in ['null',None]:
-    #    print(ctx.triggered[0])
-        cajita = json.loads(cajita)
-        xi = cajita['xaxis2.range[0]'][0:10]
-        xf = cajita['xaxis2.range[1]'][0:10]
-        mapadata,evs= dibujar_mapa(volcanes, volcan,xi,xf)
-    else:
-        mapadata,evs= dibujar_mapa(volcanes, volcan,fini,ffin)
-    return [mapadata]
+
+@app.callback(
+    Output('fechas','min_date_allowed'),
+    [Input('dropdown_volcanes','value')]
+    )
+def update_fechaini(volcan):
+    alertas_df =alertas('2010-01-01','2015-01-01',volcan)
+    inimo = str(alertas_df.head(1).index[0])[0:10]
+    return inimo
+
+@app.callback([Output('fechas', 'start-date'),Output('fechas', 'end-date')],
+              [Input('interval-component-timeline', 'n_intervals')])
+def update_date(n):
+    import datetime as dt
+    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=365), '%Y-%m-%d')
+    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
+    return fini,ffin

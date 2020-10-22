@@ -1,0 +1,14 @@
+name: dash2
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - dash-core-components
+  - waitress
+  - dash-bootstrap-components
+  - pandas
+  - mysql-connector-python
+  - simplekml
+  - matplotlib
+  - obspy
+  - python-docx
