@@ -469,7 +469,7 @@ counter_cam = dcc.Interval(
 
 counter_timeline = dcc.Interval(
           id='interval-component-timeline',
-          interval=60*1000, # in milliseconds
+          interval=60*1000*5, # utlimo numero son minutos
           n_intervals=0
       )
 
