@@ -22,7 +22,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))  
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
-volcan_default='Villarrica'
+volcan_default='NevChillan'
 import datetime as dt
 def get_fechahoy(): 
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=182), '%Y-%m-%d')
@@ -474,7 +474,7 @@ counter_timeline = dcc.Interval(
       )
 
 
-timeline =  dcc.Loading(dcc.Graph(id='timeline_graph',style={'height': '100%'},responsive=True,animate=True),parent_style={'height':'100%'})
+timeline =  dcc.Loading(dcc.Graph(id='timeline_graph',style={'height': '100%'}),parent_style={'height':'100%'})
 
 content_cardtimeline = dbc.Card([dbc.CardHeader('Timeline'),dbc.CardBody([timeline],style={'height':'75vh'}),dbc.CardFooter('*Información preliminar obtenida del análisis primario y procesamientos automáticos del Ovdas')],
          outline=True,color='light',className='m-1',style={'height':'100%'})
