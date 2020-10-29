@@ -221,7 +221,8 @@ color="#141d26"
 
 
 def dibujar_mapa(fi,ff):
-    usgs = get_usgs(fini, ffin)
+    print(fi,ff)
+    usgs = get_usgs(fi, ff)
     #tileurl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
     tileurl =  'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}'
     escala = dl.ScaleControl()
@@ -326,6 +327,7 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
     [State('RSAM-range-slider', 'value'),State('fechas','start_date'),State('fechas','end_date'),State('freqconteo','value')]
 )
 def update_cam_fija(n,click,rangef,fini,ffin,freqconteo):
+    print(fini,ffin)
     fig = crear_figura(rangef,fini,ffin,freqconteo)
     grafico = html.Div(children=[
         dcc.Graph(
