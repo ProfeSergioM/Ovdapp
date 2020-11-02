@@ -153,13 +153,14 @@ def on_button_click(n_inicio,n_reavs,n_rav2020):
     * Ambos son utilizados directamente en .png por el RAV (falta pasar a jpg)
     > REVISAR ORTOGRAFÍA DE AMBAS IMAGENES
                             
-* Una vez comprobada la existencia de estas figuras, se procede a ejecutar desde spyder la siguente instrucción:                  
-    > import sys
+* Una vez comprobada la existencia de estas figuras, se procede a ejecutar desde spyder la siguente instrucción: 
+   ```py                  
+      import sys
       import os
       sys.path.append('//172.16.40.10/Sismologia/pyOvdas_lib/')
       import ovdas_reportes_scripts as reportes
       reportes.RAV2020('yyyy-mm') 
-   >
+   ```
    
 (nuevamente, yyyy-mm corresponde a año-mes, ejemplo: reportes.RAV2020('2020-10') para octubre de 2020
 
