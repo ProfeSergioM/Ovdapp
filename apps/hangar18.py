@@ -58,7 +58,8 @@ sidebar = html.Div(
         dbc.ButtonGroup(
     [
         dbc.Button("Inicio",id='inicio-button-hangar18'),
-        dbc.Button("Criterios REAV",id="seccion-reavs-hangar18")
+        dbc.Button("Criterios REAV",id="seccion-reavs-hangar18"),
+        dbc.Button("Instrucciones RAV 2020",id="seccion-RAV2020-hangar18")
     ],
     vertical=True,style={'width':'100%'}
 ),
@@ -76,9 +77,10 @@ layout = html.Div([sidebar, content])
 
 @app.callback(
     Output("contenido-hangar18", "children"), 
-    [Input("inicio-button-hangar18", "n_clicks"),Input("seccion-reavs-hangar18", "n_clicks")]
+    [Input("inicio-button-hangar18", "n_clicks"),Input("seccion-reavs-hangar18", "n_clicks"),
+     Input("seccion-RAV2020-hangar18", "n_clicks")]
 )
-def on_button_click(n_inicio,n_reavs):
+def on_button_click(n_inicio,n_reavs,n_rav2020):
     ctx = dash.callback_context
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
     
@@ -132,5 +134,49 @@ def on_button_click(n_inicio,n_reavs):
         )
         
         contenido = html.Div([list_group])
-        return contenido
+        
+    elif button_id == "seccion-RAV2020-hangar18":
+        texto=dcc.Markdown('''
+                           
+#### Pasos para una correcta generación del RAV mensual 2020
+##### Versión 1.0 -  2 de noviembre de 2020
+
+* Diseñar portada
+    * Comprobar que en  ```\\172.16.40.10\Sismologia\pyOvdas_lib\templates\portadasRAV ``` 
+    esté el archivo RAV_yyyymm.jpg y RAV_yyyymm_cp.jpg (portada y contraportada)
+        > (yyyymm corresponde a año y mes, ej. 202010 para octubre de 2020)
+
+    * Este archivo es recomendarlo guardarlo en png y en jpg (Versión editable y versión liviana para el RAV), el png queda guardado en la subcarpeta "png"
+    * Yo uso como editor Adobe Fireworks CS6 (en la carpeta sismología/software está)
+* Glosarios
+    * Los glosarios no debieran tener cambios de forma periodica, pero de todas formas estos se encuentran en la ruta ```\\172.16.40.10\Sismologia\pyOvdas_lib\templates\glosarios```
+    * Ambos son utilizados directamente en .png por el RAV (falta pasar a jpg)
+    > REVISAR ORTOGRAFÍA DE AMBAS IMAGENES
+                            
+* Una vez comprobada la existencia de estas figuras, se procede a ejecutar desde spyder la siguente instrucción:                  
+    > import sys
+      import os
+      sys.path.append('//172.16.40.10/Sismologia/pyOvdas_lib/')
+      import ovdas_reportes_scripts as reportes
+      reportes.RAV2020('yyyy-mm') 
+   >
+   
+(nuevamente, yyyy-mm corresponde a año-mes, ejemplo: reportes.RAV2020('2020-10') para octubre de 2020
+
+                           
+NOTA ACLARATORIA: ESTE PASO DE GENERACIÓN DEL RAV AÚN SE PREFIERE REALZIAR DE FORMA LOCAL Y NO EL EL OVDAPP, DEBIDO A QUE ES UN PASO QUE TOMA MEDIA HORA, Y DE FORMA LOCAL ES MÁS FÁCIL DE REVISAR POR POSIBLES ERRORES
+                            
+* Una vez generado el archivo 
+    * Agregar páginas de contenido de cada volcán destacado
+                            	En este paso, se debe adicionar todo el contenido extra que se crea necesario (descripcion de acividad desde todas las áreas, mapas de peligro, etc, etc, etc). Ojalá manteniendo la simplicidad en el texto y con el apoyo de toda 
+                            	imagen que se crea necesaria.
+    * En word, agregar numero de página AL COSTADO DE LA PÁGINA, para no interferir con el pie de página del servicio
+    * Agregar Tabla de contenidos: En la página que el RAV ya posee con con banner de "Tabla de contenidos" agregar la tabla (índice) que word permite construir
+    * Exportar a PDF
+    * Listo!
+                           
+                           ''')
+        
+        contenido = html.Div([texto])
+    return contenido
    
