@@ -33,6 +33,22 @@ volcanes_list=[]
 for volcan in volcanes_auto:
     volcanes_list.append({'label': volcanes[volcanes.nombre_db==volcan].nombre.iloc[0],'value':volcanes[volcanes.nombre_db==volcan].nombre_db.iloc[0]})
 
+freqconteo = dcc.Dropdown(id='freqconteo-autovdas',
+    options=[
+        {'label': 'Eventos/hora', 'value': 'H'},
+        {'label': 'Eventos/día', 'value': 'D'},
+    ],
+    value='H',
+        multi=False,
+        searchable=False,
+        clearable=False,
+    style=
+                                    { 
+                                      'color': '#212121',
+                                      'background-color': '#212121',
+                                    } 
+)  
+
 volcan_selector = dcc.Dropdown(
     clearable=False,
     id='dropdown_volcanes',
@@ -80,6 +96,7 @@ fechas_picker = dcc.DatePickerRange(
                                     { 
                                       'color': '#212121',
                                       'background-color': '#212121',
+                                      'width':'100%'
                                     } 
 )  
 
@@ -204,11 +221,13 @@ def helicorder(detect,horas):
     )
     return fig
 
-def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
-    
+def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
+    if countev_period=='H':name='/hora'
+    elif countev_period=='D':name='/día'
     markersize=4
     ffinxaxis = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
-    df_count,df = oap.get_pickle_OVV(volcan,fini,ffin)
+    df_count,df = oap.get_pickle_OVV(volcan,fini,ffin,countev_period)
+
 
     df_RSAM = fut.get_fastRSAM2(fini,ffin,estaRSAM,rangef[0],rangef[1],1,True,'15T')               
     import numpy as np
@@ -221,15 +240,15 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
     for tipoev in df.tipoev.unique():
 
         fig.add_trace(
-        go.Bar( x=df_count.index, y=df_count[tipoev],marker= { "color" : 'white'},name='Ev/hora'),
+        go.Bar( x=df_count.index, y=df_count[tipoev],marker= { "color" : 'white'},name='ev'),
         row=i, col=1
         )
         fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df_count[tipoev]),font=dict(color='white'),
                                             xanchor='left',yanchor='bottom',xref='paper',bgcolor='#141d26',
-                                            yref='y'+str(i),text=tipoev+'/hora',showarrow=False))      
+                                            yref='y'+str(i),text=tipoev+name,showarrow=False))      
         
         fig.add_trace(
-        go.Scattergl( x=df_count.index, y=df_count[tipoev+'cumsum'],name='Acum. ev/hora',line=dict(color='crimson')),
+        go.Scattergl( x=df_count.index, y=df_count[tipoev+'cumsum'],name='Acum. ev'+name,line=dict(color='crimson')),
         row=i, col=1
         )
         i+=1
@@ -320,13 +339,16 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
             line_width=0         
             )
     i+=1
+    
+    
+    
     #################################AMP
     fig.add_trace(
     go.Scattergl( x=df.index, y=df['ampl'], mode='markers',name='Amplitud',
-               marker= {"size":markersize, "color" : 'black'}),
+               marker= {"size":df['ampl'], "color" : 'black'}),
     row=i, col=1
     )
-    fig.update_traces(opacity=0.75,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
+    fig.update_traces(opacity=0.75,marker=dict(color='white',size=df['ampl'],line=dict(color='crimson',width=0)),
                   row=i,
                   )
     fig.update_yaxes(title_text="um/s", row=i)
@@ -394,7 +416,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM):
  
     for tipoev in df.tipoev.unique():
         fig['data'][j].update(yaxis='y'+str(i))
-        fig['layout']['yaxis'+str(i)]=dict(overlaying='y'+str(k),side='right',title='Acum. ev/hora',title_font=dict(color='crimson'))
+        fig['layout']['yaxis'+str(i)]=dict(overlaying='y'+str(k),side='right',title='Acum. ev'+name,title_font=dict(color='crimson'))
         #fig.update_yaxes(title_text="ev/hora", row=j)
         
         fig.add_shape(
@@ -529,6 +551,8 @@ controles = html.Div([
         marks=arange(0,11,1)),
     html.Div(html.P('Intervalo de fechas',id='titulo-fecha-autovdas')),
     fechas_picker,
+    html.Div(html.P('Periodo de conteo de eventos',id='titulo-fecha-autovdas')),
+    freqconteo,
     html.Div(dbc.Button("Enviar", color="primary", id="submit-filtro-autovdas"),style={'text-align':'right'})
     
     
@@ -563,14 +587,14 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
     #[Output("colgrafica-autovdas", "children"),Output("colmapa-autovdas", "children")],
     [Output("colgrafica-autovdas", "children")],
     [Input('interval-component-gif-autovdas', 'n_intervals'),Input("submit-filtro-autovdas", "n_clicks")],
-    [State('dropdown_volcanes','value'), State('RSAM-range-slider-autovdas', 'value'),State('fechas-autovdas','start_date'),State('fechas-autovdas','end_date')]
+    [State('freqconteo-autovdas','value'),State('dropdown_volcanes','value'), State('RSAM-range-slider-autovdas', 'value'),State('fechas-autovdas','start_date'),State('fechas-autovdas','end_date')]
 )
 def update_cam_fija(*args):
     ffin=args[-1]
     fini=args[-2]
     rangef=args[-3]
     volcan=args[-4]
-    
+    freqconteo=args[-5]
     
     
     rsam_blacklist=['CRU','PIC','LAV','AGU','CR3','CVI']
@@ -584,7 +608,7 @@ def update_cam_fija(*args):
     
     
 
-    fig = crear_figura(rangef,fini,ffin,volcan,estaRSAM)
+    fig = crear_figura(rangef,fini,ffin,volcan,estaRSAM,freqconteo)
     grafico = html.Div(children=[
         dcc.Graph(
             id='timeline-orca',
@@ -607,16 +631,16 @@ def update_cam_fija(*args):
 
 @app.callback([Output('live-update-text-autovdas', 'children'),Output('fechas-autovdas','start_date'),Output('fechas-autovdas','end_date'),Output("heli-autovdas", "children")],
               [Input('interval-component-reloj-autovdas', 'n_intervals')],
-              [State('dropdown_volcanes','value')]
+              [State('dropdown_volcanes','value'),State('freqconteo-autovdas','value')]
               )
-def update_date(n,volcan):
+def update_date(n,volcan,freq):
     from flask import request
     print('tic! from '+request.remote_addr)
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=2), '%Y-%m-%d')
 
     finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
-    df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin)
+    df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin,freq)
     heli  = helicorder(detect,horas)
     heli = html.Div(children=[
         dcc.Graph(
