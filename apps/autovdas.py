@@ -279,14 +279,14 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
             line_width=0         
             )
     i+=1
-    #######################DR
+    ######################          #DR
     dfdr = df[df.tipoev=='LP']
     fig.add_trace(
     go.Scattergl( x=dfdr.index, y=dfdr['DRc'], mode='markers',name='DR',
                marker= {"size":markersize, "color" : 'white'}),
     row=i, col=1
     )
-    fig.update_traces(opacity=0.5,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
+    fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3  ,line=dict(color='crimson',width=0)),
                   row=i,
                   )
     fig.update_yaxes(row=i,range=[0,max(dfdr['DRc'])*1.5])        
@@ -309,14 +309,14 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
             line_width=0         
             )
     i+=1
-    #######################freq
+    ######################           # freq
 
     fig.add_trace(
     go.Scattergl( x=df.index, y=df['fdom'], mode='markers',name='fdom',
                marker= {"size":markersize, "color" : 'white'}),
     row=i, col=1
     )
-    fig.update_traces(opacity=0.5,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
+    fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3,line=dict(color='crimson',width=0)),
                   row=i,
                   )
     fig.update_yaxes(title_text="Hz", row=i)
@@ -324,7 +324,8 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
                                             xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                             yref='y'+str(i),text='Frecuencia dom/ev',showarrow=False))  
     fig.update_yaxes(type="log",row=i)
-    fig.update_yaxes(row=i,range=[-1,1],dtick=1)
+    fig.update_yaxes(row=i,range=[np.log10(0.5),np.log10(20)],dtick=np.log10(2))
+	
     fig.add_shape(
             type="rect",
             xref="paper",
@@ -342,13 +343,13 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
     
     
     
-    #################################AMP
+    ################################     # AMPLITUD
     fig.add_trace(
     go.Scattergl( x=df.index, y=df['ampl'], mode='markers',name='Amplitud',
                marker= {"size":df['ampl'], "color" : 'black'}),
     row=i, col=1
     )
-    fig.update_traces(opacity=0.75,marker=dict(color='white',size=df['ampl']**0.5,line=dict(color='crimson',width=0)),
+    fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3,line=dict(color='crimson',width=0)),
                   row=i,
                   )
     fig.update_yaxes(title_text="um/s", row=i)
@@ -371,13 +372,13 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
             line_width=0         
             )
     i+=1
-    ##################################Duracion
+    #################################       # Duracion
     fig.add_trace(
     go.Scattergl( x=df.index, y=df['duracion'], mode='markers',name='Duración',
                marker= {"size":markersize, "color" : 'white'}),
     row=i, col=1
     )
-    fig.update_traces(opacity=0.5,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
+    fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3,line=dict(color='crimson',width=0)),
                   row=i,
                   )
     fig.update_yaxes(title_text="s", row=i)
