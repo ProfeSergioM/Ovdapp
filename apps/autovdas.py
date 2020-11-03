@@ -348,7 +348,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
                marker= {"size":df['ampl'], "color" : 'black'}),
     row=i, col=1
     )
-    fig.update_traces(opacity=0.75,marker=dict(color='white',size=df['ampl'],line=dict(color='crimson',width=0)),
+    fig.update_traces(opacity=0.75,marker=dict(color='white',size=df['ampl']**0.5,line=dict(color='crimson',width=0)),
                   row=i,
                   )
     fig.update_yaxes(title_text="um/s", row=i)
