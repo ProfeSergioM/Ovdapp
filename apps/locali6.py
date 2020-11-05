@@ -78,7 +78,7 @@ modal = dbc.Modal(
             dbc.Button("Cerrar", id="close-modal", className="ml-auto")
         ),
     ],
-    id="modal",
+    id="modal-info-locali6",
 )
 # the style arguments for the sidebar. We use position:fixed and a fixed width
 SIDEBAR_STYLE = {
@@ -150,7 +150,15 @@ fechas_picker = dcc.DatePickerRange(
                                     } 
 )  
 
-itemsformatos=[dbc.DropdownMenuItem("KMZ (Google Earth)", id="export-kmz-button"),dbc.DropdownMenuItem("XLS (Excel)", id="export-xls-button")]
+itemsformatos=[dbc.DropdownMenuItem("KMZ (Google Earth)", id="export-kmz-button"),
+               dbc.DropdownMenuItem("XLS (Excel)", id="export-xls-button"),
+               dbc.DropdownMenuItem("PNG (imagen)", id="export-png-button")
+               
+               
+               ]
+
+
+
 formatosalidadropdown = html.Div([dbc.DropdownMenu(itemsformatos,label='Exportar selección',color='primary',className='m-1',id='export-button',
                                                    style={'pointer-events': 'none','opacity':'0.2'})])
 
@@ -189,7 +197,24 @@ counter_imgfija = dcc.Interval(id='interval-component-fija',interval=5*1000,n_in
 
 sidebar = html.Div([controlescard],style=SIDEBAR_STYLE)
 content = html.Div(mapacard, style=CONTENT_STYLE)
-layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),dbc.Col([content],width=7)]),html.Div(id='cajita-loc', style={'display': 'none'}),counter_imgfija, Download(id="download")])
+
+modaldownload = html.Div(
+    [Download(id="download-locali6"),
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Finalizado!"),
+                dbc.ModalBody(dbc.Alert("Archivo generado, puede cerrar esta ventana", color="success")),
+                dbc.ModalFooter(
+                    dbc.Button("Close", id="close-modal-locali6", className="ml-auto")
+                ),
+            ],
+            id="modal-locali6",
+        ),
+    ]
+)
+
+
+layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),dbc.Col([content],width=7)]),html.Div(id='cajita-loc', style={'display': 'none'}),counter_imgfija,dcc.Loading(modaldownload, style={'position':'fixed','left':'50%','top':'50%'})])
 
     
 @app.callback(
@@ -267,10 +292,17 @@ def display_data(selectedData):
     return json.dumps(selectedData, indent=2),show
 
 
-@app.callback(Output("download", "data"), [Input("export-kmz-button", "n_clicks"),Input("export-xls-button", "n_clicks")],[State('cajita-loc', 'children')],prevent_initial_call=True)
-def func(kmz,xls,cajita):
+@app.callback([Output("download-locali6", "data"),Output("modal-locali6", "is_open")],
+              [Input("export-kmz-button", "n_clicks"),Input("export-xls-button", "n_clicks"),
+               Input("export-png-button", "n_clicks"),Input("close-modal-locali6",'n_clicks')],
+              [State('cajita-loc', 'children'),State('locali5-dropdown_volcanes','value'),
+               State('locali5-fechas','start_date'),
+               State('locali5-fechas','end_date'),State("modal-locali6", "is_open")],prevent_initial_call=True)
+def func(kmz,xls,png,close_modal,cajita,volcansel,fini,ffin,is_open):
     ctx = dash.callback_context
     trigger = ctx.triggered[0]['prop_id']
+    if dash.callback_context.triggered[0]['prop_id'] =='close-modal-locali6.n_clicks':
+        return dash.no_update,not is_open
     df = json.loads(cajita)
     df= pd.DataFrame(df['points'])
     df = df.dropna()
@@ -299,7 +331,20 @@ def func(kmz,xls,cajita):
                         lat,lon=row.latitud,row.longitud
                         pnt.coords= [(lon,lat)]
             kml.savekmz(ruta)
-        return send_bytes(to_kmz,"seleccionado.kmz")
+        return send_bytes(to_kmz,"seleccionado.kmz"),dash.no_update
     elif trigger=='export-xls-button.n_clicks':
-        return send_data_frame(dfnew.to_excel, "seleccionado.xls")
+        return send_data_frame(dfnew.to_excel, "seleccionado.xls"),dash.no_update
+    elif trigger=='export-png-button.n_clicks':
+        import ovdas_ovdapp_lib as ool
+        import matplotlib.pyplot as plt
+        if (len(volcansel)==1) and (volcansel!='*'):
+            def to_png(ruta):
+                voldf = gdb.get_metadata_volcan('*',rep='y')
+                volsel = voldf[voldf.nombre_db==volcansel[0]]
+                stadata = gdb.esta_metadata(volcansel[0],tipo='net')
+                fechas=[fini,ffin]
+                fig = ool.plot_selection(volsel,dfnew,stadata,fechas)
+                fig.savefig(ruta)
+                plt.close('all')
+            return send_bytes(to_png,"seleccionado.png"),not is_open         
 

@@ -24,7 +24,7 @@ import ovdas_getfromdb_lib as gdb
 import datetime as dt
 horas=2
 fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
-ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=2), '%Y-%m-%d')
+ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 
@@ -630,7 +630,9 @@ def update_cam_fija(*args):
     return [graficocard]
 
 
-@app.callback([Output('live-update-text-autovdas', 'children'),Output('fechas-autovdas','start_date'),Output('fechas-autovdas','end_date'),Output("heli-autovdas", "children")],
+@app.callback([Output('live-update-text-autovdas', 'children'),Output('fechas-autovdas','start_date'),Output('fechas-autovdas','end_date'),
+               Output('fechas-autovdas','max_date_allowed'),
+               Output("heli-autovdas", "children")],
               [Input('interval-component-reloj-autovdas', 'n_intervals')],
               [State('dropdown_volcanes','value'),State('freqconteo-autovdas','value')]
               )
@@ -638,7 +640,7 @@ def update_date(n,volcan,freq):
     from flask import request
     print('tic! from '+request.remote_addr)
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
-    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=2), '%Y-%m-%d')
+    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
 
     finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
     df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin,freq)
@@ -655,4 +657,4 @@ def update_date(n,volcan,freq):
         dbc.CardBody(heli)
         
         ],outline=True,color='light')
-    return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin,[helicard]
+    return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin,ffin,[helicard]
