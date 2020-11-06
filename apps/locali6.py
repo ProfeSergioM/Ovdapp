@@ -344,7 +344,7 @@ def func(kmz,xls,png,close_modal,cajita,volcansel,fini,ffin,is_open):
                 stadata = gdb.esta_metadata(volcansel[0],tipo='net')
                 fechas=[fini,ffin]
                 fig = ool.plot_selection(volsel,dfnew,stadata,fechas)
-                fig.savefig(ruta)
+                fig.savefig(ruta,dpi=300)
                 plt.close('all')
             return send_bytes(to_png,"seleccionado.png"),not is_open         
 
