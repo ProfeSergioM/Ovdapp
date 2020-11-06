@@ -111,10 +111,25 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                 dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/electriceye'),
             ]),],)
         
+        card_sismodb = dbc.Card([
+        dbc.CardImg(src=app.get_asset_url('img/sismodb_thumb.png'), top=True),
+        dbc.CardBody([
+                html.H4("SismoDB", className="card-title"),
+                html.P(
+                    "Revisión rápida de los datos de sismología "
+                    "almacenados en la db del ovdas.",
+                    className="card-text",
+                ),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:8080/apps/sismodb'),
+            ]),],)        
         contenido = html.Div([dbc.Row([dbc.Col(card_orcapp,width=2),
                                        dbc.Col(card_ovdash,width=2),
                                        dbc.Col(card_autovdas,width=2),
-                                       dbc.Col(card_electriceye,width=2)])])
+                                       dbc.Col(card_electriceye,width=2),
+                                       dbc.Col(card_sismodb,width=2)
+                                       
+                                       
+                                       ])])
         return contenido
     elif button_id == "procesamiento-button":
         card_altcol = dbc.Card(
