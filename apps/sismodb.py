@@ -164,7 +164,7 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
     import locale
     import numpy as np
     
-    locale.setlocale(locale.LC_TIME, 'es_ES')
+    locale.setlocale(locale.LC_ALL, 'es_ES')
     titulos = list(np.full(4*2-2,''))
     titulos= ["Conteo eventos/Energía máxima<br>(M<sub>L</sub> o D<sub>R</sub>) mensual",
               "Conteo de eventos x día /Energía (M<sub>L</sub> o D<sub>R</sub>) de cada evento"]+titulos
