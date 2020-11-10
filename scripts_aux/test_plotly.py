@@ -121,7 +121,8 @@ fig.update_yaxes(range=[0,RSAM[listaRSAM].max().max()*1.1],col=1,row=1)
 
 
 fig.update_xaxes(tickfont=dict(size=12))    
-fig.update_layout(
+
+fig.update_layout(bargap=0,margin={"r":1,"t":25,"l":1,"b":1},
     font=dict(
         family="Tahoma",
         size=18,

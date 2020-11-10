@@ -20,7 +20,7 @@ import ovdas_future_lib as fut
 import ovdas_ovdapp_lib as oap
 import ovdas_getfromdb_lib as gdb
 import datetime as dt
-horas=2
+
 fini = dt.datetime.strftime((dt.datetime.utcnow() - dt.timedelta(days=7)).replace(day=1,minute=0,second=0,microsecond=0),'%Y-%m-%d')
 ffin = dt.datetime.strftime(dt.datetime.utcnow(),'%Y-%m-%d')
 volcanes =gdb.get_metadata_volcan('*',rep='y')
@@ -141,6 +141,7 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
         #fig.update_yaxes(range=[0,RSAM[listaRE].max().max()*1.1],col=1,row=2)
         fig.update_yaxes(title_font=dict(size=14),title_text='Razón RSAM',fixedrange=True,col=1,row=2)
     listaHV = [item for item in list(RSAM.columns) if (len(item)==7)]
+    i=0
     if len(listaHV)>0:
         for sta in list(listaHV):
             data = RSAM[sta]
@@ -212,7 +213,8 @@ controles = html.Div([
         step=0.5,
         value=[0.5,5],
         marks=arange(0,11,1)),
-    html.Div(dbc.Button("Enviar", color="primary", id="submit-filtro-fastrsam"),style={'text-align':'right'})
+    html.Div(children=[dcc.Loading(children=[dbc.Button("Online", color="success", id="submit-realtime-fastrsam", className="mr-1"),
+             dbc.Button("Enviar", color="primary", id="submit-filtro-fastrsam", className="mr-1")])],style={'text-align':'right'})
 
     ])
 
@@ -236,104 +238,117 @@ banner_inferior = dbc.Card([
 layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
                                    dbc.Col([html.Div(id='colgrafica-fastrsam')],width=9)
                                    ]),
-                   dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start'),
+                   dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start', className="mr-1"),
                    
                    ])
 
 @app.callback(
     #[Output("colgrafica-fastrsam", "children"),Output("colmapa-fastrsam", "children")],
-    [Output("colgrafica-fastrsam", "children")],
-    [Input('interval-component-gif-fastrsam', 'n_intervals'),Input("submit-filtro-fastrsam", "n_clicks")],
+    [Output("colgrafica-fastrsam", "children"),Output('interval-component-gif-fastrsam', 'disabled'),
+     Output("submit-realtime-fastrsam",'color'),Output("submit-realtime-fastrsam",'children')],
+    [Input("submit-realtime-fastrsam",'n_clicks'),Input('interval-component-gif-fastrsam', 'n_intervals'),Input("submit-filtro-fastrsam", "n_clicks")],
     [State('RSAM-range-slider-fastrsam','value'),
      State('dropdown_volcanes-fastrsam','value'), State('fechas-fastrsam','start_date'),State('fechas-fastrsam','end_date')]
 )
 def update_cam_fija(*args):
+    
+    def plotear(volcan,fini,ffin,rangef):
+        voldata = gdb.get_metadata_volcan(volcan)
+        voldata = voldata.drop_duplicates(subset='nombre', keep="first")
+        red = gdb.get_metadata_wws(volcan='*')
+        red = red[(red.nombre_db==volcan) & (red.tipo=='SISMOLOGICA') & (red.cod.str.startswith('S')==True)]
+        RSAMS = []
+        for esta in list(red.codcorto):
+            try:
+                df = fut.get_fastRSAM2(fini,ffin,esta,rangef[0],rangef[1],5,True,'15T')
+                df = df.rename(columns={'fastRSAM':esta+'Z'})
+                RSAMS.append(df)
+                
+            except:
+                ()
+            try:
+                for comp in ['N','E']:
+                    df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,'15T')
+                    df2 = df2.rename(columns={'fastRSAM':esta+comp})
+                    RSAMS.append(df2)
+            except:
+                ()
+        RSAM = pd.concat(RSAMS,axis=1) 
+        del RSAMS
+    
+        listaRE = [item[:-1] for item in RSAM.columns if item[-1]=='Z']
+        redRE = red[red.codcorto.isin(listaRE)].sort_values(by='distcrater', ascending=True)
+        estaRE =list(redRE.codcorto)
+        df_RE = []
+        for i in range(0,len(listaRE)):
+            for j in range(i+1,len(estaRE)):
+                esta1=estaRE[i]
+                esta2=estaRE[j]
+                df = (RSAM[esta1+'Z']/RSAM[esta2+'Z'])
+                df = df.rename(esta1+'Z'+'/'+esta2+'Z')
+                df_RE.append(df)
+        df_RE = pd.concat(df_RE,axis=1)
+        RSAM = pd.concat([RSAM,df_RE],axis=1)
+        listaHV = [item[:-1] for item in RSAM.columns if item[-1]=='N']
+        if len(listaHV)>0:
+            hvs=[]
+            for es in listaHV:
+                hv = ((RSAM[es+'N']+RSAM[es+'E'])/2)/RSAM[es+'Z']
+                hv = hv.rename(es+'_H/V')
+                hvs.append(hv)
+            hvs = pd.concat(hvs)
+            
+        RSAM = pd.concat([RSAM,hvs],axis=1)
+    
+        fig = crear_fastRSAM(RSAM,voldata,fini,ffin,rangef)
+        grafico = html.Div(children=[
+            dcc.Graph(
+                id='timeline-orca',
+                figure=fig,
+                style={ 'height':'80vh' }
+            )
+        ])
+        
+        graficocard = dbc.Card([
+            dbc.CardHeader('Sismicidad'),
+            dbc.CardBody(grafico)
+            
+            ],outline=True,color='light')
+        return graficocard
+
+    livebutton=args[0]
     ffin=args[-1]
     fini=args[-2]
     volcan=args[-3]
     rangef=args[-4]
-    voldata = gdb.get_metadata_volcan(volcan)
-    voldata = voldata.drop_duplicates(subset='nombre', keep="first")
-    red = gdb.get_metadata_wws(volcan='*')
-    red = red[(red.nombre_db==volcan) & (red.tipo=='SISMOLOGICA') & (red.cod.str.startswith('S')==True)]
+    ctx = dash.callback_context
+    ctx_index = ctx.triggered[0]['prop_id'].split('.')[0]
 
-    RSAMS = []
-    for esta in list(red.codcorto):
-        try:
-            df = fut.get_fastRSAM2(fini,ffin,esta,rangef[0],rangef[1],5,True,'15T')
-            df = df.rename(columns={'fastRSAM':esta+'Z'})
-            RSAMS.append(df)
-            
-        except:
-            ()
-        try:
-            for comp in ['N','E']:
-                df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,'15T')
-                df2 = df2.rename(columns={'fastRSAM':esta+comp})
-                RSAMS.append(df2)
-        except:
-            ()
-    RSAM = pd.concat(RSAMS,axis=1) 
-    del RSAMS
+    if ctx_index=='submit-realtime-fastrsam':
 
-    listaRE = [item[:-1] for item in RSAM.columns if item[-1]=='Z']
-    redRE = red[red.codcorto.isin(listaRE)].sort_values(by='distcrater', ascending=True)
-    estaRE =list(redRE.codcorto)
-    df_RE = []
-    for i in range(0,len(listaRE)):
-        for j in range(i+1,len(estaRE)):
-            esta1=estaRE[i]
-            esta2=estaRE[j]
-            df = (RSAM[esta1+'Z']/RSAM[esta2+'Z'])
-            df = df.rename(esta1+'Z'+'/'+esta2+'Z')
-            df_RE.append(df)
-    df_RE = pd.concat(df_RE,axis=1)
-    RSAM = pd.concat([RSAM,df_RE],axis=1)
-    listaHV = [item[:-1] for item in RSAM.columns if item[-1]=='N']
-    if len(listaHV)>0:
-        hvs=[]
-        for es in listaHV:
-            hv = ((RSAM[es+'N']+RSAM[es+'E'])/2)/RSAM[es+'Z']
-            hv = hv.rename(es+'_H/V')
-            hvs.append(hv)
-        hvs = pd.concat(hvs)
-        
-    RSAM = pd.concat([RSAM,hvs],axis=1)
+        if (livebutton==None) or (livebutton % 2 != 0):
+            print('offline!')
+            return dash.no_update,True,'warning','Offline'
 
-    fig = crear_fastRSAM(RSAM,voldata,fini,ffin,rangef)
-    grafico = html.Div(children=[
-        dcc.Graph(
-            id='timeline-orca',
-            figure=fig,
-            style={ 'height':'80vh' }
-        )
-    ])
-    
-    graficocard = dbc.Card([
-        dbc.CardHeader('Sismicidad'),
-        dbc.CardBody(grafico)
-        
-        ],outline=True,color='light')
+        else:
+            graficocard = plotear(volcan,fini,ffin,rangef)
+            print('online!')
+            return [graficocard],False,'success','Online'
 
-
-
-    #return [graficocard],[mapacard]
-    return [graficocard]
+    else:
+        ffin=args[-1]
+        fini=args[-2]
+        graficocard = plotear(volcan,fini,ffin,rangef)
+        return [graficocard],dash.no_update,dash.no_update,dash.no_update
 
 
 @app.callback([Output('live-update-text-fastrsam', 'children'),Output('fechas-fastrsam','start_date'),Output('fechas-fastrsam','end_date'),
                Output('fechas-fastrsam','max_date_allowed'),
 ],
               [Input('interval-component-reloj-fastrsam', 'n_intervals')],
-              [State('dropdown_volcanes-fastrsam','value')]
+              [State('dropdown_volcanes-fastrsam','value'),State('fechas-fastrsam','start_date'),State('fechas-fastrsam','end_date')]
               )
-def update_date(n,volcan):
+def update_date(n,volcan,fini,ffin):
     from flask import request
     print('tic! from '+request.remote_addr)
-    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
-    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
-
-    finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
-
-
     return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin,ffin
