@@ -165,9 +165,9 @@ def crear_fastRSAM(RSAM,volcan,fechai,fechaf,freqi,freqf):
     for sta in list(df_RE.columns):
         data = df_RE[sta]
         fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=0.2,
-                                   legendgroup="Razón RSAM",hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=2, col=1) 
+                                   hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=2, col=1) 
         fig.add_trace(go.Scattergl(x=RSAM.index, y=data.rolling(10).mean(),name=sta+' 10 MM',mode='lines',line_width=0.5,
-                                    legendgroup="Razón RSAM",hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=2, col=1) 
+                                    hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=2, col=1) 
         i+=1
     
 
