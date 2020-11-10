@@ -101,11 +101,13 @@ counter_reloj = dcc.Interval(
 def crear_fastRSAM(RSAM,volcan,fechai,fechaf,freqi,freqf):
     voldata = gdb.get_metadata_volcan(volcan)
     voldata = voldata.drop_duplicates(subset='nombre', keep="first")
+    red = gdb.get_metadata_wws(volcan='*')
+    red = red[(red.nombre_db==volcan) & (red.tipo=='SISMOLOGICA') & (red.cod.str.startswith('S')==True)]
     import locale     
     locale.setlocale(locale.LC_ALL, 'es_ES')
     colors = px.colors.qualitative.Plotly
     
-    fig = make_subplots(rows=1, cols=1,vertical_spacing=0.025,shared_xaxes='all')
+    fig = make_subplots(rows=2, cols=1,vertical_spacing=0.025,shared_xaxes='all')
     i=0
     
     for sta in list(RSAM.columns):
@@ -147,6 +149,25 @@ def crear_fastRSAM(RSAM,volcan,fechai,fechaf,freqi,freqf):
             'xanchor': 'center',
                 'yanchor': 'top'})
     
+    redRE = red[red.codcorto.isin(RSAM.columns)].sort_values(by='distcrater', ascending=True)
+    estaRE =list(redRE.codcorto)
+    df_RE = []
+    
+    for i in range(0,len(estaRE)):
+        for j in range(i+1,len(estaRE)):
+            esta1=estaRE[i]
+            esta2=estaRE[j]
+            df = (RSAM[esta1]/RSAM[esta2])
+            df = df.rename(esta1+'_'+esta2)
+            df_RE.append(df)
+    df_RE = pd.concat(df_RE,axis=1)
+    for sta in list(df_RE.columns):
+        data = df_RE[sta]
+        fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=0.2,
+                                   legendgroup="Razón RSAM",hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=2, col=1) 
+        fig.add_trace(go.Scattergl(x=RSAM.index, y=data.rolling(10).mean(),name=sta+' 10 MM',mode='lines',line_width=0.5,
+                                    legendgroup="Razón RSAM",hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=2, col=1) 
+        i+=1
     
 
     return fig
