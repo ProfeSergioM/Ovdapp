@@ -133,7 +133,7 @@ def crear_fastRSAM(RSAM,volcan,fechai,fechaf,freqi,freqf):
     fig.layout.template = 'plotly_dark'
     fig.update_yaxes(title_font=dict(size=14),title_text='RSAM - um/s',fixedrange=True,col=1,row=1)
     fig.update_yaxes(title_font=dict(size=14),title_text='Razón',fixedrange=True,col=1,row=2)
-    fig.update_xaxes(title_font=dict(size=14),title_text='Fecha')
+    fig.update_xaxes(title_font=dict(size=14),title_text='Fecha',col=1,row=2)
     fig.update_xaxes(range=[min(data.index),max(data.index)],col=1,row=1)
     fig.update_yaxes(range=[0,RSAM.max().max()*1.1],col=1,row=1)
     fig.update_xaxes(tickfont=dict(size=12))    
