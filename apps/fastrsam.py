@@ -130,6 +130,7 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
     )
     
     listaRE = [item for item in list(RSAM.columns) if (len(item)==9)]
+    i=0
     if len(listaRE)>0:
         for sta in list(listaRE):
             data = RSAM[sta]
