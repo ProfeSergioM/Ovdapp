@@ -104,7 +104,7 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
     locale.setlocale(locale.LC_ALL, 'es_ES')
     colors = px.colors.qualitative.Plotly
     
-    fig = make_subplots(rows=3, cols=1,vertical_spacing=0.025,shared_xaxes='all')
+    fig = make_subplots(rows=3, cols=1,vertical_spacing=0.05,shared_xaxes='all')
     i=0
     
     listaRSAM = [item for item in list(RSAM.columns) if (len(item)==4) & (item[-1]=='Z')]
