@@ -150,7 +150,7 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
                                     hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f}',line_color=colors[i]),row=2, col=1) 
             i+=1
         #fig.update_yaxes(range=[0,RSAM[listaRE].max().max()*1.1],col=1,row=2)
-        fig.update_yaxes(title_font=dict(size=14),title_text='Razón RSAM',fixedrange=True,col=1,row=2)
+        fig.update_yaxes(title_font=dict(size=14),title_text='Razón RSAM',fixedrange=False,col=1,row=2)
     fig.add_trace(go.Scattergl(x=[np.NaN],y=[np.NaN],name='',mode='none'))
     fig.add_trace(go.Scattergl(x=[np.NaN],y=[np.NaN],name='Razón H/V',mode='none'))
     listaHV = [item for item in list(RSAM.columns) if (len(item)==7)]
@@ -167,10 +167,10 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
                                     hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=3, col=1) 
             i+=1
         #fig.update_yaxes(range=[0,RSAM[listaHV].max().max()*1.1],col=1,row=3)
-        fig.update_yaxes(title_font=dict(size=14),title_text='Razón H/V',fixedrange=True,col=1,row=3)
+        fig.update_yaxes(title_font=dict(size=14),title_text='Razón H/V',fixedrange=False,col=1,row=3)
     
     fig.layout.template = 'plotly_dark'
-    fig.update_yaxes(title_font=dict(size=14),title_text='RSAM - um/s',fixedrange=True,col=1,row=1)
+    fig.update_yaxes(title_font=dict(size=14),title_text='RSAM - um/s',fixedrange=False,col=1,row=1)
     
     fig.update_xaxes(title_font=dict(size=14),title_text='Fecha',col=1,row=3)
     fig.update_xaxes(range=[min(data.index),max(data.index)],col=1,row=3)
