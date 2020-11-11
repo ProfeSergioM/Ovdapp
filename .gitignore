@@ -129,3 +129,5 @@ assets/timelapses/Yate_Puelo.gif
 apps/__pycache__/autovdas.cpython-38.pyc
 assets/fijas/Villarrica_Conaripe.jpg
 assets/timelapses/Villarrica_Conaripe.gif
+scripts_aux/first_figure.html
+scripts_aux/test_plotly.py
