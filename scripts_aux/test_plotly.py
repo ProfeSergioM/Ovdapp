@@ -10,9 +10,10 @@ voldata = voldata.drop_duplicates(subset='nombre', keep="first")
 red = gdb.get_metadata_wws(volcan='*')
 red = red[(red.nombre_db==volcan) & (red.tipo=='SISMOLOGICA') & (red.cod.str.startswith('S')==True)]
 es='VN2'
+sampling='15T'
 estas=[es+'Z',es+'N',es+'E']
 fechai='2020-11-01'
-fechaf='2020-11-30'
+fechaf='2020-11-10'
 #%%
 RSAMS = []
 for esta in list(red.codcorto):
@@ -57,10 +58,11 @@ if len(listaHV)>0:
     
 RSAM = pd.concat([RSAM,hvs],axis=1)
 
-def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
-    pointopacity=0.2
+def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
+    pointopacity=0.5
     datalinewidth=1
     import plotly.express as px
+    import numpy as np
     import locale     
     from plotly.subplots import make_subplots
     import plotly.graph_objects as go
@@ -69,16 +71,20 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
     
     fig = make_subplots(rows=3, cols=1,vertical_spacing=0.05,shared_xaxes='all')
     i=0
-    
     listaRSAM = [item for item in list(RSAM.columns) if (len(item)==4) & (item[-1]=='Z')]
     for sta in listaRSAM:
         data = RSAM[sta]
         fig.add_trace(go.Scattergl(x=data.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
                                    hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=1, col=1) 
-        fig.add_trace(go.Scattergl(x=data.index, y=RSAM[sta].rolling(10).mean(),name=sta+' 10 MM',mode='lines',line_width=datalinewidth,
+        fig.add_trace(go.Scattergl(x=data.index,
+                                       y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
+                                       name=sta+' '+str(int(sampling[:-1])*4)+' MM',
+                                       mode='lines',line_width=datalinewidth,
                                     hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=1, col=1) 
         i+=1
     
+    fig.add_trace(go.Scattergl(x=[np.NaN],y=[np.NaN],name='',mode='none'))
+    fig.add_trace(go.Scattergl(x=[np.NaN],y=[np.NaN],name='Razón RSAM',mode='none'))
     fig.update_xaxes(showspikes=True)
     fig.update_yaxes(showspikes=True)
     fig.update_xaxes(
@@ -98,12 +104,17 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
         for sta in list(listaRE):
             data = RSAM[sta]
             fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
-                                       hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=2, col=1) 
-            fig.add_trace(go.Scattergl(x=RSAM.index, y=data.rolling(10).mean(),name=sta+' 10 MM',mode='lines',line_width=datalinewidth,
-                                        hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=2, col=1) 
+                                       hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f}',marker_color=colors[i]),row=2, col=1) 
+            fig.add_trace(go.Scattergl(x=data.index,
+                                       y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
+                                       name=sta+' '+str(int(sampling[:-1])*4)+' MM',
+                                       mode='lines',line_width=datalinewidth,
+                                    hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f}',line_color=colors[i]),row=2, col=1) 
             i+=1
         #fig.update_yaxes(range=[0,RSAM[listaRE].max().max()*1.1],col=1,row=2)
         fig.update_yaxes(title_font=dict(size=14),title_text='Razón RSAM',fixedrange=True,col=1,row=2)
+    fig.add_trace(go.Scattergl(x=[np.NaN],y=[np.NaN],name='',mode='none'))
+    fig.add_trace(go.Scattergl(x=[np.NaN],y=[np.NaN],name='Razón H/V',mode='none'))
     listaHV = [item for item in list(RSAM.columns) if (len(item)==7)]
     i=0
     if len(listaHV)>0:
@@ -111,8 +122,11 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
             data = RSAM[sta]
             fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
                                        hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=3, col=1) 
-            fig.add_trace(go.Scattergl(x=RSAM.index, y=data.rolling(10).mean(),name=sta+' 10 MM',mode='lines',line_width=datalinewidth,
-                                        hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=3, col=1) 
+            fig.add_trace(go.Scattergl(x=data.index,
+                                       y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
+                                       name=sta+' '+str(int(sampling[:-1])*4)+' MM',
+                                       mode='lines',line_width=datalinewidth,
+                                    hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=3, col=1) 
             i+=1
         #fig.update_yaxes(range=[0,RSAM[listaHV].max().max()*1.1],col=1,row=3)
         fig.update_yaxes(title_font=dict(size=14),title_text='Razón H/V',fixedrange=True,col=1,row=3)
@@ -124,7 +138,7 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
     fig.update_xaxes(range=[min(data.index),max(data.index)],col=1,row=3)
     fig.update_yaxes(range=[0,RSAM[listaRSAM].max().max()*1.1],col=1,row=1)
     fig.update_layout(legend=dict(font=dict({'size':10})))
-    
+    fig.update_layout(legend_title_text='RSAM')
     fig.update_xaxes(tickfont=dict(size=12))    
     fig.update_layout(bargap=0,margin={"r":1,"t":25,"l":1,"b":1},
         font=dict(
@@ -140,7 +154,7 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
                 'yanchor': 'top'})
     return fig
 
-fig = crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef)
+fig = crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling)
 
 fig.write_html('first_figure.html', auto_open=True)
 
