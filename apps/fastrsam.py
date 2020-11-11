@@ -85,7 +85,7 @@ fechas_picker = dcc.DatePickerRange(
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 counter_imggif = dcc.Interval(
           id='interval-component-gif-fastrsam',
-          interval=60*1000*5, # in milliseconds
+          interval=60*1000*4, # in milliseconds
           n_intervals=0
       )
 counter_reloj = dcc.Interval(
@@ -261,7 +261,7 @@ def update_cam_fija(*args):
         RSAMS = []
         for esta in list(red.codcorto):
             try:
-                df = fut.get_fastRSAM2(fini,ffin,esta,rangef[0],rangef[1],5,True,'15T')
+                df = fut.get_fastRSAM2(fini,ffin,esta,rangef[0],rangef[1],5,True,'5T')
                 df = df.rename(columns={'fastRSAM':esta+'Z'})
                 RSAMS.append(df)
                 
@@ -269,7 +269,7 @@ def update_cam_fija(*args):
                 ()
             try:
                 for comp in ['N','E']:
-                    df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,'15T')
+                    df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,'5T')
                     df2 = df2.rename(columns={'fastRSAM':esta+comp})
                     RSAMS.append(df2)
             except:
@@ -326,19 +326,12 @@ def update_cam_fija(*args):
     ctx_index = ctx.triggered[0]['prop_id'].split('.')[0]
 
     if ctx_index=='submit-realtime-fastrsam':
-
         if (livebutton==None) or (livebutton % 2 != 0):
-            print('offline!')
             return dash.no_update,True,'warning','Offline'
-
         else:
             graficocard = plotear(volcan,fini,ffin,rangef)
-            print('online!')
             return [graficocard],False,'success','Online'
-
     else:
-        ffin=args[-1]
-        fini=args[-2]
         graficocard = plotear(volcan,fini,ffin,rangef)
         return [graficocard],dash.no_update,dash.no_update,dash.no_update
 
