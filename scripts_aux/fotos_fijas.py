@@ -16,7 +16,7 @@ def sample_job_every_30s():
     volcanes =gdb.get_metadata_volcan('*',rep='y')
     try:
         for index,row in volcanes.iterrows():
-            ima.fotos_normales(volcanes='("'+str(index)+'")',salida='',rutasal='C:/dash/ovdapp/assets/fijas')
+            ima.fotos_normales(volcanes='("'+str(index)+'")',salida='',rutasal='C:/GitHub/ovdapp/assets/fijas')
     except:
         ()
 
