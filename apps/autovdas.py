@@ -23,8 +23,7 @@ import ovdas_ovdapp_lib as oap
 import ovdas_getfromdb_lib as gdb
 import datetime as dt
 horas=2
-fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
-ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
+
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 
@@ -63,24 +62,6 @@ volcan_selector = dcc.Dropdown(
 )
 
 
-def get_usgs(fini,ffin):
-    #SISMOS USGS
-    import json
-    import urllib
-    import pandas as pd
-    import datetime
-    usgs = json.load(urllib.request.urlopen('https://earthquake.usgs.gov/fdsnws/event/1/query.geojson?starttime='+fini+'%2000:00:00&endtime='+ffin+'%2023:59:59&maxlatitude=-61.71&minlatitude=-62.855&maxlongitude=-56.689&minlongitude=-59.985&minmagnitude=0&orderby=time'))
-    df=[]
-    for i in range(len(usgs['features'])):
-        ev = pd.DataFrame(usgs['features'][i]['properties'],index=[i])
-        ev['lon'] = usgs['features'][i]['geometry']['coordinates'][0]
-        ev['lat'] = usgs['features'][i]['geometry']['coordinates'][1]
-        ev['z'] = usgs['features'][i]['geometry']['coordinates'][2]
-        ms = usgs['features'][i]['properties']['time']
-        ev['fecha']= datetime.datetime.utcfromtimestamp(ms//1000).replace(microsecond=ms%1000*1000)
-        df.append(ev)
-    df = pd.concat(df)
-    return df
 
 fechas_picker = dcc.DatePickerRange(
     id='fechas-autovdas',
@@ -88,10 +69,6 @@ fechas_picker = dcc.DatePickerRange(
     end_date_placeholder_text="Final",
     calendar_orientation='vertical',
     display_format='Y-MM-DD',
-    start_date=fini,
-    end_date=ffin,
-    min_date_allowed='2020-08-28',
-    max_date_allowed=ffin,
     style=
                                     { 
                                       'color': '#212121',
@@ -222,6 +199,7 @@ def helicorder(detect,horas):
     return fig
 
 def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
+
     if countev_period=='H':name='/hora'
     elif countev_period=='D':name='/día'
     markersize=4
@@ -482,64 +460,6 @@ color="#141d26",
       
 
 
-def dibujar_mapa(fi,ff):
-    usgs = get_usgs(fini, ffin)
-    #tileurl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-    tileurl =  'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}'
-    escala = dl.ScaleControl()
-    
-    
-    names = ['PMSZ','JUBZ','ESPZ']
-    lons = [-64.0489,-58.662700,-56.9963]
-    lats  = [-64.7744,-62.237300,-63.3981]
-    alts = [40,16,31]
-    dist = [25,129,384]
-    df = pd.DataFrame([names,lons,lats,alts,dist]).T
-    df = df.rename(columns={0:'cod',1:'lon',2:'lat',3:'alt',4:'dist'})
-    estaciones = []
-    iconUrl_esta = app.get_asset_url('img/triangle.fw.png?random='+str(random())) 
-
-    for index,row in df.iterrows():
-        popup = dl.Popup(html.Table(
-                              [html.Tr([html.Td('Estación :'),html.Td(row.cod)])]+
-                              [html.Tr([html.Td('Longitud :'),html.Td(row.lon)])]+
-                              [html.Tr([html.Td('Latitud :'),html.Td(row.lat)])]+
-                              [html.Tr([html.Td('Altitud (msnm) :'),html.Td(row.alt)])]+
-                              [html.Tr([html.Td('Dist. a Vn. Orca (km):'),html.Td(row.dist)])]
-        
-                              
-                                              ))
-        estaciones.append(dl.Marker(position=[row.lat,row.lon],id=row.cod,children=[popup],
-                                    icon=dict(iconUrl=iconUrl_esta, iconSize=[30,30],iconAnchor=[15, 15])))
-    eq_usgs=[]
-    for index,row in usgs.iterrows():
-        popup2 = dl.Popup(html.Table(
-                      [html.Tr([html.Td('Fecha (UTC)'),html.Td(str(row.fecha)[0:19])])]+
-                      [html.Tr([html.Td('Profundidad'),html.Td(str(row.z)+ ' km')])]+
-                      [html.Tr([html.Td('Mag'),html.Td(row.mag)])]+
-                      [html.Tr([html.Td('Tipo mag'),html.Td(row.magType)])]+
-                      [html.Tr([html.Td('+ info'),html.Td(dcc.Link('USGS',href=row.url,target='_blank',style={'color':'white','text-decoration':'underline'}))])]
-
-                      
-                                      ))
-        eq_usgs.append(dl.CircleMarker(center=[row.lat,row.lon],
-                                   radius=row.mag*1.5,
-                                   color='#ffffff',
-                                   fillColor='red',
-                                   weight=1,
-                                   fillOpacity=0.5,
-                                   children=[popup2]
-                                   ))
-    
-    iconUrl_volcan = app.get_asset_url('img/star.fw.png?random='+str(random())) 
-    orca = dl.Marker(position=[-62.431719,-58.40589],children=[dl.Popup(html.Table([html.Tr([html.Td('Volcán Orca')])]))],
-                                    icon=dict(iconUrl=iconUrl_volcan, iconSize=[30,30],iconAnchor=[15, 15]))
-    mapa = dl.Map([dl.TileLayer(id="tiles", url=tileurl),escala,*estaciones,*eq_usgs,orca],
-                  style={'width': '100%', 'height': '80vh', 'margin': "auto", "display": "block"},
-                    center=[-62.431719,-58.40589],zoom=7,id='mapaloc-autovdas')
-    
-    return mapa
-
 controles = html.Div([
     html.Div(volcan_selector),
     html.Div(html.P(' Rango de frecuencias RSAM',id='RSAM-range-display-autovdas')),
@@ -587,15 +507,21 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
 @app.callback(
     #[Output("colgrafica-autovdas", "children"),Output("colmapa-autovdas", "children")],
     [Output("colgrafica-autovdas", "children")],
-    [Input('interval-component-gif-autovdas', 'n_intervals'),Input("submit-filtro-autovdas", "n_clicks")],
-    [State('freqconteo-autovdas','value'),State('dropdown_volcanes','value'), State('RSAM-range-slider-autovdas', 'value'),State('fechas-autovdas','start_date'),State('fechas-autovdas','end_date')]
+    [Input('interval-component-gif-autovdas', 'n_intervals'),Input("submit-filtro-autovdas", "n_clicks"),
+    Input('fechas-autovdas','start_date'),Input('fechas-autovdas','end_date')],
+    [State('freqconteo-autovdas','value'),State('dropdown_volcanes','value'), State('RSAM-range-slider-autovdas', 'value')]
 )
 def update_cam_fija(*args):
-    ffin=args[-1]
-    fini=args[-2]
-    rangef=args[-3]
-    volcan=args[-4]
-    freqconteo=args[-5]
+    reloj=args[0]
+    click=args[1]
+    fini=args[2]
+    ffin=args[3]
+
+    freqconteo=args[4]
+    volcan=args[5]
+    rangef=args[6]
+    
+    
     
     
     rsam_blacklist=['CRU','PIC','LAV','AGU','CR3','CVI']
@@ -606,8 +532,6 @@ def update_cam_fija(*args):
     red=red[~red.codcorto.isin(rsam_blacklist)]
     red1 = red[red.referencia==1].sort_values(by='distcrater').head(1)# 1.referencia
     estaRSAM = red1.codcorto.iloc[0]
-    
-    
 
     fig = crear_figura(rangef,fini,ffin,volcan,estaRSAM,freqconteo)
     grafico = html.Div(children=[
@@ -641,7 +565,7 @@ def update_date(n,volcan,freq):
     print('tic! from '+request.remote_addr)
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
-
+    print(ffin)
     finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
     df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin,freq)
     heli  = helicorder(detect,horas)

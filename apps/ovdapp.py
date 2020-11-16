@@ -121,15 +121,28 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     className="card-text",
                 ),
                 dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/sismodb'),
-            ]),],)        
-        contenido = html.Div([dbc.Row([dbc.Col(card_orcapp,width=2),
-                                       dbc.Col(card_ovdash,width=2),
-                                       dbc.Col(card_autovdas,width=2),
-                                       dbc.Col(card_electriceye,width=2),
-                                       dbc.Col(card_sismodb,width=2)
-                                       
-                                       
-                                       ])])
+            ]),],)
+
+        card_fastrsam = dbc.Card([
+        dbc.CardImg(src=app.get_asset_url('img/fastrsam_thumb.png'), top=True),
+        dbc.CardBody([
+                html.H4("Fast Rsam", className="card-title"),
+                html.P(
+                    "RSAM Rápido, permite obtener datos sobre la señal "
+                    "sísmica continua por bandas de frecuencia.",
+                    className="card-text",
+                ),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/sismodb'),
+            ]),],)
+        
+        contenido = html.Div([dbc.Row([dbc.Col(card_orcapp,width=3),
+                                       dbc.Col(card_ovdash,width=3),
+                                       dbc.Col(card_autovdas,width=3)]),
+                            dbc.Row([ dbc.Col(card_electriceye,width=3),
+                                       dbc.Col(card_sismodb,width=3),
+                                       dbc.Col(card_fastrsam,width=3)])
+                                      ])
+
         return contenido
     elif button_id == "procesamiento-button":
         card_altcol = dbc.Card(
