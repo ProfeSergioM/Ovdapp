@@ -206,7 +206,7 @@ html.A(
         [
             dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=2),
             dbc.Col(dbc.NavbarBrand("Monitoreo sísmico automático -Volcán Orca - OVV",style={'color':'white'}),width=9),
-            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.23:8080/'),width=1)
+            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.13:8080/'),width=1)
             
         ],
         align="left",

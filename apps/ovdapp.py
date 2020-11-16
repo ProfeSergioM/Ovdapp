@@ -142,6 +142,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                                        dbc.Col(card_sismodb,width=3),
                                        dbc.Col(card_fastrsam,width=3)])
                                       ])
+
         return contenido
     elif button_id == "procesamiento-button":
         card_altcol = dbc.Card(
