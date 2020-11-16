@@ -507,19 +507,20 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
 @app.callback(
     #[Output("colgrafica-autovdas", "children"),Output("colmapa-autovdas", "children")],
     [Output("colgrafica-autovdas", "children")],
-    [Input('interval-component-gif-autovdas', 'n_intervals'),Input("submit-filtro-autovdas", "n_clicks"),
-    Input('fechas-autovdas','start_date'),Input('fechas-autovdas','end_date')],
-    [State('freqconteo-autovdas','value'),State('dropdown_volcanes','value'), State('RSAM-range-slider-autovdas', 'value')]
+    [Input('interval-component-gif-autovdas', 'n_intervals'),Input("submit-filtro-autovdas", "n_clicks")
+    ],
+    [State('freqconteo-autovdas','value'),State('dropdown_volcanes','value'), State('RSAM-range-slider-autovdas', 'value'),
+     State('fechas-autovdas','start_date'),State('fechas-autovdas','end_date')],prevent_initial_call=True
 )
 def update_cam_fija(*args):
     reloj=args[0]
     click=args[1]
-    fini=args[2]
-    ffin=args[3]
+    fini=args[5]
+    ffin=args[6]
 
-    freqconteo=args[4]
-    volcan=args[5]
-    rangef=args[6]
+    freqconteo=args[2]
+    volcan=args[3]
+    rangef=args[4]
     
     
     
