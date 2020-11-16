@@ -23,8 +23,7 @@ import ovdas_ovdapp_lib as oap
 import ovdas_getfromdb_lib as gdb
 import datetime as dt
 horas=2
-fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
-ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
+
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 
@@ -70,10 +69,6 @@ fechas_picker = dcc.DatePickerRange(
     end_date_placeholder_text="Final",
     calendar_orientation='vertical',
     display_format='Y-MM-DD',
-    start_date=fini,
-    end_date=ffin,
-    min_date_allowed='2020-08-28',
-    max_date_allowed=ffin,
     style=
                                     { 
                                       'color': '#212121',
@@ -204,6 +199,7 @@ def helicorder(detect,horas):
     return fig
 
 def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
+
     if countev_period=='H':name='/hora'
     elif countev_period=='D':name='/día'
     markersize=4
@@ -511,15 +507,21 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
 @app.callback(
     #[Output("colgrafica-autovdas", "children"),Output("colmapa-autovdas", "children")],
     [Output("colgrafica-autovdas", "children")],
-    [Input('interval-component-gif-autovdas', 'n_intervals'),Input("submit-filtro-autovdas", "n_clicks")],
-    [State('freqconteo-autovdas','value'),State('dropdown_volcanes','value'), State('RSAM-range-slider-autovdas', 'value'),State('fechas-autovdas','start_date'),State('fechas-autovdas','end_date')]
+    [Input('interval-component-gif-autovdas', 'n_intervals'),Input("submit-filtro-autovdas", "n_clicks"),
+    Input('fechas-autovdas','start_date'),Input('fechas-autovdas','end_date')],
+    [State('freqconteo-autovdas','value'),State('dropdown_volcanes','value'), State('RSAM-range-slider-autovdas', 'value')]
 )
 def update_cam_fija(*args):
-    ffin=args[-1]
-    fini=args[-2]
-    rangef=args[-3]
-    volcan=args[-4]
-    freqconteo=args[-5]
+    reloj=args[0]
+    click=args[1]
+    fini=args[2]
+    ffin=args[3]
+
+    freqconteo=args[4]
+    volcan=args[5]
+    rangef=args[6]
+    
+    
     
     
     rsam_blacklist=['CRU','PIC','LAV','AGU','CR3','CVI']
@@ -530,6 +532,7 @@ def update_cam_fija(*args):
     red=red[~red.codcorto.isin(rsam_blacklist)]
     red1 = red[red.referencia==1].sort_values(by='distcrater').head(1)# 1.referencia
     estaRSAM = red1.codcorto.iloc[0]
+
     fig = crear_figura(rangef,fini,ffin,volcan,estaRSAM,freqconteo)
     grafico = html.Div(children=[
         dcc.Graph(
