@@ -15,8 +15,7 @@ import ovdas_future_lib as fut
 import ovdas_getfromdb_lib as gdb
 import datetime as dt
 
-fini = dt.datetime.strftime((dt.datetime.utcnow() - dt.timedelta(days=7)),'%Y-%m-%d')
-ffin = dt.datetime.strftime(dt.datetime.utcnow(),'%Y-%m-%d')
+
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 
@@ -70,10 +69,8 @@ fechas_picker = dcc.DatePickerRange(
     end_date_placeholder_text="Final",
     calendar_orientation='vertical',
     display_format='Y-MM-DD',
-    start_date=fini,
-    end_date=ffin,
     min_date_allowed='2010-01-01',
-    max_date_allowed=ffin,
+
     style=
                                     { 
                                       'color': '#212121',
@@ -269,7 +266,7 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
     [Input("submit-realtime-fastrsam",'n_clicks'),Input('interval-component-gif-fastrsam', 'n_intervals'),Input("submit-filtro-fastrsam", "n_clicks")],
     [State('RSAM-range-slider-fastrsam','value'),
      State('dropdown_volcanes-fastrsam','value'), State('fechas-fastrsam','start_date'),State('fechas-fastrsam','end_date'),
-     State('dropdown_sampling-fastrsam','value')]
+     State('dropdown_sampling-fastrsam','value')],prevent_initial_call=True
 )
 def update_cam_fija(*args):
     
@@ -365,4 +362,6 @@ def update_cam_fija(*args):
 def update_date(n,volcan,fini,ffin):
     from flask import request
     print('tic! from '+request.remote_addr)
+    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
+    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin

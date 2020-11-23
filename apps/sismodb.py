@@ -165,7 +165,7 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
               "Conteo de eventos x día /Energía (M<sub>L</sub> o D<sub>R</sub>) de cada evento"]+titulos
     import ovdas_figure_lib as ffig
     
-    fig = make_subplots(rows=len(tipoevs)*2, cols=2,vertical_spacing=0.025,shared_xaxes='all',
+    fig = make_subplots(rows=len(tipoevs)*2, cols=2,vertical_spacing=0.02,shared_xaxes='all',
                         column_widths=[1,4],subplot_titles=['Conteo de eventos/<br>Energía máxima mensual',
                                                                             'Conteo de eventos diario/Energía máxima diaria'])
     fig.update_layout(template='seaborn')
@@ -188,14 +188,14 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
         #df_mes.index = df_mes.index.strftime('%d de %B de %Y')
         df_dia.index = df_mes.index
     
-        fig.add_trace(go.Bar(x=df_mes.index, y=df_mes,name=tipoev+'/mes',width=28,marker_color='#2b7bba',
+        fig.add_trace(go.Bar(x=df_mes.index, y=df_mes,name=tipoev+'s',width=1000 * 3600 * 24 * 31,marker_color='#2b7bba',
                              text=df_mes,
                              hovertemplate='%{text} - '+enem+' evs'), row=(2*r)+1, col=1) 
-        fig.update_yaxes(title_font=dict(size=14),title_text='ev/mes',fixedrange=True, row=(2*r)+1,col=1)
+        fig.update_yaxes(title_font=dict(size=14),title_text='evs',fixedrange=True, row=(2*r)+1,col=1)
         fig.update_yaxes(range=[0,df_mes.max()*1.7], row=(2*r)+1,col=1)
         fig.update_xaxes(range=[min(df_mes.index),max(df_mes.index)])
-        fig.add_trace(go.Bar(x=df_dia.index, y=df_dia.eventos,name=tipoev+'/día',width=1,marker_color='#2b7bba'), row=(2*r)+1, col=2) 
-        fig.update_yaxes(title_font=dict(size=14),title_text='ev/día',fixedrange=True, row=(2*r)+1,col=2)
+        fig.add_trace(go.Bar(x=df_dia.index, y=df_dia.eventos,name=tipoev,width=1000 * 3600 * 24 * 1,marker_color='#2b7bba'), row=(2*r)+1, col=2) 
+        fig.update_yaxes(title_font=dict(size=14),title_text='evs',fixedrange=True, row=(2*r)+1,col=2)
         fig.update_yaxes(range=[0,df_dia.eventos.max()*1.7], row=(2*r)+1,col=2)
         
     
@@ -215,17 +215,17 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
                                  line=dict(color='#2b7bba', width=2,
                                   ),
                              hovertemplate='%{text} - '+enem), row=(2*r)+2, col=2)     
-        fig.update_yaxes(title_font=dict(size=14),title_text='Max '+enet+'/mes',fixedrange=True, row=(2*r)+2,col=1)
+        fig.update_yaxes(title_font=dict(size=14),title_text=enet,fixedrange=True, row=(2*r)+2,col=1)
         
-        fig.add_trace(go.Scatter(x=df_ev.index, y=df_ev,name='Max '+enet+'/mes',mode='lines+markers',connectgaps=True,
+        fig.add_trace(go.Scatter(x=df_ev.index, y=df_ev,name=enet,mode='lines+markers',connectgaps=True,
                                  text=df_ev.index,
                                  marker=dict(color='red', size=10,opacity=0.5),
                                  line=dict(color='#2b7bba', width=2,
                                   ),
                              hovertemplate='%{text} - '+enem), row=(2*r)+2, col=1) 
-        fig.update_yaxes(title_font=dict(size=14),title_text='Max '+enet+'/día',fixedrange=True, row=(2*r)+2,col=2)
-        fig.update_yaxes(tickfont=dict(size=12),row=(2*r)+2,col=1)
-        fig.update_yaxes(tickfont=dict(size=12),row=(2*r)+1,col=1)
+        fig.update_yaxes(title_font=dict(size=14),title_text=enet,fixedrange=True, row=(2*r)+2,col=2)
+        fig.update_yaxes(tickfont=dict(size=10),row=(2*r)+2,col=1)
+        fig.update_yaxes(tickfont=dict(size=10),row=(2*r)+1,col=1)
         fig.update_yaxes(tickfont=dict(size=12),row=(2*r)+2,col=2)
         fig.update_yaxes(tickfont=dict(size=12),row=(2*r)+1,col=2)
         axesnum = str((4*r)+1)
@@ -408,7 +408,7 @@ def update_cam_fija(*args):
     red=red[~red.codcorto.isin(rsam_blacklist)]
     red1 = red[red.referencia==1].sort_values(by='distcrater').head(1)# 1.referencia
     estaRSAM = red1.codcorto.iloc[0]
-    tipoevs_custom=['VT','LP']
+    tipoevs_custom=['VT','VD','HB','LP','EX','TR','LV','TO','MF']
     fig = crear_RAM(fini,ffin,volcan,tipoevs_custom)
     grafico = html.Div(children=[
         dcc.Graph(

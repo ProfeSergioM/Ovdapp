@@ -132,7 +132,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "sísmica continua por bandas de frecuencia.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/sismodb'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/fastrsam'),
             ]),],)
         
         contenido = html.Div([dbc.Row([dbc.Col(card_orcapp,width=3),

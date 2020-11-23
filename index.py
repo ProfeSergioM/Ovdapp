@@ -54,7 +54,14 @@ app.clientside_callback(
             document.title = 'Ovdapp - AutOvdas'
         } else if (tab_value === '/apps/electriceye') {
             document.title = 'Ovdapp - Electric Eye'
+        } else if (tab_value === '/apps/hangar18') {
+            document.title = 'Ovdapp - Hangar 18'
+        } else if (tab_value === '/apps/sismodb') {
+            document.title = 'Ovdapp - SismoDB'
+        } else if (tab_value === '/apps/fastrsam') {
+            document.title = 'Ovdapp - fast RSAM'
         }
+    }
     }
     """,
     Output('blank-output', 'children'),
