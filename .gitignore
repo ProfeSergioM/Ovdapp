@@ -131,3 +131,9 @@ assets/fijas/Villarrica_Conaripe.jpg
 assets/timelapses/Villarrica_Conaripe.gif
 scripts_aux/first_figure.html
 scripts_aux/test_plotly.py
+__pycache__/index.cpython-38.pyc
+apps/__pycache__/autovdas.cpython-38.pyc
+apps/__pycache__/locali6.cpython-38.pyc
+apps/__pycache__/orcapp.cpython-38.pyc
+apps/__pycache__/ovdapp.cpython-38.pyc
+apps/__pycache__/ovdash.cpython-38.pyc

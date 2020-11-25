@@ -132,70 +132,74 @@ def helicorder(detect,horas):
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
     fig = make_subplots(rows=len(filas), cols=1,vertical_spacing=0)
-    maxy = abs(max(amps))*1.5
-    scale=round(maxy/2)
-    for i in range(0,len(filas)):
-        if i==0:
-            #escala
-            
-            
-            lev = go.Scatter(x=[min(filas[i].index),min(filas[i].index)],y=[-scale,scale],
-                             showlegend=False,hoverinfo='x',line=dict(color='white',width=10))
-            fig.add_annotation(go.layout.Annotation(x=min(filas[i].index),y=scale,font=dict(color='white'),
-                                        xanchor='center',yanchor='bottom',xref='x1',
-                                        yref='y'+str(i+1),text=str(scale*2)+' um/s',showarrow=False)) 
-            fig.append_trace(lev,i+1,1)
-        tituloy = str(min(filas[i].index))[11:16]
-        if (tituloy in ['00:00','06:00','12:00','18:00']) or i==0:
-            diatxt=str(min(filas[i].index))[8:10]+'-'+str(min(filas[i].index))[5:7]
-            fig.add_annotation(go.layout.Annotation(x=-0.05,y=0.5,font=dict(color='white'),
-                                        xanchor='right',yanchor='bottom',xref='paper',
-                                        yref='y'+str(i+1),text=diatxt,showarrow=False)) 
-        if len(detect)>0:
-            evs = detect[detect.index.to_series().between(min(filas[i].index),max(filas[i].index))]
-        alertaplot = go.Scattergl(x=filas[i].index
-                                  ,y=filas[i].amp,
-                                  showlegend=False,
-                                  hoverinfo='x+y',
-                                  line=dict(color='rgba(66,155,245,1)',width=0.5)
-                                  )
-        fig.append_trace(alertaplot,i+1,1)
-        fig.update_xaxes(showticklabels=False,range=[min(filas[i].index),max(filas[i].index)],row=i+1)
-        fig.update_yaxes(row=i,range=[-scale,scale],showticklabels=False)
-        fig.add_annotation(go.layout.Annotation(x=0,y=0,font=dict(color='white'),
-                                        xanchor='right',yanchor='middle',xref='paper',
-                                        yref='y'+str(i+1),text=tituloy,showarrow=False))  
-        if len(detect)>0:
-            evs = evs.sort_values(by='DRc',ascending=False)
-            e=0
-            for index,row in evs.iterrows():
-                DR = str(int(row.DRc))
-                lev = go.Scatter(x=[index,index],y=[-scale/2,scale/2],showlegend=False,hoverinfo='x',line=dict(color='red'))
+    if len(amps)>0:
+        fig = make_subplots(rows=len(filas), cols=1,vertical_spacing=0)
+        maxy = abs(max(amps))*1.5
+        scale=round(maxy/2)
+        for i in range(0,len(filas)):
+            if i==0:
+                #escala
+                
+                
+                lev = go.Scatter(x=[min(filas[i].index),min(filas[i].index)],y=[-scale,scale],
+                                 showlegend=False,hoverinfo='x',line=dict(color='white',width=10))
+                fig.add_annotation(go.layout.Annotation(x=min(filas[i].index),y=scale,font=dict(color='white'),
+                                            xanchor='center',yanchor='bottom',xref='x1',
+                                            yref='y'+str(i+1),text=str(scale*2)+' um/s',showarrow=False)) 
                 fig.append_trace(lev,i+1,1)
-                if e==0:
-                    fig.add_annotation(go.layout.Annotation(x=index,y=scale,font=dict(color='white'),
-                                            xanchor='center',yanchor='middle',xref='x'+str(i+1),
-                                            yref='y'+str(i+1),text=DR+r' cm<sup>2</sup> ',showarrow=False)) 
-                e=+1
-    for minu in range(0,11):
-        fig.add_annotation(go.layout.Annotation(x=minu*0.1,y=0,font=dict(color='white'),
-                                        xanchor='center',yanchor='top',xref='paper',
-                                        yref='paper',text=str(minu),showarrow=False))  
+            tituloy = str(min(filas[i].index))[11:16]
+            if (tituloy in ['00:00','06:00','12:00','18:00']) or i==0:
+                diatxt=str(min(filas[i].index))[8:10]+'-'+str(min(filas[i].index))[5:7]
+                fig.add_annotation(go.layout.Annotation(x=-0.05,y=0.5,font=dict(color='white'),
+                                            xanchor='right',yanchor='bottom',xref='paper',
+                                            yref='y'+str(i+1),text=diatxt,showarrow=False)) 
+            if len(detect)>0:
+                evs = detect[detect.index.to_series().between(min(filas[i].index),max(filas[i].index))]
+            alertaplot = go.Scattergl(x=filas[i].index
+                                      ,y=filas[i].amp,
+                                      showlegend=False,
+                                      hoverinfo='x+y',
+                                      line=dict(color='rgba(66,155,245,1)',width=0.5)
+                                      )
+            fig.append_trace(alertaplot,i+1,1)
+            fig.update_xaxes(showticklabels=False,range=[min(filas[i].index),max(filas[i].index)],row=i+1)
+            fig.update_yaxes(row=i,range=[-scale,scale],showticklabels=False)
+            fig.add_annotation(go.layout.Annotation(x=0,y=0,font=dict(color='white'),
+                                            xanchor='right',yanchor='middle',xref='paper',
+                                            yref='y'+str(i+1),text=tituloy,showarrow=False))  
+            if len(detect)>0:
+                evs = evs.sort_values(by='DRc',ascending=False)
+                e=0
+                for index,row in evs.iterrows():
+                    DR = str(int(row.DRc))
+                    lev = go.Scatter(x=[index,index],y=[-scale/2,scale/2],showlegend=False,hoverinfo='x',line=dict(color='red'))
+                    fig.append_trace(lev,i+1,1)
+                    if e==0:
+                        fig.add_annotation(go.layout.Annotation(x=index,y=scale,font=dict(color='white'),
+                                                xanchor='center',yanchor='middle',xref='x'+str(i+1),
+                                                yref='y'+str(i+1),text=DR+r' cm<sup>2</sup> ',showarrow=False)) 
+                    e=+1
+        for minu in range(0,11):
+            fig.add_annotation(go.layout.Annotation(x=minu*0.1,y=0,font=dict(color='white'),
+                                            xanchor='center',yanchor='top',xref='paper',
+                                            yref='paper',text=str(minu),showarrow=False))  
+            
+        fig.update_yaxes(row=i+1,range=[-scale,scale],showticklabels=False)  
+        fig.update_xaxes(row=i+1,tickformat="%M",showticklabels=False,title='Minutos')  
         
-    fig.update_yaxes(row=i+1,range=[-scale,scale],showticklabels=False)  
-    fig.update_xaxes(row=i+1,tickformat="%M",showticklabels=False,title='Minutos')  
-        
-    fig.layout.template = 'plotly_dark'
-    fig.update_layout(bargap=0,margin={"r":10,"t":25,"l":60,"b":30},
-                    
-    title={
-    'text':'Estación VN2',
-    'y':0.99,
-    'x':0.5,
-    'xanchor':'center',
-    'yanchor':'top'
-    }
-    )
+        fig.layout.template = 'plotly_dark'
+        fig.update_layout(bargap=0,margin={"r":10,"t":25,"l":60,"b":30},
+                        
+        title={
+        'text':'Estación VN2',
+        'y':0.99,
+        'x':0.5,
+        'xanchor':'center',
+        'yanchor':'top'
+        }
+        )
+    else:
+        fig=[]
     return fig
 
 def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
@@ -570,13 +574,16 @@ def update_date(n,volcan,freq):
     finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
     df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin,freq)
     heli  = helicorder(detect,horas)
-    heli = html.Div(children=[
-        dcc.Graph(
-            id='timeline-orca',
-            figure=heli,
-            style={ 'height':'80vh' }
-        )
-    ])
+    if len(heli)>0:
+        heli = html.Div(children=[
+            dcc.Graph(
+                id='timeline-orca',
+                figure=heli,
+                style={ 'height':'80vh' }
+            )
+        ])
+    else:
+        heli = html.Div('VN2 fuera de línea')
     helicard = dbc.Card([
         dbc.CardHeader('Sismograma - Últimas 2 horas'),
         dbc.CardBody(heli)
