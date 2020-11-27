@@ -104,6 +104,7 @@ def helicorder(detect,horas):
     ffinround = ffin + (ffin.min - ffin) % timedelta(minutes=ejex)-timedelta(milliseconds=100)
     
     traza = wws.extraer_signal(estacion='VN2',componente='Z',inicio=finiround,fin=ffin)
+    flag = len(traza)
     traza = sp.filtrar_traza(traza,tipo="butter",orden=4,fi=0.4,ff=12)
     
     
@@ -199,8 +200,8 @@ def helicorder(detect,horas):
         }
         )
     else:
-        fig=[]
-    return fig
+        fig=[];flag=0
+    return fig,flag
 
 def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
 
@@ -573,17 +574,17 @@ def update_date(n,volcan,freq):
     print(ffin)
     finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
     df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin,freq)
-    heli  = helicorder(detect,horas)
-    if len(heli)>0:
+    heli,flag  = helicorder(detect,horas)
+    if flag>0:
         heli = html.Div(children=[
-            dcc.Graph(
-                id='timeline-orca',
-                figure=heli,
-                style={ 'height':'80vh' }
-            )
-        ])
+                dcc.Graph(
+                    id='timeline-orca',
+                    figure=heli,
+                    style={ 'height':'80vh' }
+                )
+            ])
     else:
-        heli = html.Div('VN2 fuera de línea')
+        heli=html.Div('Estación fuera de linea')
     helicard = dbc.Card([
         dbc.CardHeader('Sismograma - Últimas 2 horas'),
         dbc.CardBody(heli)
