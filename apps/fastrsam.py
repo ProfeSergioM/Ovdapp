@@ -199,7 +199,7 @@ navbar = dbc.Navbar(
         [
             dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=1),
             dbc.Col(dbc.NavbarBrand("Proyecto de monitoreo sísmico automático OVV - RSAM Rápido",style={'color':'white'}),width=10),
-            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.13:8080/'),width=1)
+            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='/'),width=1)
             
             
         ],justify="left",
