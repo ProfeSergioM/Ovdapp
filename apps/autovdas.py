@@ -80,25 +80,21 @@ fechas_picker = dcc.DatePickerRange(
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 counter_imggif = dcc.Interval(
           id='interval-component-gif-autovdas',
-          interval=60*1000*5, # in milliseconds
-          n_intervals=0
-      )
-counter_reloj = dcc.Interval(
-          id='interval-component-reloj-autovdas',
           interval=60*1000*1, # in milliseconds
           n_intervals=0
       )
 
-def helicorder(detect,horas):
+def helicorder(horas,freq):
     import ovdas_WWS_lib as wws
     import ovdas_SeismicProc_lib as sp
     import datetime as dt
     ejex =10 #minutos en el eje x
     from datetime import timedelta
-    import pandas as pd
     import numpy as np
     fini = dt.datetime.utcnow() - dt.timedelta(hours=horas)
     ffin = dt.datetime.utcnow()
+    finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
+    df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin,freq)
     subsample=10
     finiround = fini - (fini -fini.min) % timedelta(minutes=ejex)
     ffinround = ffin + (ffin.min - ffin) % timedelta(minutes=ejex)-timedelta(milliseconds=100)
@@ -133,6 +129,7 @@ def helicorder(detect,horas):
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
     fig = make_subplots(rows=len(filas), cols=1,vertical_spacing=0)
+    
     if len(amps)>0:
         fig = make_subplots(rows=len(filas), cols=1,vertical_spacing=0)
         maxy = abs(max(amps))*1.5
@@ -201,7 +198,22 @@ def helicorder(detect,horas):
         )
     else:
         fig=[];flag=0
-    return fig,flag
+        
+    grafico = html.Div(children=[
+        dcc.Graph(
+            id='timeline-orca',
+            figure=fig,
+            style={ 'height':'80vh' }
+        )
+    ])
+    
+    helicard = dbc.Card([
+        dbc.CardHeader('Sismicidad'),
+        dbc.CardBody(grafico)
+        
+        ],outline=True,color='light')
+
+    return helicard
 
 def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
 
@@ -210,199 +222,46 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
     markersize=4
     ffinxaxis = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     df_count,df = oap.get_pickle_OVV(volcan,fini,ffin,countev_period)
+    
 
 
     df_RSAM = fut.get_fastRSAM2(fini,ffin,estaRSAM,rangef[0],rangef[1],5,True,'15T')               
     import numpy as np
     #ampslogs=np.power(df['ampl'],0.2)/1
-    tipoevs = len(df.tipoev.unique())
-    
-    fig = make_subplots(rows=tipoevs+5, cols=1,shared_xaxes=True, vertical_spacing=0.025)
-    
-    i=1
-    for tipoev in df.tipoev.unique():
+    try:
+        tipoevs = len(df.tipoev.unique())
 
-        fig.add_trace(
-        go.Bar( x=df_count.index, y=df_count[tipoev],marker= { "color" : 'white'},name='ev'),
-        row=i, col=1
-        )
-        fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df_count[tipoev]),font=dict(color='white'),
-                                            xanchor='left',yanchor='bottom',xref='paper',bgcolor='#141d26',
-                                            yref='y'+str(i),text=tipoev+name,showarrow=False))      
+        fig = make_subplots(rows=tipoevs+5, cols=1,shared_xaxes=True, vertical_spacing=0.025)
         
+        i=1
+        for tipoev in df.tipoev.unique():
+    
+            fig.add_trace(
+            go.Bar( x=df_count.index, y=df_count[tipoev],marker= { "color" : 'white'},name='ev'),
+            row=i, col=1
+            )
+            fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df_count[tipoev]),font=dict(color='white'),
+                                                xanchor='left',yanchor='bottom',xref='paper',bgcolor='#141d26',
+                                                yref='y'+str(i),text=tipoev+name,showarrow=False))      
+            
+            fig.add_trace(
+            go.Scattergl( x=df_count.index, y=df_count[tipoev+'cumsum'],name='Acum. ev'+name,line=dict(color='crimson')),
+            row=i, col=1
+            )
+            i+=1
+        ##########################RSAM
         fig.add_trace(
-        go.Scattergl( x=df_count.index, y=df_count[tipoev+'cumsum'],name='Acum. ev'+name,line=dict(color='crimson')),
+        go.Scattergl( x=df_RSAM.index, y=df_RSAM.fastRSAM, mode='markers',name='RSAM',
+                   marker= {"size":markersize, "color" : 'white'}),
         row=i, col=1
-        )
-        i+=1
-    ##########################RSAM
-    fig.add_trace(
-    go.Scattergl( x=df_RSAM.index, y=df_RSAM.fastRSAM, mode='markers',name='RSAM',
-               marker= {"size":markersize, "color" : 'white'}),
-    row=i, col=1
-    )   
-    fig.update_traces(opacity=0.5,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
-                  row=i,
-                  )
-    fig.update_yaxes(row=i,range=[0,max(df_RSAM.fastRSAM)*1.5])
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df_RSAM.fastRSAM)*1.5,font=dict(color='white'),
-                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
-                                            yref='y'+str(i),text='RSAM ('+estaRSAM+') '+str(rangef[0])+ ' - '+ str(rangef[1])+ ' Hz',showarrow=False))
-    fig.add_shape(
-            type="rect",
-            xref="paper",
-            yref='y'+str(i),
-            x0=0,
-            y0=0,
-            x1=1,
-            y1=max(df_RSAM.fastRSAM)*1.5,
-            fillcolor="#141d26",
-            opacity=0.5,
-            layer="below",
-            line_width=0         
-            )
-    i+=1
-    ######################          #DR
-    dfdr = df[df.tipoev=='LP']
-    fig.add_trace(
-    go.Scattergl( x=dfdr.index, y=dfdr['DRc'], mode='markers',name='DR',
-               marker= {"size":markersize, "color" : 'white'}),
-    row=i, col=1
-    )
-    fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3  ,line=dict(color='crimson',width=0)),
-                  row=i,
-                  )
-    fig.update_yaxes(row=i,range=[0,max(dfdr['DRc'])*1.5])        
-    fig.update_yaxes(title_text="cm*cm", row=i)
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(dfdr['DRc'])*1.5,font=dict(color='white'),
-                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
-                                            yref='y'+str(i),text='DR/ev',showarrow=False))  
-    
-    fig.add_shape(
-            type="rect",
-            xref="paper",
-            yref='y'+str(i),
-            x0=0,
-            y0=0,
-            x1=1,
-            y1=max(dfdr['DRc'])*1.5,
-            fillcolor="#141d26",
-            opacity=0.5,
-            layer="below",
-            line_width=0         
-            )
-    i+=1
-    ######################           # freq
-
-    fig.add_trace(
-    go.Scattergl( x=df.index, y=df['fdom'], mode='markers',name='fdom',
-               marker= {"size":markersize, "color" : 'white'}),
-    row=i, col=1
-    )
-    fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3,line=dict(color='crimson',width=0)),
-                  row=i,
-                  )
-    fig.update_yaxes(title_text="Hz", row=i)
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=1,font=dict(color='white'),
-                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
-                                            yref='y'+str(i),text='Frecuencia dom/ev',showarrow=False))  
-    fig.update_yaxes(type="log",row=i)
-    fig.update_yaxes(row=i,range=[np.log10(0.5),np.log10(20)],dtick=np.log10(2))
-	
-    fig.add_shape(
-            type="rect",
-            xref="paper",
-            yref='y'+str(i),
-            x0=0,
-            y0=0,
-            x1=1,
-            y1=10,
-            fillcolor="#141d26",
-            opacity=0.5,
-            layer="below",
-            line_width=0         
-            )
-    i+=1
-    
-    
-    
-    ################################     # AMPLITUD
-    fig.add_trace(
-    go.Scattergl( x=df.index, y=df['ampl'], mode='markers',name='Amplitud',
-               marker= {"size":df['ampl'], "color" : 'black'}),
-    row=i, col=1
-    )
-    fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3,line=dict(color='crimson',width=0)),
-                  row=i,
-                  )
-    fig.update_yaxes(title_text="um/s", row=i)
-    fig.update_yaxes(row=i,range=[0,max(df['ampl'])*1.5])
-    #fig.update_yaxes(type="log",row=i)
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['ampl'])*1.5,font=dict(color='white'),
-                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
-                                            yref='y'+str(i),text='Amplitud/ev',showarrow=False))  
-    fig.add_shape(
-            type="rect",
-            xref="paper",
-            yref='y'+str(i),
-            x0=0,
-            y0=0,
-            x1=1,
-            y1=max(df['ampl'])*1.5,
-            fillcolor="#141d26",
-            opacity=0.5,
-            layer="below",
-            line_width=0         
-            )
-    i+=1
-    #################################       # Duracion
-    fig.add_trace(
-    go.Scattergl( x=df.index, y=df['duracion'], mode='markers',name='Duración',
-               marker= {"size":markersize, "color" : 'white'}),
-    row=i, col=1
-    )
-    fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3,line=dict(color='crimson',width=0)),
-                  row=i,
-                  )
-    fig.update_yaxes(title_text="s", row=i)
-    fig.update_yaxes(row=i,range=[0,max(df['duracion'])*1.5])
-    fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['duracion'])*1.5,font=dict(color='white'),
-                                            xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
-                                            yref='y'+str(i),text='Duración/ev',showarrow=False))  
-   
-
-    
-    fig['layout']['xaxis']['tickfont']['color']='rgba(0,0,0,0)'
-    fig['layout']['xaxis'+str(i)]['range']=[fini,ffinxaxis]
-    
-    fig.update_yaxes(title_text="um/s", row=i)
-    fig.update_xaxes(title_text="Fecha", row=i)
-    fig.add_shape(
-            type="rect",
-            xref="paper",
-            yref='y'+str(i),
-            x0=0,
-            y0=0,
-            x1=1,
-            y1=max(df['duracion'])*1.5,
-            fillcolor="#141d26",
-            opacity=0.5,
-            layer="below",
-            line_width=0         
-            )
-    i+=1
-    
-    
-    
-    totalfilas = i
-    j=1
-    k=1    
- 
-    for tipoev in df.tipoev.unique():
-        fig['data'][j].update(yaxis='y'+str(i))
-        fig['layout']['yaxis'+str(i)]=dict(overlaying='y'+str(k),side='right',title='Acum. ev'+name,title_font=dict(color='crimson'))
-        #fig.update_yaxes(title_text="ev/hora", row=j)
-        
+        )   
+        fig.update_traces(opacity=0.5,marker=dict(color='white',size=markersize,line=dict(color='crimson',width=0)),
+                      row=i,
+                      )
+        fig.update_yaxes(row=i,range=[0,max(df_RSAM.fastRSAM)*1.5])
+        fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df_RSAM.fastRSAM)*1.5,font=dict(color='white'),
+                                                xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
+                                                yref='y'+str(i),text='RSAM ('+estaRSAM+') '+str(rangef[0])+ ' - '+ str(rangef[1])+ ' Hz',showarrow=False))
         fig.add_shape(
                 type="rect",
                 xref="paper",
@@ -410,33 +269,185 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
                 x0=0,
                 y0=0,
                 x1=1,
-                y1=max(df_count[tipoev+'cumsum']),
+                y1=max(df_RSAM.fastRSAM)*1.5,
                 fillcolor="#141d26",
                 opacity=0.5,
                 layer="below",
                 line_width=0         
                 )
         i+=1
-        j+=2
-        k+=1
+        ######################          #DR
+        dfdr = df[df.tipoev=='LP']
+        fig.add_trace(
+        go.Scattergl( x=dfdr.index, y=dfdr['DRc'], mode='markers',name='DR',
+                   marker= {"size":markersize, "color" : 'white'}),
+        row=i, col=1
+        )
+        fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3  ,line=dict(color='crimson',width=0)),
+                      row=i,
+                      )
+        fig.update_yaxes(row=i,range=[0,max(dfdr['DRc'])*1.5])        
+        fig.update_yaxes(title_text="cm*cm", row=i)
+        fig.add_annotation(go.layout.Annotation(x=0.01,y=max(dfdr['DRc'])*1.5,font=dict(color='white'),
+                                                xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
+                                                yref='y'+str(i),text='DR/ev',showarrow=False))  
     
+        fig.add_shape(
+                type="rect",
+                xref="paper",
+                yref='y'+str(i),
+                x0=0,
+                y0=0,
+                x1=1,
+                y1=max(dfdr['DRc'])*1.5,
+                fillcolor="#141d26",
+                opacity=0.5,
+                layer="below",
+                line_width=0         
+                )
+        i+=1
+        ######################           # freq
+    
+        fig.add_trace(
+        go.Scattergl( x=df.index, y=df['fdom'], mode='markers',name='fdom',
+                   marker= {"size":markersize, "color" : 'white'}),
+        row=i, col=1
+        )
+        fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3,line=dict(color='crimson',width=0)),
+                      row=i,
+                      )
+        fig.update_yaxes(title_text="Hz", row=i)
+        fig.add_annotation(go.layout.Annotation(x=0.01,y=1,font=dict(color='white'),
+                                                xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
+                                                yref='y'+str(i),text='Frecuencia dom/ev',showarrow=False))  
+        fig.update_yaxes(type="log",row=i)
+        fig.update_yaxes(row=i,range=[np.log10(0.5),np.log10(20)],dtick=np.log10(2))
+	
+        fig.add_shape(
+                type="rect",
+                xref="paper",
+                yref='y'+str(i),
+                x0=0,
+                y0=0,
+                x1=1,
+                y1=10,
+                fillcolor="#141d26",
+                opacity=0.5,
+                layer="below",
+                line_width=0         
+                )
+        i+=1
+    
+    
+    
+        ################################     # AMPLITUD
+        fig.add_trace(
+        go.Scattergl( x=df.index, y=df['ampl'], mode='markers',name='Amplitud',
+                   marker= {"size":df['ampl'], "color" : 'black'}),
+        row=i, col=1
+        )
+        fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3,line=dict(color='crimson',width=0)),
+                      row=i,
+                      )
+        fig.update_yaxes(title_text="um/s", row=i)
+        fig.update_yaxes(row=i,range=[0,max(df['ampl'])*1.5])
+        #fig.update_yaxes(type="log",row=i)
+        fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['ampl'])*1.5,font=dict(color='white'),
+                                                xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
+                                                yref='y'+str(i),text='Amplitud/ev',showarrow=False))  
+        fig.add_shape(
+                type="rect",
+                xref="paper",
+                yref='y'+str(i),
+                x0=0,
+                y0=0,
+                x1=1,
+                y1=max(df['ampl'])*1.5,
+                fillcolor="#141d26",
+                opacity=0.5,
+                layer="below",
+                line_width=0         
+                )
+        i+=1
+        #################################       # Duracion
+        fig.add_trace(
+        go.Scattergl( x=df.index, y=df['duracion'], mode='markers',name='Duración',
+                   marker= {"size":markersize, "color" : 'white'}),
+        row=i, col=1
+        )
+        fig.update_traces(opacity=0.6,marker=dict(color='white',size=df['ampl']**0.2*3,line=dict(color='crimson',width=0)),
+                      row=i,
+                      )
+        fig.update_yaxes(title_text="s", row=i)
+        fig.update_yaxes(row=i,range=[0,max(df['duracion'])*1.5])
+        fig.add_annotation(go.layout.Annotation(x=0.01,y=max(df['duracion'])*1.5,font=dict(color='white'),
+                                                xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
+                                                yref='y'+str(i),text='Duración/ev',showarrow=False))  
+       
 
+    
+        fig['layout']['xaxis']['tickfont']['color']='rgba(0,0,0,0)'
+        fig['layout']['xaxis'+str(i)]['range']=[fini,ffinxaxis]
+    
+        fig.update_yaxes(title_text="um/s", row=i)
+        fig.update_xaxes(title_text="Fecha", row=i)
+        fig.add_shape(
+                type="rect",
+                xref="paper",
+                yref='y'+str(i),
+                x0=0,
+                y0=0,
+                x1=1,
+                y1=max(df['duracion'])*1.5,
+                fillcolor="#141d26",
+                opacity=0.5,
+                layer="below",
+                line_width=0         
+                )
+        i+=1
+    
+    
+    
+        totalfilas = i
+        j=1
+        k=1    
      
+        for tipoev in df.tipoev.unique():
+            fig['data'][j].update(yaxis='y'+str(i))
+            fig['layout']['yaxis'+str(i)]=dict(overlaying='y'+str(k),side='right',title='Acum. ev'+name,title_font=dict(color='crimson'))
+            #fig.update_yaxes(title_text="ev/hora", row=j)
+            
+            fig.add_shape(
+                    type="rect",
+                    xref="paper",
+                    yref='y'+str(i),
+                    x0=0,
+                    y0=0,
+                    x1=1,
+                    y1=max(df_count[tipoev+'cumsum']),
+                    fillcolor="#141d26",
+                    opacity=0.5,
+                    layer="below",
+                    line_width=0         
+                    )
+            i+=1
+            j+=2
+            k+=1
     
-    
-    fig.update_layout(bargap=0,margin={"r":1,"t":25,"l":1,"b":1},
-                      
-    
-    title={
-    'text':'Detección automática de eventos - '+volcanes[volcanes.nombre_db==volcan].vol_tipo.iloc[0]+' '+volcanes[volcanes.nombre_db==volcan].nombre.iloc[0],
-    'y':0.98,
-    'x':0.5,
-    'xanchor':'center',
-    'yanchor':'top'
-    },
-    showlegend=False
-    )
-    fig.layout.template = 'plotly_dark'
+        fig.update_layout(bargap=0,margin={"r":1,"t":25,"l":1,"b":1},
+
+        title={
+        'text':'Detección automática de eventos - '+volcanes[volcanes.nombre_db==volcan].vol_tipo.iloc[0]+' '+volcanes[volcanes.nombre_db==volcan].nombre.iloc[0],
+        'y':0.98,
+        'x':0.5,
+        'xanchor':'center',
+        'yanchor':'top'
+        },
+        showlegend=False
+        )
+        fig.layout.template = 'plotly_dark'
+    except:
+        fig=[]
     
     
 
@@ -479,7 +490,8 @@ controles = html.Div([
     fechas_picker,
     html.Div(html.P('Periodo de conteo de eventos',id='titulo-fecha-autovdas')),
     freqconteo,
-    html.Div(dbc.Button("Enviar", color="primary", id="submit-filtro-autovdas"),style={'text-align':'right'})
+    html.Div(children=[dcc.Loading(children=[dbc.Button("Online", color="success", id="submit-realtime-autovdas", className="mr-1"),
+             dbc.Button("Enviar", color="primary", id="submit-filtro-autovdas", className="mr-1")])],style={'text-align':'right'})
     
     
     ])
@@ -502,17 +514,19 @@ banner_inferior = dbc.Card([
 
 
 layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
-                                   dbc.Col([dcc.Loading(html.Div(id='colgrafica-autovdas'))],width=6),
-                                   dbc.Col([html.Div(id='heli-autovdas')],width=3)
+                                   dbc.Col([html.Div(id='colgrafica-autovdas')],width=6),
+                                   dbc.Col([html.Div(id='helicorder-autovdas')],width=3)
                                    ]),
-                   dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start'),
+                   dbc.Row(counter_imggif,no_gutters=True,justify='start'),
                    
                    ])
 
 @app.callback(
     #[Output("colgrafica-autovdas", "children"),Output("colmapa-autovdas", "children")],
-    [Output("colgrafica-autovdas", "children")],
-    [Input('interval-component-gif-autovdas', 'n_intervals'),Input("submit-filtro-autovdas", "n_clicks")
+    [Output("colgrafica-autovdas", "children"),Output("helicorder-autovdas", "children"),Output('interval-component-gif-autovdas', 'disabled'),
+     Output("submit-realtime-autovdas",'color'),Output("submit-realtime-autovdas",'children')],
+    [Input('interval-component-gif-autovdas', 'n_intervals'),Input("submit-filtro-autovdas", "n_clicks"),Input("submit-realtime-autovdas",'n_clicks')
+     
     ],
     [State('freqconteo-autovdas','value'),State('dropdown_volcanes','value'), State('RSAM-range-slider-autovdas', 'value'),
      State('fechas-autovdas','start_date'),State('fechas-autovdas','end_date')],prevent_initial_call=True
@@ -520,50 +534,62 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
 def update_cam_fija(*args):
     reloj=args[0]
     click=args[1]
-    fini=args[5]
-    ffin=args[6]
+    livebutton=args[2]
 
-    freqconteo=args[2]
-    volcan=args[3]
-    rangef=args[4]
+    freqconteo=args[3]
+    volcan=args[4]
+    rangef=args[5]
+    fini=args[6]
+    ffin=args[7]
     
+    def plotear(volcan,fini,ffin):
+        rsam_blacklist=['CRU','PIC','LAV','AGU','CR3','CVI']
+        red = gdb.get_metadata_wws(volcan)
+        red=red[red.tipo=='SISMOLOGICA']
+        red['sensor'] = red.canal.str[1]
+        red = red[red.sensor!='N']
+        red=red[~red.codcorto.isin(rsam_blacklist)]
+        red1 = red[red.referencia==1].sort_values(by='distcrater').head(1)# 1.referencia
+        estaRSAM = red1.codcorto.iloc[0]
     
-    
-    
-    rsam_blacklist=['CRU','PIC','LAV','AGU','CR3','CVI']
-    red = gdb.get_metadata_wws(volcan)
-    red=red[red.tipo=='SISMOLOGICA']
-    red['sensor'] = red.canal.str[1]
-    red = red[red.sensor!='N']
-    red=red[~red.codcorto.isin(rsam_blacklist)]
-    red1 = red[red.referencia==1].sort_values(by='distcrater').head(1)# 1.referencia
-    estaRSAM = red1.codcorto.iloc[0]
-
-    fig = crear_figura(rangef,fini,ffin,volcan,estaRSAM,freqconteo)
-    grafico = html.Div(children=[
-        dcc.Graph(
-            id='timeline-orca',
-            figure=fig,
-            style={ 'height':'80vh' }
-        )
-    ])
-    
-    graficocard = dbc.Card([
-        dbc.CardHeader('Sismicidad'),
-        dbc.CardBody(grafico)
+        fig = crear_figura(rangef,fini,ffin,volcan,estaRSAM,freqconteo)
+        grafico = html.Div(children=[
+            dcc.Graph(
+                id='timeline-orca',
+                figure=fig,
+                style={ 'height':'80vh' }
+            )
+        ])
         
-        ],outline=True,color='light')
+        graficocard = dbc.Card([
+            dbc.CardHeader('Sismicidad'),
+            dbc.CardBody(grafico)
+            
+            ],outline=True,color='light')
+        return graficocard
 
 
 
-    #return [graficocard],[mapacard]
-    return [graficocard]
+    ctx = dash.callback_context
+    ctx_index = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if ctx_index=='submit-realtime-autovdas':
+        if (livebutton==None) or (livebutton % 2 != 0):
+            return dash.no_update,dash.no_update,True,'warning','Offline'
+        else:
+            graficocard = plotear(volcan,fini,ffin)
+            helicard = helicorder(2,freqconteo)
+            return [graficocard],helicard,False,'success','Online'
+    else:
+        graficocard = plotear(volcan,fini,ffin)
+        helicard = helicorder(2,freqconteo)
+
+    return [graficocard],helicard,dash.no_update,dash.no_update,dash.no_update
 
 
 @app.callback([Output('live-update-text-autovdas', 'children'),Output('fechas-autovdas','start_date'),Output('fechas-autovdas','end_date'),
-               Output('fechas-autovdas','max_date_allowed'),
-               Output("heli-autovdas", "children")],
-              [Input('interval-component-reloj-autovdas', 'n_intervals')],
+               Output('fechas-autovdas','max_date_allowed')],
+              [Input('interval-component-gif-autovdas', 'n_intervals')],
               [State('dropdown_volcanes','value'),State('freqconteo-autovdas','value')]
               )
 def update_date(n,volcan,freq):
@@ -571,23 +597,4 @@ def update_date(n,volcan,freq):
     print('tic! from '+request.remote_addr)
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
-    print(ffin)
-    finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
-    df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin,freq)
-    heli,flag  = helicorder(detect,horas)
-    if flag>0:
-        heli = html.Div(children=[
-                dcc.Graph(
-                    id='timeline-orca',
-                    figure=heli,
-                    style={ 'height':'80vh' }
-                )
-            ])
-    else:
-        heli=html.Div('Estación fuera de linea')
-    helicard = dbc.Card([
-        dbc.CardHeader('Sismograma - Últimas 2 horas'),
-        dbc.CardBody(heli)
-        
-        ],outline=True,color='light')
-    return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin,ffin,[helicard]
+    return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin,ffin

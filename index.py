@@ -62,7 +62,7 @@ app.clientside_callback(
             document.title = 'Ovdapp - fast RSAM'
         }
     }
-    }
+    
     """,
     Output('blank-output', 'children'),
     [Input('url', 'pathname')]
