@@ -108,7 +108,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "Monitoreo de últimos sismos localizados. También permite generar REAVs de estos.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8081/apps/electriceye'),
+                dbc.Button("Ir a la app", color="primary", href='/apps/electriceye'),
             ]),],)
         
         card_sismodb = dbc.Card([
