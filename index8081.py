@@ -19,6 +19,8 @@ def display_page(pathname):
         return 'Loading...'
     elif pathname == '/apps/electriceye':
         return electriceye.layout
+    elif pathname == '/':
+        return ovdapp.layout
     else:
         return '404'
 
