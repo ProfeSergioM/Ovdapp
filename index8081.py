@@ -17,24 +17,8 @@ app.layout = html.Div([
 def display_page(pathname):
     if pathname is None:
         return 'Loading...'
-    elif pathname == '/apps/ovdash':
-        return ovdash.layout
-    elif pathname == '/apps/orcapp':
-        return orcapp.layout
-    elif pathname == '/apps/autovdas':
-        return autovdas.layout
-    elif pathname == '/apps/locali6':
-        return locali6.layout
-    elif pathname == '/apps/hangar18':
-        return hangar18.layout
-    elif pathname == '/apps/holaRAV':
-        return holaRAV.layout
-    elif pathname == '/apps/sismodb':
-        return sismodb.layout
-    elif pathname == '/apps/fastrsam':
-        return fastrsam.layout
-    elif pathname == '/':
-        return ovdapp.layout
+    elif pathname == '/apps/electriceye':
+        return electriceye.layout
     else:
         return '404'
 
