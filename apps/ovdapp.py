@@ -74,7 +74,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "en las pantallas de crisis.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='/apps/ovdash'),
+                dbc.Button("Ir a la app", color="primary", href='http://localhost:8080/apps/ovdash'),
             ]),],)
         
         card_orcapp = dbc.Card([
@@ -86,7 +86,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "de actividad sísmica del volcán Orca.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='/apps/orcapp'),
+                dbc.Button("Ir a la app", color="primary", href='http://localhost:8080/apps/orcapp'),
             ]),],)
 
         card_autovdas = dbc.Card([
@@ -97,7 +97,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "Proyecto de monitoreo automático de señales sísmicas.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='/apps/autovdas'),
+                dbc.Button("Ir a la app", color="primary", href='http://localhost:8080/apps/autovdas'),
             ]),],)
         
         card_electriceye = dbc.Card([
@@ -120,7 +120,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "almacenados en la db del ovdas.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='/apps/sismodb'),
+                dbc.Button("Ir a la app", color="primary", href='http://localhost:8080/apps/sismodb'),
             ]),],)
 
         card_fastrsam = dbc.Card([
@@ -132,7 +132,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "sísmica continua por bandas de frecuencia.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='/apps/fastrsam'),
+                dbc.Button("Ir a la app", color="primary", href='http://localhost:8080/apps/fastrsam'),
             ]),],)
         
         contenido = html.Div([dbc.Row([dbc.Col(card_orcapp,width=3),
