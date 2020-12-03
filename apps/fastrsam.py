@@ -261,9 +261,9 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
 
 @app.callback(
     #[Output("colgrafica-fastrsam", "children"),Output("colmapa-fastrsam", "children")],
-    [Output("colgrafica-fastrsam", "children"),Output('interval-component-gif-fastrsam', 'disabled'),
+    [Output("colgrafica-fastrsam", "children"),Output('interval-component-reloj-fastrsam', 'disabled'),
      Output("submit-realtime-fastrsam",'color'),Output("submit-realtime-fastrsam",'children')],
-    [Input("submit-realtime-fastrsam",'n_clicks'),Input('interval-component-gif-fastrsam', 'n_intervals'),Input("submit-filtro-fastrsam", "n_clicks")],
+    [Input("submit-realtime-fastrsam",'n_clicks'),Input('interval-component-reloj-fastrsam', 'n_intervals'),Input("submit-filtro-fastrsam", "n_clicks")],
     [State('RSAM-range-slider-fastrsam','value'),
      State('dropdown_volcanes-fastrsam','value'), State('fechas-fastrsam','start_date'),State('fechas-fastrsam','end_date'),
      State('dropdown_sampling-fastrsam','value')],prevent_initial_call=True
@@ -275,6 +275,7 @@ def update_cam_fija(*args):
         voldata = voldata.drop_duplicates(subset='nombre', keep="first")
         red = gdb.get_metadata_wws(volcan='*')
         red = red[(red.nombre_db==volcan) & (red.tipo=='SISMOLOGICA') & (red.cod.str.startswith('S')==True)]
+        red = red[~red.codcorto.isin(['CHP','KIK'])]
         RSAMS = []
         for esta in list(red.codcorto):
             try:
@@ -314,8 +315,7 @@ def update_cam_fija(*args):
                 hv = ((RSAM[es+'N']+RSAM[es+'E'])/2)/RSAM[es+'Z']
                 hv = hv.rename(es+'_H/V')
                 hvs.append(hv)
-            hvs = pd.concat(hvs)
-            
+            hvs = pd.concat(hvs,axis=1)
         RSAM = pd.concat([RSAM,hvs],axis=1)
     
         fig = crear_fastRSAM(RSAM,voldata,fini,ffin,rangef,sampling)
