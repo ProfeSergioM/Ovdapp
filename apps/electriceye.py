@@ -116,6 +116,7 @@ def get_eventos_destacados():
     inicio,final=get_fechahoy()
     eventos = gdb.extraer_eventos(inicio,final,volcan='*')
     eventos = pd.DataFrame(eventos)
+    eventos = eventos[eventos.tipoevento!='VD']
     #ml general
     eventosml = eventos[eventos.ml>2]
     #dr general

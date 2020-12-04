@@ -15,8 +15,4 @@ fin='2020-12-25'
 
 df = gdb.extraer_eventos(ini, fin, 'LagMaule')
 df = pd.DataFrame(df)
-
-df=df[df.idevento==8710814]
-volcanes =gdb.get_metadata_volcan('LagMaule',rep='y')
-
-ffig.plot_map_REAV_ovdapp(df,volcanes)
+df = df[df.tipoevento!='VD']
