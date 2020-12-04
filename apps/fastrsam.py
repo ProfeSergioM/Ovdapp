@@ -19,7 +19,7 @@ import datetime as dt
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 
-volcanes = volcanes[volcanes.nombre_db.isin(['Villarrica','NevChillan'])]
+volcanes = volcanes[volcanes.nombre_db.isin(['Villarrica'])]
 
 lista_volcanes=[]
 for index, row in volcanes.iterrows():
