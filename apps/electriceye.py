@@ -21,7 +21,7 @@ import pandas as pd
 from obspy.clients.iris import Client
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_getfromdb_lib as gdb
-import ovdas_doc_lib as odl
+
 from random import random
 import ovdas_figure_lib as ffig
 import ovdas_future_lib as ffut
@@ -392,6 +392,7 @@ def crear_info(clickreav,close_modal,cajita2,is_open):
     if dash.callback_context.triggered[0]['value'] is not None:
         if dash.callback_context.triggered[0]['prop_id'] =='btn-reav.n_clicks':
             evento= pd.read_json(json.loads(cajita2))
+            import ovdas_doc_lib as odl
             document,filename = odl.REAV_ovdapp(evento)
             def to_reav(ruta):
                 document.save(ruta)
