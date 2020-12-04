@@ -74,7 +74,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "en las pantallas de crisis.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://localhost:8080/apps/ovdash'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/ovdash'),
             ]),],)
         
         card_orcapp = dbc.Card([
@@ -86,7 +86,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "de actividad sísmica del volcán Orca.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://localhost:8080/apps/orcapp'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/orcapp'),
             ]),],)
 
         card_autovdas = dbc.Card([
@@ -97,7 +97,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "Proyecto de monitoreo automático de señales sísmicas.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://localhost:8080/apps/autovdas'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/autovdas'),
             ]),],)
         
         card_electriceye = dbc.Card([
@@ -108,7 +108,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "Monitoreo de últimos sismos localizados. También permite generar REAVs de estos.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://localhost:8081/apps/electriceye'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8081/apps/electriceye'),
             ]),],)
         
         card_sismodb = dbc.Card([
@@ -120,7 +120,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "almacenados en la db del ovdas.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://localhost:8080/apps/sismodb'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/sismodb'),
             ]),],)
 
         card_fastrsam = dbc.Card([
@@ -132,7 +132,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "sísmica continua por bandas de frecuencia.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://localhost:8080/apps/fastrsam'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/fastrsam'),
             ]),],)
         
         contenido = html.Div([dbc.Row([dbc.Col(card_orcapp,width=3),
@@ -192,16 +192,16 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                 dbc.Button("Ir a la app", color="primary", href='http://172.16.42.160:100/?random='+str(random()),target='_blank'),
             ]),],)
    
-        card_rav = dbc.Card([dbc.CardImg(src=app.get_asset_url('img/rav.png'), top=True),
-        dbc.CardBody([html.H4("Hola RAV", className="card-title"),
-        html.P(
-            "Generación de reporte RAV, Reporte de Actividad  "
-            "Mensual. Reporte único para los 45 volcanes (.doc).",
-            className="card-text",
-        ),
-        dbc.Button("Ir a la app", color="primary", href='http://172.16.42.160:200/?random='+str(random()),target='_blank'),
-        ]
-        ),],)
+        #card_rav = dbc.Card([dbc.CardImg(src=app.get_asset_url('img/rav.png'), top=True),
+        #dbc.CardBody([html.H4("Hola RAV", className="card-title"),
+        #html.P(
+        #    "Generación de reporte RAV, Reporte de Actividad  "
+        #    "Mensual. Reporte único para los 45 volcanes (.doc).",
+        #    className="card-text",
+        #),
+        #dbc.Button("Ir a la app", color="primary", href='http://172.16.42.160:200/?random='+str(random()),target='_blank'),
+        #]
+        #),],)
 
         card_rad = dbc.Card([dbc.CardImg(src=app.get_asset_url('img/rad_thumb.png?random='+str(random())), top=True),
         dbc.CardBody([html.H4("Hola RAD", className="card-title"),
@@ -225,7 +225,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
         ),],) 
         
         contenido = html.Div([dbc.Row([dbc.Col(card_vona,width=2),
-                                       dbc.Col(card_rav,width=2),
+                                       #dbc.Col(card_rav,width=2),
                                        dbc.Col(card_rad,width=2),
                                        dbc.Col(card_flash,width=2)
                                        

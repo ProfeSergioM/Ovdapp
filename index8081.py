@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import ovdash,orcapp,ovdapp,locali6,autovdas,electriceye,hangar18,holaRAV,sismodb,fastrsam
+from apps import ovdapp,electriceye
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
