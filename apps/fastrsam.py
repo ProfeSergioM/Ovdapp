@@ -19,7 +19,7 @@ import datetime as dt
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 
-volcanes = volcanes[volcanes.nombre_db.isin(['Villarrica'])]
+#volcanes = volcanes[volcanes.nombre_db.isin(['Villarrica','PuyehueCCaulle'])]
 
 lista_volcanes=[]
 for index, row in volcanes.iterrows():
@@ -103,6 +103,7 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
     import plotly.graph_objects as go
     locale.setlocale(locale.LC_ALL, 'es_ES')
     colors = px.colors.qualitative.Plotly
+    colors=colors+colors+colors
     
     fig = make_subplots(rows=3, cols=1,vertical_spacing=0.05,shared_xaxes='all')
     i=0
@@ -136,6 +137,7 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
     listaRE = [item for item in list(RSAM.columns) if (len(item)==9)]
     i=0
     if len(listaRE)>0:
+            
         for sta in list(listaRE):
             data = RSAM[sta]
             fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
@@ -276,10 +278,11 @@ def update_cam_fija(*args):
         red = gdb.get_metadata_wws(volcan='*')
         red = red[(red.nombre_db==volcan) & (red.tipo=='SISMOLOGICA') & (red.cod.str.startswith('S')==True)]
         red = red[~red.codcorto.isin(['CHP','KIK'])]
+        red = red.sort_values(by='distcrater').head(5)
         RSAMS = []
         for esta in list(red.codcorto):
             try:
-                df = fut.get_fastRSAM2(fini,ffin,esta,rangef[0],rangef[1],5,True,sampling)
+                df = fut.get_fastRSAM2(fini,ffin,esta+'Z',rangef[0],rangef[1],5,True,sampling)
                 df = df.rename(columns={'fastRSAM':esta+'Z'})
                 RSAMS.append(df)
                 
@@ -294,7 +297,7 @@ def update_cam_fija(*args):
                 ()
         RSAM = pd.concat(RSAMS,axis=1) 
         del RSAMS
-    
+
         listaRE = [item[:-1] for item in RSAM.columns if item[-1]=='Z']
         redRE = red[red.codcorto.isin(listaRE)].sort_values(by='distcrater', ascending=True)
         estaRE =list(redRE.codcorto)
@@ -306,8 +309,9 @@ def update_cam_fija(*args):
                 df = (RSAM[esta1+'Z']/RSAM[esta2+'Z'])
                 df = df.rename(esta1+'Z'+'/'+esta2+'Z')
                 df_RE.append(df)
-        df_RE = pd.concat(df_RE,axis=1)
-        RSAM = pd.concat([RSAM,df_RE],axis=1)
+        if len(df_RE)>0:
+            df_RE = pd.concat(df_RE,axis=1)
+            RSAM = pd.concat([RSAM,df_RE],axis=1)
         listaHV = [item[:-1] for item in RSAM.columns if item[-1]=='N']
         if len(listaHV)>0:
             hvs=[]
@@ -316,7 +320,10 @@ def update_cam_fija(*args):
                 hv = hv.rename(es+'_H/V')
                 hvs.append(hv)
             hvs = pd.concat(hvs,axis=1)
-        RSAM = pd.concat([RSAM,hvs],axis=1)
+        else:
+            hvs=[]
+        if len(hvs)>0:
+            RSAM = pd.concat([RSAM,hvs],axis=1)
     
         fig = crear_fastRSAM(RSAM,voldata,fini,ffin,rangef,sampling)
         grafico = html.Div(children=[
