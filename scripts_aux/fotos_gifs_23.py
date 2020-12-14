@@ -22,18 +22,18 @@ def sample_job_every_60s():
     volcanes =gdb.get_metadata_volcan('*',rep='y')
     for index,row in volcanes.iterrows():
         #print(row.id)
-        ima.gif_normales(volcanes='("'+str(row.id)+'")',salida='',rutasal='C:/GitHub/ovdapp/assets/timelapses/')
+        ima.gif_normales(volcanes='("'+str(row.id)+'")',salida='',rutasal='C:/dash/ovdapp/assets/timelapses/')
     #%%
     from os import listdir
     from os.path import isfile, join
-    giffiles = [f for f in listdir('C:/GitHub/ovdapp/assets/timelapses/') if isfile(join('C:/GitHub/ovdapp/assets/timelapses/', f))]
+    giffiles = [f for f in listdir('C:/dash/ovdapp/assets/timelapses/') if isfile(join('C:/dash/ovdapp/assets/timelapses/', f))]
     
     #%%
     import subprocess
     for item in giffiles:
         subprocess.Popen(['gifsicle.exe', 
                               '-b',
-                                  'C:/GitHub/ovdapp/assets/timelapses/'+item[:-4]+'.gif',
+                                  'C:/dash/ovdapp/assets/timelapses/'+item[:-4]+'.gif',
                                  #'--colors','256',
                                  '--resize-width','400',
                                  

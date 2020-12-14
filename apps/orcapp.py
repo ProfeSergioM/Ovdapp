@@ -39,7 +39,10 @@ def get_usgs(fini,ffin):
         ms = usgs['features'][i]['properties']['time']
         ev['fecha']= datetime.datetime.utcfromtimestamp(ms//1000).replace(microsecond=ms%1000*1000)
         df.append(ev)
-    df = pd.concat(df)
+    if len(df)>0:
+        df = pd.concat(df)
+    else:
+        df=[]
     return df
 
 freqconteo = dcc.Dropdown(id='freqconteo',
@@ -206,7 +209,7 @@ html.A(
         [
             dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=2),
             dbc.Col(dbc.NavbarBrand("Monitoreo sísmico automático -Volcán Orca - OVV",style={'color':'white'}),width=9),
-            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.23:8080/'),width=1)
+            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='/'),width=1)
             
         ],
         align="left",
@@ -251,24 +254,27 @@ def dibujar_mapa(fi,ff):
         estaciones.append(dl.Marker(position=[row.lat,row.lon],id=row.cod,children=[popup],
                                     icon=dict(iconUrl=iconUrl_esta, iconSize=[30,30],iconAnchor=[15, 15])))
     eq_usgs=[]
-    for index,row in usgs.iterrows():
-        popup2 = dl.Popup(html.Table(
-                      [html.Tr([html.Td('Fecha (UTC)'),html.Td(str(row.fecha)[0:19])])]+
-                      [html.Tr([html.Td('Profundidad'),html.Td(str(row.z)+ ' km')])]+
-                      [html.Tr([html.Td('Mag'),html.Td(row.mag)])]+
-                      [html.Tr([html.Td('Tipo mag'),html.Td(row.magType)])]+
-                      [html.Tr([html.Td('+ info'),html.Td(dcc.Link('USGS',href=row.url,target='_blank',style={'color':'white','text-decoration':'underline'}))])]
-
-                      
-                                      ))
-        eq_usgs.append(dl.CircleMarker(center=[row.lat,row.lon],
-                                   radius=row.mag*1.5,
-                                   color='#ffffff',
-                                   fillColor='red',
-                                   weight=1,
-                                   fillOpacity=0.5,
-                                   children=[popup2]
-                                   ))
+    if len(usgs)>0:
+        for index,row in usgs.iterrows():
+            popup2 = dl.Popup(html.Table(
+                          [html.Tr([html.Td('Fecha (UTC)'),html.Td(str(row.fecha)[0:19])])]+
+                          [html.Tr([html.Td('Profundidad'),html.Td(str(row.z)+ ' km')])]+
+                          [html.Tr([html.Td('Mag'),html.Td(row.mag)])]+
+                          [html.Tr([html.Td('Tipo mag'),html.Td(row.magType)])]+
+                          [html.Tr([html.Td('+ info'),html.Td(dcc.Link('USGS',href=row.url,target='_blank',style={'color':'white','text-decoration':'underline'}))])]
+    
+                          
+                                          ))
+            eq_usgs.append(dl.CircleMarker(center=[row.lat,row.lon],
+                                       radius=row.mag*1.5,
+                                       color='#ffffff',
+                                       fillColor='red',
+                                       weight=1,
+                                       fillOpacity=0.5,
+                                       children=[popup2]
+                                       ))
+    else:
+        eq_usgs=[]
     
     iconUrl_volcan = app.get_asset_url('img/star.fw.png?random='+str(random())) 
     orca = dl.Marker(position=[-62.431719,-58.40589],children=[dl.Popup(html.Table([html.Tr([html.Td('Volcán Orca')])]))],

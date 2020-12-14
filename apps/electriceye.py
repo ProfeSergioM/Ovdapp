@@ -237,7 +237,7 @@ navbar = dbc.Navbar(
                 [
                     dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=1),
                     dbc.Col(dbc.NavbarBrand("Últimos eventos destacados - Electric Eye"),width=10),
-                    dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.23:8080/'),width=1)
+                    dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='/'),width=1)
                     
                 ],
                 align="left",style={'width':'100%'},

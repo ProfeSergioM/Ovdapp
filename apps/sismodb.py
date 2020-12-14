@@ -23,8 +23,7 @@ import ovdas_ovdapp_lib as oap
 import ovdas_getfromdb_lib as gdb
 import datetime as dt
 horas=2
-fini = dt.datetime.strftime((dt.datetime.utcnow() - dt.timedelta(days=366)).replace(day=1,minute=0,second=0,microsecond=0),'%Y-%m-%d')
-ffin = dt.datetime.strftime(dt.datetime.utcnow(),'%Y-%m-%d')
+
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 
@@ -70,10 +69,6 @@ fechas_picker = dcc.DatePickerRange(
     end_date_placeholder_text="Final",
     calendar_orientation='vertical',
     display_format='Y-MM-DD',
-    start_date=fini,
-    end_date=ffin,
-    min_date_allowed='2020-08-28',
-    max_date_allowed=ffin,
     style=
                                     { 
                                       'color': '#212121',
@@ -90,7 +85,7 @@ counter_imggif = dcc.Interval(
       )
 counter_reloj = dcc.Interval(
           id='interval-component-reloj-sismodb',
-          interval=60*1000*1, # in milliseconds
+          interval=60*1000*60, # in milliseconds
           n_intervals=0
       )
 
@@ -164,14 +159,14 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
     import locale
     import numpy as np
     
-    locale.setlocale(locale.LC_TIME, 'es_ES')
+    locale.setlocale(locale.LC_ALL, 'es_ES')
     titulos = list(np.full(4*2-2,''))
     titulos= ["Conteo eventos/Energía máxima<br>(M<sub>L</sub> o D<sub>R</sub>) mensual",
               "Conteo de eventos x día /Energía (M<sub>L</sub> o D<sub>R</sub>) de cada evento"]+titulos
     import ovdas_figure_lib as ffig
     
-    fig = make_subplots(rows=len(tipoevs)*2, cols=2,vertical_spacing=0.025,shared_xaxes='all',
-                        column_widths=[1,4],print_grid=True,subplot_titles=['Conteo de eventos/<br>Energía máxima mensual',
+    fig = make_subplots(rows=len(tipoevs)*2, cols=2,vertical_spacing=0.02,shared_xaxes='all',
+                        column_widths=[1,4],subplot_titles=['Conteo de eventos/<br>Energía máxima mensual',
                                                                             'Conteo de eventos diario/Energía máxima diaria'])
     fig.update_layout(template='seaborn')
     for r in range(0,len(tipoevs)):
@@ -189,18 +184,18 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
         df_mes = mensual.loc[[tipoev]][tipoev]
         df_mes = df_mes.reindex(t_index)
         df_dia = df_dia.reindex(t_index)
-        df_mes.index = pd.to_datetime(df_mes.index)
-        df_mes.index = df_mes.index.strftime('%d de %B de %Y')
+        #df_mes.index = pd.to_datetime(df_mes.index)
+        #df_mes.index = df_mes.index.strftime('%d de %B de %Y')
         df_dia.index = df_mes.index
     
-        fig.add_trace(go.Bar(x=df_mes.index, y=df_mes,name=tipoev+'/mes',width=28,marker_color='#2b7bba',
-                             text=df_mes.index.str.slice(6, 50),
+        fig.add_trace(go.Bar(x=df_mes.index, y=df_mes,name=tipoev+'s',width=1000 * 3600 * 24 * 31,marker_color='#2b7bba',
+                             text=df_mes,
                              hovertemplate='%{text} - '+enem+' evs'), row=(2*r)+1, col=1) 
-        fig.update_yaxes(title_font=dict(size=14),title_text='ev/mes',fixedrange=True, row=(2*r)+1,col=1)
+        fig.update_yaxes(title_font=dict(size=14),title_text='evs',fixedrange=True, row=(2*r)+1,col=1)
         fig.update_yaxes(range=[0,df_mes.max()*1.7], row=(2*r)+1,col=1)
         fig.update_xaxes(range=[min(df_mes.index),max(df_mes.index)])
-        fig.add_trace(go.Bar(x=df_dia.index, y=df_dia.eventos,name=tipoev+'/día',width=1,marker_color='#2b7bba'), row=(2*r)+1, col=2) 
-        fig.update_yaxes(title_font=dict(size=14),title_text='ev/día',fixedrange=True, row=(2*r)+1,col=2)
+        fig.add_trace(go.Bar(x=df_dia.index, y=df_dia.eventos,name=tipoev,width=1000 * 3600 * 24 * 1,marker_color='#2b7bba'), row=(2*r)+1, col=2) 
+        fig.update_yaxes(title_font=dict(size=14),title_text='evs',fixedrange=True, row=(2*r)+1,col=2)
         fig.update_yaxes(range=[0,df_dia.eventos.max()*1.7], row=(2*r)+1,col=2)
         
     
@@ -215,22 +210,22 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
         df_ev2.index = df_mes.index
         
         fig.add_trace(go.Scatter(x=df_ev2.index, y=df_ev2,name='Max '+enet+'/mes',mode='lines+markers',connectgaps=True,
-                                 text=df_ev.index.str.slice(6, 50),
+                                 text=df_ev.index,
                                  marker=dict(color='red', size=5,opacity=0.5),
                                  line=dict(color='#2b7bba', width=2,
                                   ),
                              hovertemplate='%{text} - '+enem), row=(2*r)+2, col=2)     
-        fig.update_yaxes(title_font=dict(size=14),title_text='Max '+enet+'/mes',fixedrange=True, row=(2*r)+2,col=1)
+        fig.update_yaxes(title_font=dict(size=14),title_text=enet,fixedrange=True, row=(2*r)+2,col=1)
         
-        fig.add_trace(go.Scatter(x=df_ev.index, y=df_ev,name='Max '+enet+'/mes',mode='lines+markers',connectgaps=True,
-                                 text=df_ev.index.str.slice(6, 50),
+        fig.add_trace(go.Scatter(x=df_ev.index, y=df_ev,name=enet,mode='lines+markers',connectgaps=True,
+                                 text=df_ev.index,
                                  marker=dict(color='red', size=10,opacity=0.5),
                                  line=dict(color='#2b7bba', width=2,
                                   ),
                              hovertemplate='%{text} - '+enem), row=(2*r)+2, col=1) 
-        fig.update_yaxes(title_font=dict(size=14),title_text='Max '+enet+'/día',fixedrange=True, row=(2*r)+2,col=2)
-        fig.update_yaxes(tickfont=dict(size=12),row=(2*r)+2,col=1)
-        fig.update_yaxes(tickfont=dict(size=12),row=(2*r)+1,col=1)
+        fig.update_yaxes(title_font=dict(size=14),title_text=enet,fixedrange=True, row=(2*r)+2,col=2)
+        fig.update_yaxes(tickfont=dict(size=10),row=(2*r)+2,col=1)
+        fig.update_yaxes(tickfont=dict(size=10),row=(2*r)+1,col=1)
         fig.update_yaxes(tickfont=dict(size=12),row=(2*r)+2,col=2)
         fig.update_yaxes(tickfont=dict(size=12),row=(2*r)+1,col=2)
         axesnum = str((4*r)+1)
@@ -299,18 +294,6 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
             bgcolor=annot_box_color)
     
     
-    which_idxs = lambda m, n: np.rint( np.linspace( 1, n, min(m,n) ) - 1 ).astype(int)
-    evenly_spaced = np.array( df_mes.index )[which_idxs(6,len(df_mes.index))]
-    
-    evenly_spaced2 = np.array( df_mes.index )[which_idxs(int(len(df_mes.index)/10),len(df_mes.index))]
-    
-    out = [x[6:9]+'-'+x[-2:] for x in list(evenly_spaced)]
-    
-    fig.update_xaxes(tickfont=dict(size=12),tickmode='array',tickvals=evenly_spaced,ticktext=out,tickangle=60, row=(2*r)+2,col=1)
-    
-    out2 = [x[0:9]+'-'+x[-2:] for x in list(evenly_spaced2)]
-    
-    fig.update_xaxes(tickfont=dict(size=12),tickmode='array',tickvals=evenly_spaced2,ticktext=out2,tickangle=60, row=(2*r)+2,col=2)               
     fig.update_layout(showlegend=False)
     fig.update_layout(
       margin=go.layout.Margin(
@@ -320,8 +303,18 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
     
         )
     )
+    fig.update_xaxes(
+        tickformatstops = [
+            dict(dtickrange=[None, 1000], value="%H:%M:%S.%L<br>%y-%m-%d"),
+            dict(dtickrange=[1000, 60000], value="%H:%M:%S<br>%y-%m-%d"),
+            dict(dtickrange=[60000, 604800000], value="%H:%M<br>%y-%m-%d"),
+            dict(dtickrange=[604800000, "M1"], value="%y-%m-%d"),
+            dict(dtickrange=["M1", "M12"], value="%y-%m"),
+            dict(dtickrange=["M12", None], value="%y-%m")
+        ],row=(2*r)+2
+    )
     
-    fig.update_xaxes(range=[0,len(t_index)],col=1,row=(2*r)+2)
+    #fig.update_xaxes(range=[0,len(t_index)],col=1,row=(2*r)+2)
     fig.update_layout(
         font=dict(
             family="Tahoma",
@@ -350,7 +343,7 @@ navbar = dbc.Navbar(
         [
             dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=1),
             dbc.Col(dbc.NavbarBrand("Proyecto de monitoreo sísmico automático OVV",style={'color':'white'}),width=10),
-            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.23:8080/'),width=1)
+            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='/'),width=1)
             
             
         ],justify="left",
@@ -400,15 +393,13 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
 @app.callback(
     #[Output("colgrafica-sismodb", "children"),Output("colmapa-sismodb", "children")],
     [Output("colgrafica-sismodb", "children")],
-    [Input('interval-component-gif-sismodb', 'n_intervals'),Input("submit-filtro-sismodb", "n_clicks")],
-    [State('dropdown_volcanes-sismodb','value'), State('fechas-sismodb','start_date'),State('fechas-sismodb','end_date')]
-)
+    [Input("submit-filtro-sismodb", "n_clicks")],
+    [State('fechas-sismodb','start_date'),State('fechas-sismodb','end_date'),State('dropdown_volcanes-sismodb','value')]
+,prevent_initial_call=True)
 def update_cam_fija(*args):
-    ffin=args[-1]
-    fini=args[-2]
-    volcan=args[-3]
-
-    
+    fini=args[1]
+    ffin=args[2]
+    volcan=args[3]
     rsam_blacklist=['CRU','PIC','LAV','AGU','CR3','CVI']
     red = gdb.get_metadata_wws(volcan)
     red=red[red.tipo=='SISMOLOGICA']
@@ -417,9 +408,7 @@ def update_cam_fija(*args):
     red=red[~red.codcorto.isin(rsam_blacklist)]
     red1 = red[red.referencia==1].sort_values(by='distcrater').head(1)# 1.referencia
     estaRSAM = red1.codcorto.iloc[0]
-    
-    
-    tipoevs_custom=['VT','LP']
+    tipoevs_custom=['VT','VD','HB','LP','EX','TR','LV','TO','MF']
     fig = crear_RAM(fini,ffin,volcan,tipoevs_custom)
     grafico = html.Div(children=[
         dcc.Graph(
@@ -444,13 +433,12 @@ def update_cam_fija(*args):
 @app.callback([Output('live-update-text-sismodb', 'children'),Output('fechas-sismodb','start_date'),Output('fechas-sismodb','end_date'),
                Output('fechas-sismodb','max_date_allowed'),
 ],
-              [Input('interval-component-reloj-sismodb', 'n_intervals')],
-              [State('dropdown_volcanes-sismodb','value')]
+              [Input('url','href')]
               )
-def update_date(n,volcan):
+def update_date(href):
     from flask import request
     print('tic! from '+request.remote_addr)
-    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
+    fini = dt.datetime.strftime((dt.datetime.utcnow() - dt.timedelta(days=360)).replace(day=1), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
 
     finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
