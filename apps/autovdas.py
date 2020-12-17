@@ -225,7 +225,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
     
 
 
-    df_RSAM = fut.get_fastRSAM2(fini,ffin,estaRSAM,rangef[0],rangef[1],5,True,'15T')               
+    df_RSAM = fut.get_fastRSAM2(fini,ffin,estaRSAM+'Z',rangef[0],rangef[1],5,True,'15T')               
     import numpy as np
     #ampslogs=np.power(df['ampl'],0.2)/1
     try:
