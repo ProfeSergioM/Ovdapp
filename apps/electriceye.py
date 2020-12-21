@@ -29,7 +29,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))  
 import datetime as dt
 from random import random
-tileurl =  'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}'
+tileurl =  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
 iconUrl_volcan = app.get_asset_url('img/triangle.fw.png?random='+str(random())) 

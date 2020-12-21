@@ -42,7 +42,7 @@ def dibujar_mapa(volcanes,volcan,fi,ff):
     lat_vol = (volcanes[volcanes.nombre_db==volcan].latitud.iloc[0])
     lon_vol = (volcanes[volcanes.nombre_db==volcan].longitud.iloc[0])
     ###MAPA
-    tileurl =  'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}'
+    tileurl =  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
     escala = dl.ScaleControl(imperial=False)
     iconUrl_volcan = app.get_asset_url('img/star.fw.png?random='+str(random())) 
     volcan_star = dl.Marker(position=[lat_vol,lon_vol],children=[dl.Popup(html.Table([html.Tr([html.Td(volcan)])]))],
