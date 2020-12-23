@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import ovdash,orcapp,ovdapp,locali6,autovdas,hangar18,sismodb,fastrsam
+from apps import ovdash,orcapp,ovdapp,locali6,autovdas,hangar18,sismodb,fastrsam,quesucede
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -31,6 +31,8 @@ def display_page(pathname):
         return sismodb.layout
     elif pathname == '/apps/fastrsam':
         return fastrsam.layout
+    elif pathname == '/apps/quesucede':
+        return quesucede.layout
     elif pathname == '/':
         return ovdapp.layout
     else:
@@ -53,6 +55,8 @@ app.clientside_callback(
             document.title = 'Ovdapp - Hangar 18'
         } else if (tab_value === '/apps/sismodb') {
             document.title = 'Ovdapp - SismoDB'
+        } else if (tab_value === '/apps/quesucede') {
+            document.title = 'Ovdapp - Qué Sucede?'
         } else if (tab_value === '/apps/fastrsam') {
             document.title = 'Ovdapp - fast RSAM'
         }
