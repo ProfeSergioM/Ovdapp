@@ -356,10 +356,13 @@ def fig_timeline(fi,ff,df,n_subplots,tipoev_list,volcanes,volcan,alturas,excede,
         fig.update_xaxes(matches='x')
     
     if len(GNSS)>0:
+        import math
         i+=1
         GNSS = GNSS[~GNSS.index.duplicated(keep='first')]
         df2 = GNSS.reindex(t_index)
-        gnssplot = go.Scattergl(x=df2.index,y=df2.desplazamiento-df2.desplazamiento[0],
+        offset=df2.desplazamiento[0]
+        if math.isnan(offset):offset=0
+        gnssplot = go.Scattergl(x=df2.index,y=df2.desplazamiento-offset,
             opacity=1,name=df2.linea.iloc[0],showlegend=False,marker= { "color" :colorgraficas})
         fig.append_trace(gnssplot,i,1)
         try:titulogps='<b>Largo línea GNSS '+df2.linea.iloc[0]+'</b>'
@@ -370,7 +373,9 @@ def fig_timeline(fi,ff,df,n_subplots,tipoev_list,volcanes,volcan,alturas,excede,
                                                 yref='y'+str(i),text=titulogps,showarrow=False))
         fig.update_yaxes(title_text="<b>cm</b>", row=i)
         fig.update_xaxes(matches='x')
-            
+
+        fig.update_yaxes(range=[0, 10], row=-1, col=1)
+        
     fig.update_layout(xaxis={'range':[fini,ffin]})    
     fig.update_yaxes(showticklabels=False,row=1)
     volcan_nombre = volcanes[volcanes.nombre_db==volcan].vol_tipo.iloc[0]+' '+volcanes[volcanes.nombre_db==volcan].nombre.iloc[0]
