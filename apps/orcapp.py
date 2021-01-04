@@ -104,7 +104,7 @@ def crear_figura(rangef,fini,ffin,countev_period):
     df.index = df.index.rename('Fecha (día)')
     df['cumsumev']=df[name].cumsum()
     
-    df_RSAM = fut.get_fastRSAM2(fini,ffin,'JUB',rangef[0],rangef[1],1,True,'15T')               
+    df_RSAM = fut.get_fastRSAM2(fini,ffin,'JUBZ',rangef[0],rangef[1],1,True,'15T')               
     
     fig = make_subplots(rows=4, cols=1,shared_xaxes=True, vertical_spacing=0.02)
     fig.add_trace(
@@ -227,7 +227,7 @@ def dibujar_mapa(fi,ff):
     print(fi,ff)
     usgs = get_usgs(fi, ff)
     #tileurl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-    tileurl =  'http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}'
+    tileurl =  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
     escala = dl.ScaleControl()
     
     
