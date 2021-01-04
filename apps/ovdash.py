@@ -96,9 +96,7 @@ def dibujar_mapa(volcanes,volcan,fi,ff):
     
     mapa = dbc.Card([
         dbc.CardBody(mapa),
-        leyenda,
-        dbc.CardFooter('Datos entre '+fi+' y '+ff)
-        
+        leyenda        
         ],outline=True,color='light',className='m-1',style={'height':'100%'} )
     return mapa,evs
 
@@ -359,6 +357,7 @@ def fig_timeline(fi,ff,df,n_subplots,tipoev_list,volcanes,volcan,alturas,excede,
     
     if len(GNSS)>0:
         i+=1
+        GNSS = GNSS[~GNSS.index.duplicated(keep='first')]
         df2 = GNSS.reindex(t_index)
         gnssplot = go.Scattergl(x=df2.index,y=df2.desplazamiento-df2.desplazamiento[0],
             opacity=1,name=df2.linea.iloc[0],showlegend=False,marker= { "color" :colorgraficas})
@@ -580,7 +579,5 @@ def update_fechaini(volcan):
 @app.callback([Output('fechas', 'start-date'),Output('fechas', 'end-date')],
               [Input('interval-component-timeline', 'n_intervals')])
 def update_date(n):
-    import datetime as dt
-    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=365), '%Y-%m-%d')
-    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
+    fini,ffin=get_fechahoy()
     return fini,ffin
