@@ -361,14 +361,17 @@ def fig_timeline(fi,ff,df,n_subplots,tipoev_list,volcanes,volcan,alturas,excede,
         GNSS = GNSS[~GNSS.index.duplicated(keep='first')]
         df2 = GNSS.reindex(t_index)
         offset=df2.desplazamiento[0]
-        if math.isnan(offset):offset=0
+        maxy=(df2.desplazamiento-df2.desplazamiento[0]).max()
+        if math.isnan(offset):
+            offset=0
+            maxy=df2.desplazamiento.max()
         gnssplot = go.Scattergl(x=df2.index,y=df2.desplazamiento-offset,
             opacity=1,name=df2.linea.iloc[0],showlegend=False,marker= { "color" :colorgraficas})
         fig.append_trace(gnssplot,i,1)
         try:titulogps='<b>Largo línea GNSS '+df2.linea.iloc[0]+'</b>'
         except:titulogps= '<b>Largo línea GNSS</b>'
         
-        fig.add_annotation(go.layout.Annotation(x=0.01,y=(df2.desplazamiento-df2.desplazamiento[0]).max(),font=dict(color='white'),
+        fig.add_annotation(go.layout.Annotation(x=0.01,y=maxy,font=dict(color='white'),
                                                 xanchor='left',yanchor='top',xref='paper',bgcolor='black',
                                                 yref='y'+str(i),text=titulogps,showarrow=False))
         fig.update_yaxes(title_text="<b>cm</b>", row=i)

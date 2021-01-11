@@ -20,9 +20,11 @@ import sys
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_future_lib as fut
 import datetime as dt
-fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
-ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=2), '%Y-%m-%d')
 
+def get_fechahoy(): 
+    fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
+    ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
+    return fini,ffin
 def get_usgs(fini,ffin):
     #SISMOS USGS
     import json
@@ -63,15 +65,14 @@ freqconteo = dcc.Dropdown(id='freqconteo',
 
 
 fechas_picker = dcc.DatePickerRange(
-    id='fechas',
+    id='fechas_orcapp',
     start_date_placeholder_text="Inicio",
     end_date_placeholder_text="Final",
     calendar_orientation='vertical',
     display_format='Y-MM-DD',
-    start_date=fini,
-    end_date=ffin,
     min_date_allowed='2020-08-28',
-    max_date_allowed=ffin,
+    start_date=get_fechahoy()[0],
+    end_date=get_fechahoy()[1],
     style=
                                     { 
                                       'color': '#212121',
@@ -330,7 +331,7 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
 @app.callback(
     [Output("colgrafica", "children"),Output("colmapa", "children")],
     [Input('interval-component-gif', 'n_intervals'),Input("submit-filtro", "n_clicks")],
-    [State('RSAM-range-slider', 'value'),State('fechas','start_date'),State('fechas','end_date'),State('freqconteo','value')]
+    [State('RSAM-range-slider', 'value'),State('fechas_orcapp','start_date'),State('fechas_orcapp','end_date'),State('freqconteo','value')]
 )
 def update_cam_fija(n,click,rangef,fini,ffin,freqconteo):
     print(fini,ffin)
@@ -358,25 +359,6 @@ def update_cam_fija(n,click,rangef,fini,ffin,freqconteo):
 
     return [graficocard],[mapacard]
 
-'''
-@app.callback([Output(marker.id, "children") for marker in estaciones],
-              [Input(marker.id, "n_clicks") for marker in estaciones])
-def marker_click(*args):
-    contenido = [
-                  dl.Popup(html.Table(
-                      [html.Tr([html.Td('Estación :'),html.Td(df[df.cod==marker.id].cod)])]+
-                      [html.Tr([html.Td('Longitud :'),html.Td(df[df.cod==marker.id].lon)])]+
-                      [html.Tr([html.Td('Latitud :'),html.Td(df[df.cod==marker.id].lat)])]+
-                      [html.Tr([html.Td('Altitud (msnm) :'),html.Td(df[df.cod==marker.id].alt)])]+
-                      [html.Tr([html.Td('Dist. a Vn. Orca (km):'),html.Td(df[df.cod==marker.id].dist)])]
-
-                      
-                                      ))
-        
-
-                 for marker in estaciones]
-    return contenido
-'''
 
 @app.callback(Output('live-update-text', 'children'),
               [Input('interval-component-reloj', 'n_intervals')])
@@ -384,3 +366,9 @@ def update_date(n):
     from flask import request
     print('tic! from '+request.remote_addr)
     return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})]
+
+@app.callback([Output('fechas_orcapp', 'start-date'),Output('fechas_orcapp', 'end-date')],
+              [Input('interval-component-timeline', 'n_intervals')])
+def update_date(n):
+    fini,ffin=get_fechahoy()
+    return fini,ffin
