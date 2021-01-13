@@ -139,10 +139,8 @@ fechas_picker = dcc.DatePickerRange(
     end_date_placeholder_text="Final",
     calendar_orientation='vertical',
     display_format='Y-MM-DD',
-    start_date=get_fechahoy()[0],
-    end_date=get_fechahoy()[1],
     min_date_allowed='2010-01-01',
-    max_date_allowed=get_fechahoy()[1],
+
     style=
                                     { 'width':'100%',
                                       'color': '#212121',
@@ -214,20 +212,28 @@ modaldownload = html.Div(
 )
 
 
-layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),dbc.Col([content],width=7)]),html.Div(id='cajita-loc', style={'display': 'none'}),counter_imgfija,dcc.Loading(modaldownload, style={'position':'fixed','left':'50%','top':'50%'})])
+layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),dbc.Col([content],width=7)]),html.Div(id='cajita-start', style={'display': 'none'}),html.Div(id='cajita-loc', style={'display': 'none'}),counter_imgfija,dcc.Loading(modaldownload, style={'position':'fixed','left':'50%','top':'50%'})])
 
+@app.callback([Output('locali5-fechas','start_date'),Output('locali5-fechas','end_date'),Output('cajita-start','children')],
+              Input('url','href'))
+def actualizar_fecha(href):
+    fi,ff=get_fechahoy()
+    href='oli'
+    return fi,ff,href
     
 @app.callback(
     [Output('mapaloc-graph','figure')],
-    [Input('url','href'),Input('locali5-submit-filtro','n_clicks')],
+    [Input('url','href'),Input('locali5-submit-filtro','n_clicks'),Input('cajita-start', 'children')],
     [State('locali5-dropdown_volcanes','value'),State('locali5-fechas','start_date'),
-     State('locali5-fechas','end_date')])
-def display_mapa(href,ir,volcan,fi,ff):
+     State('locali5-fechas','end_date')]
+    ,prevent_initial_call=True)
+def display_mapa(href,ir,cajita,volcan,fi,ff):
 
     ctx = dash.callback_context
     trigger = ctx.triggered[0]['prop_id']
-
-    if trigger in['.','locali5-submit-filtro.n_clicks']:   
+    print(trigger)
+    if trigger in['.','locali5-submit-filtro.n_clicks','cajita-start.children']:  
+        print('lanzao!')
         dflocs = get_markers_loc(volcan, fi, ff)
         fig =go.Figure()
         
