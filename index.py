@@ -1,9 +1,17 @@
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
+from flask_failsafe import failsafe
 
-from app import app
-from apps import ovdash,orcapp,ovdapp,locali6,autovdas,hangar18,sismodb,fastrsam,quesucede
+
+@failsafe
+def create_app():
+    from app import app
+    return app
+
+app = create_app()
+
+from apps import ovdash,orcapp,ovdapp,locali6,autovdas,hangar18,sismodb,fastrsam,quesucede,electriceye
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -33,6 +41,8 @@ def display_page(pathname):
         return fastrsam.layout
     elif pathname == '/apps/quesucede':
         return quesucede.layout
+    elif pathname == '/apps/electriceye':
+        return electriceye.layout
     elif pathname == '/':
         return ovdapp.layout
     else:
