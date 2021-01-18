@@ -96,22 +96,27 @@ CONTENT_STYLE = {
 PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))       
 
 navbar = dbc.Navbar(
-[
-html.A(
-    # Use row and col to control vertical alignment of logo / brand
-    dbc.Row(
-        [
-            dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=2),
-            dbc.Col(dbc.NavbarBrand("Revisión de localizaciones - Locali6",style={'color':'white'}))
-            
-        ],
-        align="left",
-        no_gutters=True,
-    )
-)
-],
-color="#141d26",
+    [
+        html.A(
+            # Use row and col to control vertical alignment of logo / brand
+            dbc.Row(
+                [
+                    dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=1),
+                    dbc.Col(dbc.NavbarBrand("Revisión de sismicidad localizada - Locali6"),width=10),
+                    dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.13:8080/'),width=1)
+                    
+                ],
+                align="left",style={'width':'100%'},
+                no_gutters=True,
+            ),
+          
+                style={ 'width':'100%', 'margin-left':'0px' }
+        ),
+        dbc.NavbarToggler(id="navbar-toggler"),
 
+    ],
+    color="dark",
+    dark=True,
 )
 
 lista_volcanes=[]
