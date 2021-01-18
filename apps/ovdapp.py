@@ -242,7 +242,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "extraer datos en diversos formatos.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='/apps/locali6',target='_blank'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8082/apps/locali6',target='_blank'),
             ]),],)
         
 

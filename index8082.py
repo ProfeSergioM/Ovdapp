@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import electriceye
+from apps import locali6
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -17,17 +17,18 @@ app.layout = html.Div([
 def display_page(pathname):
     if pathname is None:
         return 'Loading...'
-    elif pathname == '/apps/electriceye':
-        return electriceye.layout
+    elif pathname == '/apps/locali6':
+        return locali6.layout
     else:
         return '404'
 
 app.clientside_callback(
     """
     function(tab_value) {
-        if (tab_value === '/apps/electriceye') {
-            document.title = 'Ovdapp - Electric Eye'
+        if (tab_value === '/apps/locali6') {
+            document.title = 'Ovdapp - Locali6'
         } 
+        
     }
     
     """,
