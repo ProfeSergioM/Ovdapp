@@ -392,12 +392,19 @@ def elegir_evento(values,marker,cajita,active,panes):
 def crear_info(clickreav,close_modal,cajita2,is_open):
     if dash.callback_context.triggered[0]['value'] is not None:
         if dash.callback_context.triggered[0]['prop_id'] =='btn-reav.n_clicks':
+            print('oli')
             evento= pd.read_json(json.loads(cajita2))
+            '''
             import ovdas_doc_lib as odl
             document,filename = odl.REAV_ovdapp(evento)
             def to_reav(ruta):
                 document.save(ruta)
+            
             return send_bytes(to_reav,filename),not is_open
+            '''
+            return dash.no_update,dash.no_update
+        
+        
         elif dash.callback_context.triggered[0]['prop_id'] =='close-modal.n_clicks':
             return dash.no_update,not is_open
     else:
