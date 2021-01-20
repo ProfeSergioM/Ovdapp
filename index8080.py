@@ -1,16 +1,11 @@
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-from flask_failsafe import failsafe
 
 
-@failsafe
-def create_app():
-    from app import app
-    return app
 
-app = create_app()
 
+from app import app
 from apps import ovdash,orcapp,ovdapp,autovdas,hangar18,sismodb,fastrsam,quesucede
 
 app.layout = html.Div([
