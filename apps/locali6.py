@@ -147,7 +147,6 @@ fechas_picker = dcc.DatePickerRange(
     start_date=get_fechahoy()[0],
     end_date=get_fechahoy()[1],
     min_date_allowed='2010-01-01',
-    max_date_allowed=get_fechahoy()[1],
     style=
                                     { 'width':'100%',
                                       'color': '#212121',
@@ -218,8 +217,16 @@ modaldownload = html.Div(
     ]
 )
 
+counter_timeline = dcc.Interval(
+          id='interval-component-timeline-locali6',
+          interval=60*1000*5, # utlimo numero son minutos
+          n_intervals=0
+      )
 
-layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),dbc.Col([content],width=7)]),html.Div(id='cajita-loc', style={'display': 'none'}),counter_imgfija,dcc.Loading(modaldownload, style={'position':'fixed','left':'50%','top':'50%'})])
+layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),
+                                         dbc.Col([content],width=7)]),
+                   html.Div(id='cajita-loc', style={'display': 'none'}),counter_imgfija,
+                   dcc.Loading(modaldownload, style={'position':'fixed','left':'50%','top':'50%'})])
 
     
 @app.callback(
@@ -353,3 +360,9 @@ def func(kmz,xls,png,close_modal,cajita,volcansel,fini,ffin,is_open):
                 plt.close('all')
             return send_bytes(to_png,"seleccionado.png"),not is_open         
 
+@app.callback([Output('locali5-fechas', 'start-date'),Output('locali5-fechas', 'end-date'),
+               Output('interval-component-timeline-locali6', 'interval')],
+              [Input('interval-component-timeline-locali6', 'n_intervals')])
+def update_date(n):
+    fini,ffin=get_fechahoy()
+    return fini,ffin,60*60*1000
