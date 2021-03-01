@@ -53,7 +53,7 @@ def dibujar_mapa(eventos):
         else:
             lat = row.latitud
             lon = row.longitud
-            if row.tipoevento in ['VT','VD']:
+            if row.tipoevento in ['VT','VD','HB']:
                 size=row.ml*sizescaleml
             else:
                 size=sizescaledr*row.dr
@@ -360,14 +360,14 @@ def elegir_evento(values,marker,cajita,active,panes):
     panelist=np.full(len(values),-5000)
     panelist[index_sel]=5000
     for index,row in eventos.iterrows():
-        if row.tipoevento in ['VT','VD']:
+        if row.tipoevento in ['VT','VD','HB']:
             size=sizescaleml*row.ml
         else:
             size=sizescaledr*row.dr
         colorev.append(dict(iconUrl=app.get_asset_url('img/'+row.tipoevento+'.png?random='+str(random())) , 
                                           iconSize=[size,size],iconAnchor=[size/2,size/2]))
     eventosel=eventos[eventos.index==index_sel]
-    if eventosel.tipoevento.iloc[0] in ['VT','VD']:
+    if eventosel.tipoevento.iloc[0] in ['VT','VD','HB']:
         sizesel = eventosel.ml.iloc[0]*sizescaleml
         icono=app.get_asset_url('img/greydot.fw.png?random='+str(random()))
     else:
