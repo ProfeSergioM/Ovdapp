@@ -67,7 +67,7 @@ def dibujar_mapa(eventos):
     
     escala = dl.ScaleControl(imperial=False)
     
-    legend_entry=['Tipo de evento']
+    legend_entry=['Tipo de evento (localizado)']
     if len(eventos)>0:
         eventos2=eventos[eventos.profundidad!=-1]
         for entrada in eventos2.tipoevento.unique():
@@ -117,6 +117,7 @@ def get_eventos_destacados():
     eventos = gdb.extraer_eventos(inicio,final,volcan='*')
     eventos = pd.DataFrame(eventos)
     eventos = eventos[eventos.tipoevento!='VD']
+    eventos = eventos[eventos.tipoevento!='MF']
     #ml general
     eventosml = eventos[eventos.ml>2]
     #dr general
