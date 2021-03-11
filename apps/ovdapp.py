@@ -192,14 +192,14 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                 dbc.Button("Ir a la app", color="primary", href='http://172.16.42.160:100/?random='+str(random()),target='_blank'),
             ]),],)
    
-        card_heli = dbc.Card([dbc.CardImg(src=app.get_asset_url('img/heli.png'), top=True),
+        card_heli = dbc.Card([dbc.CardImg(src=app.get_asset_url('img/heli_thumb.png'), top=True),
         dbc.CardBody([html.H4("Helicorderizador", className="card-title"),
         html.P(
             "Generación de helicorders (sismogramas)  "
             "en formato de imagen para visualización rápida ",
             className="card-text",
         ),
-        dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/fastrsam',target='_blank'),
+        dbc.Button("Ir a la app", color="primary", href='http://172.16.47.13:8080/apps/helicorderizador',target='_blank'),
         ]
         ),],)
 
