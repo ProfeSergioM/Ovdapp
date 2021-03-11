@@ -6,7 +6,7 @@ from dash.dependencies import Input, Output
 
 
 from app import app
-from apps import ovdash,orcapp,ovdapp,autovdas,hangar18,sismodb,fastrsam,quesucede
+from apps import ovdash,orcapp,ovdapp,autovdas,hangar18,sismodb,fastrsam,quesucede,helicorderizador
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -34,6 +34,8 @@ def display_page(pathname):
         return fastrsam.layout
     elif pathname == '/apps/quesucede':
         return quesucede.layout
+    elif pathname == '/apps/helicorderizador':
+        return helicorderizador.layout
     elif pathname == '/':
         return ovdapp.layout
     else:
@@ -56,6 +58,8 @@ app.clientside_callback(
             document.title = 'Ovdapp - Qué Sucede?'
         } else if (tab_value === '/apps/fastrsam') {
             document.title = 'Ovdapp - fast RSAM'
+        } else if (tab_value === '/apps/helicorderizador') {
+            document.title = 'Ovdapp - Helicorderizador'
         }
     }
     

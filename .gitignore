@@ -137,3 +137,4 @@ apps/__pycache__/locali6.cpython-38.pyc
 apps/__pycache__/orcapp.cpython-38.pyc
 apps/__pycache__/ovdapp.cpython-38.pyc
 apps/__pycache__/ovdash.cpython-38.pyc
+*.png

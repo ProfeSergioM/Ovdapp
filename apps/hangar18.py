@@ -16,6 +16,7 @@ import dash_core_components as dcc
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output,ALL,State
 from app import app
+app.config.suppress_callback_exceptions = True
 import sys
 import pandas as pd
 from obspy.clients.iris import Client

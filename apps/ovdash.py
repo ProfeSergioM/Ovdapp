@@ -9,6 +9,7 @@ import json
 import dash_html_components as html
 import dash_core_components as dcc
 from app import app
+app.config.suppress_callback_exceptions = True
 from dash.exceptions import PreventUpdate
 from random import random
 from dash.dependencies import Input, Output,State
