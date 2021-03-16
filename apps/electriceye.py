@@ -118,6 +118,7 @@ def get_eventos_destacados():
     eventos = pd.DataFrame(eventos)
     eventos = eventos[eventos.tipoevento!='VD']
     eventos = eventos[eventos.tipoevento!='MF']
+    eventos = eventos[eventos.tipoevento!='RE']
     #ml general
     eventosml = eventos[eventos.ml>2]
     #dr general
@@ -142,9 +143,6 @@ def get_lista(ini=True,sel=0):
     i=0
     for index,row in eventos.iterrows():
         volcan = volcanes[volcanes.id==row.idvolc].nombre
-        
-        
-        
         result = client.distaz(stalat=float(volcanes[volcanes.id==row.idvolc].latitud.iloc[0]),
                                stalon=float(volcanes[volcanes.id==row.idvolc].longitud.iloc[0]),
                                evtlat=row.latitud,
