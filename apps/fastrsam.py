@@ -298,7 +298,7 @@ def update_cam_fija(*args):
 
                 df= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+'Z', rangef[0],rangef[1], 3,False) 
                 df = df.rename(columns={'fastRSAM':esta+'Z'})
-                print(len(df))
+                df = df.resample('5T').asfreq()
                 RSAMS.append(df)
                 
             except:
@@ -310,7 +310,7 @@ def update_cam_fija(*args):
                     
                     df2= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+comp, rangef[0],rangef[1], 3,False) 
                     df2 = df2.rename(columns={'fastRSAM':esta+comp})
-                    print(len(df2))
+                    df2 = df2.resample('5T').asfreq()
                     RSAMS.append(df2)
             except:
                 ()
