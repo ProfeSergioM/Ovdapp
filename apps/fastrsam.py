@@ -293,29 +293,29 @@ def update_cam_fija(*args):
         red = red.sort_values(by='distcrater').head(5)
         RSAMS = []
         for esta in list(red.codcorto):
-            try:
+            #try:
                 #df = fut.get_fastRSAM2(fini,ffin,esta+'Z',rangef[0],rangef[1],5,True,sampling)
 
-                df= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+'Z', rangef[0],rangef[1], 3,False) 
-                df = df.rename(columns={'fastRSAM':esta+'Z'})
-                df = df.resample('5T').asfreq()
-                print(len(df))
-                RSAMS.append(df)
+            df= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+'Z', rangef[0],rangef[1], 3,False) 
+            df = df.rename(columns={'fastRSAM':esta+'Z'})
+            df = df.resample('5T').asfreq()
+            print(len(df))
+            RSAMS.append(df)
                 
-            except:
-                ()
-            try:
-                for comp in ['N','E']:
-                    #df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,sampling)
-                    #df2 = df2.rename(columns={'fastRSAM':esta+comp})
-                    
-                    df2= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+comp, rangef[0],rangef[1], 3,False) 
-                    df2 = df2.rename(columns={'fastRSAM':esta+comp})
-                    df2 = df2.resample('5T').asfreq()
-                    print(len(df2))
-                    RSAMS.append(df2)
-            except:
-                ()
+            #except:
+            #    ()
+            #try:
+            for comp in ['N','E']:
+                #df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,sampling)
+                #df2 = df2.rename(columns={'fastRSAM':esta+comp})
+                
+                df2= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+comp, rangef[0],rangef[1], 3,False) 
+                df2 = df2.rename(columns={'fastRSAM':esta+comp})
+                df2 = df2.resample('5T').asfreq()
+                print(len(df2))
+                RSAMS.append(df2)
+            #except:
+            #    ()
         RSAM = pd.concat(RSAMS,axis=1) 
         del RSAMS
 
