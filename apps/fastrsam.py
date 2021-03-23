@@ -14,7 +14,7 @@ sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_future_lib as fut
 import ovdas_getfromdb_lib as gdb
 import datetime as dt
-
+from dash_extensions import Download
 
 volcanes =gdb.get_metadata_volcan('*',rep='y')
 volcanes = volcanes.drop_duplicates(subset='nombre', keep="first")
@@ -230,8 +230,10 @@ controles = html.Div([
         marks=arange(0,11,1)),
     html.Div(html.P('Muestreo de datos',id='titulo-muestreo-fastrsam')),
     html.Div(sampling_selector),
-    html.Div(children=[dcc.Loading(children=[dbc.Button("Online", color="success", id="submit-realtime-fastrsam", className="mr-1"),
-             dbc.Button("Enviar", color="primary", id="submit-filtro-fastrsam", className="mr-1")])],style={'text-align':'right'})
+    html.Div(children=[dcc.Loading(children=[
+                dbc.Button("Descargar datos", color="success", id="csv-realtime-fastrsam", className="mr-1",style={'pointer-events': 'none','opacity':'0.2'}),
+                dbc.Button("Online", color="success", id="submit-realtime-fastrsam", className="mr-1"),
+                dbc.Button("Enviar", color="primary", id="submit-filtro-fastrsam", className="mr-1")])],style={'text-align':'right'})
 
     ])
 
@@ -255,6 +257,8 @@ banner_inferior = dbc.Card([
 layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
                                    dbc.Col([html.Div(id='colgrafica-fastrsam')],width=9)
                                    ]),
+                   html.Div(id='cajita-fastRSAM', style={'display': 'none'}),
+                   Download(id="download-fastRSAM"),
                    dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start', className="mr-1"),
                    
                    ])
@@ -264,15 +268,23 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
 @app.callback(
     #[Output("colgrafica-fastrsam", "children"),Output("colmapa-fastrsam", "children")],
     [Output("colgrafica-fastrsam", "children"),Output('interval-component-reloj-fastrsam', 'disabled'),
-     Output("submit-realtime-fastrsam",'color'),Output("submit-realtime-fastrsam",'children')],
+     Output("submit-realtime-fastrsam",'color'),Output("submit-realtime-fastrsam",'children'),
+     Output('cajita-fastRSAM', 'children'),
+     Output("csv-realtime-fastrsam",'style')
+     
+     ],
+    
     [Input("submit-realtime-fastrsam",'n_clicks'),Input('interval-component-reloj-fastrsam', 'n_intervals'),Input("submit-filtro-fastrsam", "n_clicks")],
     [State('RSAM-range-slider-fastrsam','value'),
      State('dropdown_volcanes-fastrsam','value'), State('fechas-fastrsam','start_date'),State('fechas-fastrsam','end_date'),
      State('dropdown_sampling-fastrsam','value')],prevent_initial_call=True
 )
 def update_cam_fija(*args):
-    
+    import ovdas_getdatafastRSAM as gdfr
     def plotear(volcan,fini,ffin,rangef,sampling):
+        print('iniciado')
+        fini=fini+' 00:00:00'
+        ffin=ffin+' 23:59:59'
         voldata = gdb.get_metadata_volcan(volcan)
         voldata = voldata.drop_duplicates(subset='nombre', keep="first")
         red = gdb.get_metadata_wws(volcan='*')
@@ -282,15 +294,21 @@ def update_cam_fija(*args):
         RSAMS = []
         for esta in list(red.codcorto):
             try:
-                df = fut.get_fastRSAM2(fini,ffin,esta+'Z',rangef[0],rangef[1],5,True,sampling)
+                #df = fut.get_fastRSAM2(fini,ffin,esta+'Z',rangef[0],rangef[1],5,True,sampling)
+
+                df= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+'Z', rangef[0],rangef[1], 3,False) 
                 df = df.rename(columns={'fastRSAM':esta+'Z'})
+                
                 RSAMS.append(df)
                 
             except:
                 ()
             try:
                 for comp in ['N','E']:
-                    df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,sampling)
+                    #df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,sampling)
+                    #df2 = df2.rename(columns={'fastRSAM':esta+comp})
+                    
+                    df2= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+comp, rangef[0],rangef[1], 3,False) 
                     df2 = df2.rename(columns={'fastRSAM':esta+comp})
                     RSAMS.append(df2)
             except:
@@ -307,6 +325,7 @@ def update_cam_fija(*args):
                 esta1=estaRE[i]
                 esta2=estaRE[j]
                 df = (RSAM[esta1+'Z']/RSAM[esta2+'Z'])
+                
                 df = df.rename(esta1+'Z'+'/'+esta2+'Z')
                 df_RE.append(df)
         if len(df_RE)>0:
@@ -324,7 +343,13 @@ def update_cam_fija(*args):
             hvs=[]
         if len(hvs)>0:
             RSAM = pd.concat([RSAM,hvs],axis=1)
-    
+        resample=True
+        if resample==True:
+            RSAM_raw = RSAM.copy()
+            RSAM_raw['fecha_str'] = RSAM_raw.index.strftime('%Y-%m-%d %H:%M:%S')
+            RSAM_raw = RSAM_raw.to_json()
+            RSAM = RSAM.resample(sampling).mean() 
+        print('datos listos, graficando...')
         fig = crear_fastRSAM(RSAM,voldata,fini,ffin,rangef,sampling)
         grafico = html.Div(children=[
             dcc.Graph(
@@ -339,7 +364,7 @@ def update_cam_fija(*args):
             dbc.CardBody(grafico)
             
             ],outline=True,color='light')
-        return graficocard
+        return graficocard,RSAM_raw
 
     livebutton=args[0]
     ffin=args[6]
@@ -352,13 +377,13 @@ def update_cam_fija(*args):
 
     if ctx_index=='submit-realtime-fastrsam':
         if (livebutton==None) or (livebutton % 2 != 0):
-            return dash.no_update,True,'warning','Offline'
+            return dash.no_update,True,'warning','Offline',dash.no_update,dash.no_update
         else:
-            graficocard = plotear(volcan,fini,ffin,rangef,sampling)
-            return [graficocard],False,'success','Online'
+            graficocard,RSAM_raw = plotear(volcan,fini,ffin,rangef,sampling)
+            return [graficocard],False,'success','Online',RSAM_raw,dash.no_update
     else:
-        graficocard = plotear(volcan,fini,ffin,rangef,sampling)
-        return [graficocard],dash.no_update,dash.no_update,dash.no_update
+        graficocard,RSAM_raw = plotear(volcan,fini,ffin,rangef,sampling)
+        return [graficocard],dash.no_update,dash.no_update,dash.no_update,RSAM_raw,{'pointer-events': 'auto','opacity':'1'}
 
 
 @app.callback([Output('live-update-text-fastrsam', 'children'),Output('fechas-fastrsam','start_date'),Output('fechas-fastrsam','end_date'),
@@ -372,3 +397,22 @@ def update_date(n,volcan,fini,ffin):
     fini = dt.datetime.strftime(dt.datetime.utcnow() - dt.timedelta(days=7), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin
+
+@app.callback(Output("download-fastRSAM", "data"),
+              Input("csv-realtime-fastrsam", "n_clicks"),
+              State('cajita-fastRSAM', 'children'),
+              prevent_initial_call=True
+              )
+def download_csv(click,data):
+    print('click!')
+    import json
+    import pandas as pd
+    from dash_extensions.snippets import send_data_frame
+    df = json.loads(data)
+    df = pd.DataFrame(df)
+    df = df.set_index('fecha_str',drop=True)
+    return send_data_frame(df.to_excel, "fastRSAM.xls")
+
+
+
+
