@@ -253,14 +253,30 @@ banner_inferior = dbc.Card([
     
     ],outline=True,color='light')
 
+modal = html.Div(
+    [
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Finalizado!"),
+                dbc.ModalBody([dbc.Alert("Datos cargados, presione el botón a continuación para descargar :)", color="success"),
+                dbc.Button("Descargar datos", color="primary", className="mr-1",external_link=True,id="xlsx-download-fastrsam")]),
+                dbc.ModalFooter(
+                    dbc.Button("Cerrar", id="close-modal-fastrsam", className="ml-auto")
+                ),
+            ],
+            id="modal-fastrsam",
+        ),
+    ]
+)
+
+
 
 layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
                                    dbc.Col([html.Div(id='colgrafica-fastrsam')],width=9)
                                    ]),
                    html.Div(id='cajita-fastRSAM', style={'display': 'none'}),
-                   Download(id="download-fastRSAM"),
                    dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start', className="mr-1"),
-                   
+                   dcc.Loading(modal, style={'position':'fixed','left':'50%','top':'50%'})
                    ])
 
 
@@ -283,8 +299,8 @@ def update_cam_fija(*args):
     import ovdas_getdatafastRSAM as gdfr
     def plotear(volcan,fini,ffin,rangef,sampling):
         print('iniciado')
-        fini=fini+' 00:00:00'
-        ffin=ffin+' 23:59:59'
+        #fini=fini+' 00:00:00'
+        #ffin=ffin+' 23:59:59'
         voldata = gdb.get_metadata_volcan(volcan)
         voldata = voldata.drop_duplicates(subset='nombre', keep="first")
         red = gdb.get_metadata_wws(volcan='*')
@@ -294,9 +310,9 @@ def update_cam_fija(*args):
         RSAMS = []
         for esta in list(red.codcorto):
             try:
-                #df = fut.get_fastRSAM2(fini,ffin,esta+'Z',rangef[0],rangef[1],5,True,sampling)
+                df = fut.get_fastRSAM2(fini,ffin,esta+'Z',rangef[0],rangef[1],5,True,sampling)
 
-                df= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+'Z', rangef[0],rangef[1], 3,False) 
+                #df= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+'Z', rangef[0],rangef[1], 3,False) 
                 df = df.rename(columns={'fastRSAM':esta+'Z'})
                 df = df.resample('5T').asfreq()
                 df = df[~df.index.duplicated(keep='first')]
@@ -307,10 +323,10 @@ def update_cam_fija(*args):
                 ()
             try:
                 for comp in ['N','E']:
-                    #df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,sampling)
-                    #df2 = df2.rename(columns={'fastRSAM':esta+comp})
+                    df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,sampling)
+                    df2 = df2.rename(columns={'fastRSAM':esta+comp})
                     
-                    df2= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+comp, rangef[0],rangef[1], 3,False) 
+                    #df2= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+comp, rangef[0],rangef[1], 3,False) 
                     df2 = df2.rename(columns={'fastRSAM':esta+comp})
                     df2 = df2.resample('5T').asfreq()
                     df2 = df2[~df2.index.duplicated(keep='first')]
@@ -403,21 +419,48 @@ def update_date(n,volcan,fini,ffin):
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin
 
-@app.callback(Output("download-fastRSAM", "data"),
-              Input("csv-realtime-fastrsam", "n_clicks"),
-              State('cajita-fastRSAM', 'children'),
+
+@app.callback([Output("xlsx-download-fastrsam", "href"),Output("modal-fastrsam", "is_open")],
+              [Input("csv-realtime-fastrsam", "n_clicks"),Input("close-modal-fastrsam",'n_clicks')],
+              [State('cajita-fastRSAM', 'children'),State("modal-fastrsam", "is_open")],
               prevent_initial_call=True
               )
-def download_csv(click,data):
-    print('click!')
-    import json
-    import pandas as pd
-    from dash_extensions.snippets import send_data_frame
-    df = json.loads(data)
-    df = pd.DataFrame(df)
-    df = df.set_index('fecha_str',drop=True)
-    return send_data_frame(df.to_excel, "fastRSAM.xls")
+def download_csv(click,close,data,is_open):
+    if dash.callback_context.triggered[0]['value'] is not None:
+        if dash.callback_context.triggered[0]['prop_id'] =='csv-realtime-fastrsam.n_clicks':
+            print('Generando Xlsx')
+            import json
+            import pandas as pd
+            df= json.loads(data)
+            df = pd.DataFrame(df)
+            import doc_lib as odl
+            file_path,filename = odl.xlsxRSAM_ovdapp(df)
+            file_path = 'assets/dynamic/'+file_path+'.xlsx'
+            link_url= '/dash/urlToDownloadrsam?value={}'.format(file_path)
+            link_url=link_url+'&filename={}'.format(filename)
+            return link_url,not is_open
+                
+        elif dash.callback_context.triggered[0]['prop_id'] =='close-modal-fastrsam.n_clicks':
+            return dash.no_update,not is_open
+    else:
+        return dash.no_update,dash.no_update
 
+
+@app.server.route('/dash/urlToDownloadrsam') 
+def descargar():
+    import io,os,flask
+    value = flask.request.args.get('value')
+    filename = flask.request.args.get('filename')
+    return_data = io.BytesIO()
+    with open(value, 'rb') as fo:
+        return_data.write(fo.read())
+    # (after writing, cursor will be at last byte, so move it to start)
+    return_data.seek(0)
+    os.remove(value) 
+    return flask.send_file(return_data,
+                     #mimetype='document/xls',
+                     attachment_filename=filename,
+                     as_attachment=True)
 
 
 

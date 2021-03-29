@@ -8,9 +8,6 @@ import dash
 import json
 import numpy as np
 import dash_leaflet as dl
-from dash_extensions import Download
-from dash_extensions.snippets import send_bytes
-import plotly.graph_objects as go
 import dash_html_components as html
 import dash_core_components as dcc
 import dash_bootstrap_components as dbc
@@ -20,10 +17,9 @@ import sys
 import pandas as pd
 from obspy.clients.iris import Client
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
+sys.path.append('//172.16.40.102/Monitoreo/Ovdas_pyLib/ovdapp')
 import ovdas_getfromdb_lib as gdb
-
 from random import random
-import ovdas_figure_lib as ffig
 import ovdas_future_lib as ffut
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))  
@@ -148,7 +144,6 @@ def get_lista(ini=True,sel=0):
                                evtlat=row.latitud,
                                evtlon=row.longitud)
         direccion = ffut.direccion_geo(result['backazimuth'])[0]
-        direccion_largo = ffut.direccion_geo(result['backazimuth'])[1]
         distancia = np.round(result['distancemeters']/1000,1)
         if row.profundidad==-1:
             texto1='Sin localizacion - '+volcanes[volcanes.id==row.idvolc].vol_tipocorto+' '+volcan
@@ -197,7 +192,6 @@ def get_carddatoev(eventosel,volcansel):
                            evtlat=eventosel.latitud.iloc[0],
                            evtlon=eventosel.longitud.iloc[0])
     direccion = ffut.direccion_geo(result['backazimuth'])[0]
-    direccion_largo = ffut.direccion_geo(result['backazimuth'])[1]
     distancia = np.round(result['distancemeters']/1000,1)
     
     titulo='ML '+str(eventosel.ml.iloc[0])+' - '+str(distancia)+' km al '+direccion+' del '+volcansel.vol_tipo.iloc[0]+' '+volcansel.nombre.iloc[0]
@@ -276,11 +270,12 @@ card_datoseventos = dbc.Card([dbc.CardHeader('Datos del evento'),
                           ],outline=True,color='light',className='m-1',style={'height':'100%'})
 
 modal = html.Div(
-    [Download(id="download-electriceye"),
+    [
         dbc.Modal(
             [
                 dbc.ModalHeader("Finalizado!"),
-                dbc.ModalBody(dbc.Alert("Borrador de REAV finalizado, puede cerrar esta ventana =)", color="success")),
+                dbc.ModalBody([dbc.Alert("Borrador de REAV finalizado, puede cerrar esta ventana =)", color="success"),
+                dbc.Button("Primary", color="primary", className="mr-1",external_link=True,id="docx-download-electriceye")]),
                 dbc.ModalFooter(
                     dbc.Button("Close", id="close-modal", className="ml-auto")
                 ),
@@ -289,6 +284,7 @@ modal = html.Div(
         ),
     ]
 )
+
 
 
 layout = (navbar,html.Div(children=[dbc.Row([dbc.Col([card_listaeventos],width=4),
@@ -380,31 +376,42 @@ def elegir_evento(values,marker,cajita,active,panes):
     return list(activelist),colorev,list(panelist),zoom,center,datosev,json.dumps(eventosel.to_json(date_format='iso'), indent=2)
 
 
-  
-
-
 @app.callback(
-    [Output("download-electriceye", "data"),Output("modal", "is_open")],
+    [Output("docx-download-electriceye", "href"),Output("modal", "is_open")],
     [Input("btn-reav",'n_clicks'),Input("close-modal",'n_clicks')],
     [State("cajita2-electriceye",'children'),State("modal", "is_open")],prevent_initial_call=True
     )
 def crear_info(clickreav,close_modal,cajita2,is_open):
     if dash.callback_context.triggered[0]['value'] is not None:
         if dash.callback_context.triggered[0]['prop_id'] =='btn-reav.n_clicks':
-            print('oli')
+            print('Generando RAV')
             evento= pd.read_json(json.loads(cajita2))
-
-            import ovdas_doc_lib as odl
-            document,filename = odl.REAV_ovdapp(evento)
-            def to_reav(ruta):
-                document.save(ruta)
-            
-            return send_bytes(to_reav,filename),not is_open
-
-            return dash.no_update,dash.no_update
-        
-        
+            import doc_lib as odl
+            file_path,filename = odl.REAV_ovdapp(evento)
+            file_path = 'assets/dynamic/'+file_path+'.docx'
+            link_url= '/dash/urlToDownload?value={}'.format(file_path)
+            link_url=link_url+'&filename={}'.format(filename)
+            return link_url,not is_open
+                
         elif dash.callback_context.triggered[0]['prop_id'] =='close-modal.n_clicks':
             return dash.no_update,not is_open
     else:
         return dash.no_update,dash.no_update
+    
+@app.server.route('/dash/urlToDownload') 
+def download_csv():
+    import io,os,flask
+    
+    value = flask.request.args.get('value')
+    filename = flask.request.args.get('filename')
+    return_data = io.BytesIO()
+    with open(value, 'rb') as fo:
+        return_data.write(fo.read())
+    # (after writing, cursor will be at last byte, so move it to start)
+    return_data.seek(0)
+    os.remove(value) 
+    os.remove(value[:-4]+'png' )
+    return flask.send_file(return_data,
+                     mimetype='document/docx',
+                     attachment_filename=filename,
+                     as_attachment=True)

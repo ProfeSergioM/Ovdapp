@@ -1,0 +1,29 @@
+.has-value.Select--single>.Select-control .Select-value .Select-value-label, .has-value.is-pseudo-focused.Select--single>.Select-control .Select-value .Select-value-label {
+    color: white;
+}
+
+#dropdown_wrapper .VirtualizedSelectFocusedOption {
+  background-color: red;
+}
+#dropdown_wrapper .VirtualizedSelectOption {
+    color:white;
+}
+
+.VirtualizedSelectFocusedOption {
+  background-color: #2A9FD6!important;
+}
+
+.VirtualizedSelectOption {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    background-color: #333;
+    padding: 0 .5rem;
+}
+
+.Select-menu{
+	    color:white;
+}
