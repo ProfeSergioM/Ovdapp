@@ -127,7 +127,7 @@ for index, row in volcanes.iterrows():
 
 volcan_selector = dcc.Dropdown(
     clearable=False,
-    id='locali5-dropdown_volcanes',
+    id='locali6-dropdown_volcanes',
     options=lista_volcanes,
     placeholder='Seleccione uno, varios o "todos"',
     value='*',
@@ -139,7 +139,7 @@ volcan_selector = dcc.Dropdown(
                                     } 
 )
 fechas_picker = dcc.DatePickerRange(
-    id='locali5-fechas',
+    id='locali6-fechas',
     start_date_placeholder_text="Inicio",
     end_date_placeholder_text="Final",
     calendar_orientation='vertical',
@@ -168,11 +168,11 @@ formatosalidadropdown = html.Div([dbc.DropdownMenu(itemsformatos,label='Exportar
                                                    style={'pointer-events': 'none','opacity':'0.2'})])
 
 controles = html.Div([
-    html.Div(html.P('Intervalo de fechas',id='locali5-titulo-fecha')),
+    html.Div(html.P('Intervalo de fechas',id='locali6-titulo-fecha')),
     fechas_picker,
-    html.Div(html.P('Volcán(es)',id='locali5-titulo-fecha')),
+    html.Div(html.P('Volcán(es)',id='locali6-titulo-fecha')),
     volcan_selector,
-    dbc.Row([formatosalidadropdown,html.Div(dbc.Button("Enviar", color="primary", id="locali5-submit-filtro"),className='m-1',style={'text-align':'right'})],justify='end')
+    dbc.Row([formatosalidadropdown,html.Div(dbc.Button("Enviar", color="primary", id="locali6-submit-filtro"),className='m-1',style={'text-align':'right'})],justify='end')
     
     ])
    
@@ -180,7 +180,7 @@ controles = html.Div([
  
 controlescard = dbc.Card([
     dbc.CardHeader('Selección de eventos'),
-    dbc.CardBody(controles,id='controles-locali5')
+    dbc.CardBody(controles,id='controles-locali6')
     
     ],outline=True,color='light',className='m-1')
 
@@ -192,7 +192,7 @@ controlescard = dbc.Card([
 
 
 mapalayout=dbc.Container(dcc.Graph(id='mapaloc-graph',style={'height':'100%'}),style={'height':'100%','padding-left':'0','padding-right':'0'})
-mapacard = dbc.Card([dbc.CardHeader('Localizaciones'),dbc.CardBody(mapalayout,id='mapa-locali5',style={'height':'100%'})],outline=True,color='light',style={'height':'80vh'})
+mapacard = dbc.Card([dbc.CardHeader('Localizaciones'),dbc.CardBody(mapalayout,id='mapa-locali6',style={'height':'100%'})],outline=True,color='light',style={'height':'80vh'})
 mapacard=dcc.Loading(mapacard)
 
 
@@ -236,15 +236,15 @@ layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),
     
 @app.callback(
     [Output('mapaloc-graph','figure')],
-    [Input('url','href'),Input('locali5-submit-filtro','n_clicks')],
-    [State('locali5-dropdown_volcanes','value'),State('locali5-fechas','start_date'),
-     State('locali5-fechas','end_date')])
+    [Input('url','href'),Input('locali6-submit-filtro','n_clicks')],
+    [State('locali6-dropdown_volcanes','value'),State('locali6-fechas','start_date'),
+     State('locali6-fechas','end_date')])
 def display_mapa(href,ir,volcan,fi,ff):
 
     ctx = dash.callback_context
     trigger = ctx.triggered[0]['prop_id']
 
-    if trigger in['.','locali5-submit-filtro.n_clicks']:   
+    if trigger in['.','locali6-submit-filtro.n_clicks']:   
         dflocs = get_markers_loc(volcan, fi, ff)
         fig =go.Figure()
         
@@ -312,9 +312,9 @@ def display_data(selectedData):
 @app.callback([Output("button-download-locali6", "href"),Output("modal-locali6", "is_open")],
               [Input("export-kmz-button", "n_clicks"),Input("export-xls-button", "n_clicks"),
                Input("export-png-button", "n_clicks"),Input("close-modal-locali6",'n_clicks')],
-              [State('cajita-loc', 'children'),State('locali5-dropdown_volcanes','value'),
-               State('locali5-fechas','start_date'),
-               State('locali5-fechas','end_date'),State("modal-locali6", "is_open")],prevent_initial_call=True)
+              [State('cajita-loc', 'children'),State('locali6-dropdown_volcanes','value'),
+               State('locali6-fechas','start_date'),
+               State('locali6-fechas','end_date'),State("modal-locali6", "is_open")],prevent_initial_call=True)
 def func(kmz,xls,png,close_modal,cajita,volcansel,fini,ffin,is_open):
     ctx = dash.callback_context
     trigger = ctx.triggered[0]['prop_id']
@@ -381,17 +381,17 @@ def descargar_locali6():
       
 
 
-<<<<<<< HEAD
-@app.callback([Output('locali5-fechas', 'start-date'),Output('locali5-fechas', 'end-date')],
+
+@app.callback([Output('locali6-fechas', 'start-date'),Output('locali6-fechas', 'end-date')],
               [Input('interval-locali6', 'n_intervals')])
 def update_date(n):
     fini,ffin = get_fechahoy()
     return fini,ffin
-=======
-@app.callback([Output('locali5-fechas', 'start-date'),Output('locali5-fechas', 'end-date'),
+
+@app.callback([Output('locali6-fechas', 'start-date'),Output('locali6-fechas', 'end-date'),
                Output('interval-component-timeline-locali6', 'interval')],
               [Input('interval-component-timeline-locali6', 'n_intervals')])
 def update_date(n):
     fini,ffin=get_fechahoy()
     return fini,ffin,60*60*1000
->>>>>>> 51f4ce69c0477a22cb777be6b7c089da52aafddb
+
