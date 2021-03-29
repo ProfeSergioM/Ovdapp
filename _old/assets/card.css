@@ -1,0 +1,21 @@
+.card-body {
+    -webkit-box-flex: 1;
+    -ms-flex: 1 1 auto;
+    flex: 1 1 auto;
+    min-height: 1px;
+    padding: 0;
+    background-color: #141d26;
+}
+
+.gif_player img {
+    background: transparent url(path/to/loading.gif) no-repeat scroll center center;
+}
+
+.card-header {
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 0;
+    background-color: #141d26;
+    border-bottom: 1px solid rgba(120,120,120,0.5);
+    font-weight: bolder;
+    color:white;
+}

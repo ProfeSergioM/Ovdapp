@@ -5,12 +5,9 @@ import ovdas_ovdapp_lib as oap
 import ovdas_getfromdb_lib as gdb
 import pandas as pd
 import matplotlib.pyplot as plt
+import ovdas_doc_lib as odl
+import ovdas_figure_lib as ffig
 
-ini='2020-01-25'
-fin='2020-02-25'
+volcan='NevChillan'
 
-redvol = gdb.get_metadata_wws('Tatara')
-
-redvolsis=redvol[redvol.tipo=='SISMOLOGICA']
-    
-estaref = redvolsis[redvolsis.referencia==1] 
+df = gdb.extraer_eventos('2020-12-01', '2021-01-04', volcan)

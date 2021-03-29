@@ -96,22 +96,27 @@ CONTENT_STYLE = {
 PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))       
 
 navbar = dbc.Navbar(
-[
-html.A(
-    # Use row and col to control vertical alignment of logo / brand
-    dbc.Row(
-        [
-            dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=2),
-            dbc.Col(dbc.NavbarBrand("Revisión de localizaciones - Locali6",style={'color':'white'}))
-            
-        ],
-        align="left",
-        no_gutters=True,
-    )
-)
-],
-color="#141d26",
+    [
+        html.A(
+            # Use row and col to control vertical alignment of logo / brand
+            dbc.Row(
+                [
+                    dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=1),
+                    dbc.Col(dbc.NavbarBrand("Revisión de sismicidad localizada - Locali6"),width=10),
+                    dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='http://172.16.47.13:8080/'),width=1)
+                    
+                ],
+                align="left",style={'width':'100%'},
+                no_gutters=True,
+            ),
+          
+                style={ 'width':'100%', 'margin-left':'0px' }
+        ),
+        dbc.NavbarToggler(id="navbar-toggler"),
 
+    ],
+    color="dark",
+    dark=True,
 )
 
 lista_volcanes=[]
@@ -142,7 +147,6 @@ fechas_picker = dcc.DatePickerRange(
     start_date=get_fechahoy()[0],
     end_date=get_fechahoy()[1],
     min_date_allowed='2010-01-01',
-    max_date_allowed=get_fechahoy()[1],
     style=
                                     { 'width':'100%',
                                       'color': '#212121',
@@ -152,7 +156,8 @@ fechas_picker = dcc.DatePickerRange(
 
 itemsformatos=[dbc.DropdownMenuItem("KMZ (Google Earth)", id="export-kmz-button"),
                dbc.DropdownMenuItem("XLS (Excel)", id="export-xls-button"),
-               dbc.DropdownMenuItem("PNG (imagen)", id="export-png-button")
+               dbc.DropdownMenuItem("PNG (imagen)", id="export-png-button"),
+               dbc.Alert("Opción PNG solo para 1 volcán seleccionado", color="info")
                
                
                ]
@@ -199,13 +204,14 @@ sidebar = html.Div([controlescard],style=SIDEBAR_STYLE)
 content = html.Div(mapacard, style=CONTENT_STYLE)
 
 modaldownload = html.Div(
-    [Download(id="download-locali6"),
+    [
         dbc.Modal(
             [
                 dbc.ModalHeader("Finalizado!"),
-                dbc.ModalBody(dbc.Alert("Archivo generado, puede cerrar esta ventana", color="success")),
+                dbc.ModalBody([dbc.Alert("Datos cargados, presione el botón a continuación para descargar :)", color="success"),
+                dbc.Button("Descargar datos", color="primary", className="mr-1",external_link=True,id="button-download-locali6")]),
                 dbc.ModalFooter(
-                    dbc.Button("Close", id="close-modal-locali6", className="ml-auto")
+                    dbc.Button("Cerrar", id="close-modal-locali6", className="ml-auto")
                 ),
             ],
             id="modal-locali6",
@@ -214,7 +220,18 @@ modaldownload = html.Div(
 )
 
 
-layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),dbc.Col([content],width=7)]),html.Div(id='cajita-loc', style={'display': 'none'}),counter_imgfija,dcc.Loading(modaldownload, style={'position':'fixed','left':'50%','top':'50%'})])
+
+
+counter_timeline = dcc.Interval(
+          id='interval-component-timeline-locali6',
+          interval=60*1000*5, # utlimo numero son minutos
+          n_intervals=0
+      )
+
+layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),
+                                         dbc.Col([content],width=7)]),
+                   html.Div(id='cajita-loc', style={'display': 'none'}),counter_imgfija,
+                   dcc.Loading(modaldownload, style={'position':'fixed','left':'50%','top':'50%'})])
 
     
 @app.callback(
@@ -292,7 +309,7 @@ def display_data(selectedData):
     return json.dumps(selectedData, indent=2),show
 
 
-@app.callback([Output("download-locali6", "data"),Output("modal-locali6", "is_open")],
+@app.callback([Output("button-download-locali6", "href"),Output("modal-locali6", "is_open")],
               [Input("export-kmz-button", "n_clicks"),Input("export-xls-button", "n_clicks"),
                Input("export-png-button", "n_clicks"),Input("close-modal-locali6",'n_clicks')],
               [State('cajita-loc', 'children'),State('locali5-dropdown_volcanes','value'),
@@ -301,8 +318,6 @@ def display_data(selectedData):
 def func(kmz,xls,png,close_modal,cajita,volcansel,fini,ffin,is_open):
     ctx = dash.callback_context
     trigger = ctx.triggered[0]['prop_id']
-    if dash.callback_context.triggered[0]['prop_id'] =='close-modal-locali6.n_clicks':
-        return dash.no_update,not is_open
     df = json.loads(cajita)
     df= pd.DataFrame(df['points'])
     df = df.dropna()
@@ -314,37 +329,61 @@ def func(kmz,xls,png,close_modal,cajita,volcansel,fini,ffin,is_open):
     df['fecha'],df['latitud'],df['longitud'],df['profundidad'],df['ml'],df['tipoev'],df['volcan'] = fecha,lat,lon,prof,ml,tipoev,volcan
     dfnew = df[['fecha','latitud','longitud','profundidad','ml','tipoev','volcan']].copy()
     dfnew = dfnew.set_index('fecha',drop=True)
-    if trigger=='export-kmz-button.n_clicks':
-        def to_kmz(ruta):
-            kml = Kml()
-            vol_fol={} 
-            for vol in dfnew['volcan'].unique():
-                vol_fol[vol] = kml.newfolder(name=vol)
-                tipoev_fol={}
-                for tipoev in dfnew[dfnew['volcan']==vol]['tipoev'].unique():
-                    evento = dfnew[dfnew['volcan']==vol]
-                    evento = evento[evento['tipoev']==tipoev]
-                    tipoev_fol[tipoev] = vol_fol[vol].newfolder(name=tipoev)
-                    for item,row in evento.iterrows():
-                        pnt = tipoev_fol[tipoev].newpoint()
-                        pnt.style.iconstyle.color = ffig.colores_cla_hex(row.tipoev)
-                        lat,lon=row.latitud,row.longitud
-                        pnt.coords= [(lon,lat)]
-            kml.savekmz(ruta)
-        return send_bytes(to_kmz,"seleccionado.kmz"),dash.no_update
-    elif trigger=='export-xls-button.n_clicks':
-        return send_data_frame(dfnew.to_excel, "seleccionado.xls"),dash.no_update
-    elif trigger=='export-png-button.n_clicks':
-        import ovdas_ovdapp_lib as ool
-        import matplotlib.pyplot as plt
+    if dash.callback_context.triggered[0]['prop_id'] =='close-modal-locali6.n_clicks':
+        return dash.no_update,not is_open
+    elif dash.callback_context.triggered[0]['prop_id'] =='export-kmz-button.n_clicks':
+        print('kmz!')
+        import doc_lib as odl
+        file_path,filename = odl.kmz_locali6_ovdapp(dfnew)
+        file_path = 'assets/dynamic/'+file_path+'.kmz'
+        link_url= '/dash/urlToDownloadlocali6?value={}'.format(file_path)
+        link_url=link_url+'&filename={}'.format(filename)
+        return link_url,not is_open        
+    elif dash.callback_context.triggered[0]['prop_id'] =='export-xls-button.n_clicks':
+        print('xls!')    
+        import doc_lib as odl
+        file_path,filename = odl.xls_locali6_ovdapp(dfnew)
+        file_path = 'assets/dynamic/'+file_path+'.xlsx'
+        link_url= '/dash/urlToDownloadlocali6?value={}'.format(file_path)
+        link_url=link_url+'&filename={}'.format(filename)
+        return link_url,not is_open  
+    elif dash.callback_context.triggered[0]['prop_id'] =='export-png-button.n_clicks':
+        print('png!')
+        import doc_lib as odl
         if (len(volcansel)==1) and (volcansel!='*'):
-            def to_png(ruta):
-                voldf = gdb.get_metadata_volcan('*',rep='y')
-                volsel = voldf[voldf.nombre_db==volcansel[0]]
-                stadata = gdb.esta_metadata(volcansel[0],tipo='net')
-                fechas=[fini,ffin]
-                fig = ool.plot_selection(volsel,dfnew,stadata,fechas)
-                fig.savefig(ruta,dpi=300)
-                plt.close('all')
-            return send_bytes(to_png,"seleccionado.png"),not is_open         
+            file_path,filename = odl.png_locali6_ovdapp(dfnew,volcansel,fini,ffin)
+            file_path = 'assets/dynamic/'+file_path+'.png'
+            link_url= '/dash/urlToDownloadlocali6?value={}'.format(file_path)
+            link_url=link_url+'&filename={}'.format(filename)
+            return link_url,not is_open   
+        else:
+            return dash.no_update,dash.no_update
+    else:
+        return dash.no_update,not is_open
 
+
+@app.server.route('/dash/urlToDownloadlocali6') 
+def descargar_locali6():
+    import io,os,flask
+    value = flask.request.args.get('value')
+    filename = flask.request.args.get('filename')
+    return_data = io.BytesIO()
+    with open(value, 'rb') as fo:
+        return_data.write(fo.read())
+    # (after writing, cursor will be at last byte, so move it to start)
+    return_data.seek(0)
+    os.remove(value) 
+    return flask.send_file(return_data,
+                     attachment_filename=filename,
+                     as_attachment=True)
+
+
+      
+
+
+@app.callback([Output('locali5-fechas', 'start-date'),Output('locali5-fechas', 'end-date'),
+               Output('interval-component-timeline-locali6', 'interval')],
+              [Input('interval-component-timeline-locali6', 'n_intervals')])
+def update_date(n):
+    fini,ffin=get_fechahoy()
+    return fini,ffin,60*60*1000
