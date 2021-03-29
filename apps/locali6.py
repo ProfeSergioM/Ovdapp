@@ -192,7 +192,7 @@ mapacard=dcc.Loading(mapacard)
 
 
 
-counter_imgfija = dcc.Interval(id='interval-component-fija',interval=5*1000,n_intervals=0)
+counter_imgfija = dcc.Interval(id='interval-locali6',interval=5*1000,n_intervals=0)
 
 
 sidebar = html.Div([controlescard],style=SIDEBAR_STYLE)
@@ -348,3 +348,8 @@ def func(kmz,xls,png,close_modal,cajita,volcansel,fini,ffin,is_open):
                 plt.close('all')
             return send_bytes(to_png,"seleccionado.png"),not is_open         
 
+@app.callback([Output('locali5-fechas', 'start-date'),Output('locali5-fechas', 'end-date')],
+              [Input('interval-locali6', 'n_intervals')])
+def update_date(n):
+    fini,ffin = get_fechahoy()
+    return fini,ffin
