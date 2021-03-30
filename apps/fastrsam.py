@@ -101,7 +101,7 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
     import locale     
     from plotly.subplots import make_subplots
     import plotly.graph_objects as go
-    locale.setlocale(locale.LC_ALL, 'es_ES')
+    #locale.setlocale(locale.LC_ALL, 'es_ES')
     colors = px.colors.qualitative.Plotly
     colors=colors+colors+colors
     
@@ -201,7 +201,7 @@ navbar = dbc.Navbar(
         [
             dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=1),
             dbc.Col(dbc.NavbarBrand("Proyecto de monitoreo sísmico automático OVV - RSAM Rápido",style={'color':'white'}),width=10),
-            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='/'),width=1)
+            dbc.Col(dbc.Button("Ovdapp", color="Descargar!",outline=True, className="mr-1",id='volver-home',href='/'),width=1)
             
             
         ],justify="left",

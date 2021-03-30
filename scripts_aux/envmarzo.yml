@@ -241,4 +241,3 @@ dependencies:
     - more-itertools==8.6.0
     - openpyxl==3.0.7
     - timeloop==1.0.2
-prefix: C:\Users\sergio.morales\Anaconda3\envs\ovdapp
