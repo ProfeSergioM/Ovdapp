@@ -388,10 +388,5 @@ def update_date(n):
     fini,ffin = get_fechahoy()
     return fini,ffin
 
-@app.callback([Output('locali6-fechas', 'start-date'),Output('locali6-fechas', 'end-date'),
-               Output('interval-component-timeline-locali6', 'interval')],
-              [Input('interval-component-timeline-locali6', 'n_intervals')])
-def update_date(n):
-    fini,ffin=get_fechahoy()
-    return fini,ffin,60*60*1000
+
 
