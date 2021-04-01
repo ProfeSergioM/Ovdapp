@@ -61,7 +61,7 @@ volcan_selector = dcc.Dropdown(
 )
 
 
-
+from datetime import date
 
 fechas_picker = dcc.DatePickerRange(
     id='fechas-sismodb',
@@ -69,6 +69,7 @@ fechas_picker = dcc.DatePickerRange(
     end_date_placeholder_text="Final",
     calendar_orientation='vertical',
     display_format='Y-MM-DD',
+    min_date_allowed=date(2010,1,1),
     style=
                                     { 
                                       'color': '#212121',
@@ -86,6 +87,7 @@ tipoev_picker = dcc.Checklist(id='tipoev_check',
         {'label': 'HB', 'value': 'HB'},
         {'label': 'VD', 'value': 'VD'},
         {'label': 'TO', 'value': 'TO'},
+        {'label': 'MF', 'value': 'MF'},
         {'label': 'LV', 'value': 'LV'}
     ],
     value=['VT','LP'],
@@ -119,70 +121,184 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
     df = pd.DataFrame(gdb.extraer_eventos(inicio=fi,final=ff,volcan=vol))
     df = df[df.tipoevento.isin(tipoevs_custom)]
     df.set_index('fecha',inplace=True)
-    df_count = df.groupby('tipoevento')['tipoevento'].resample('D').count().rename('numevs')
-    
-    df_count = df_count.reset_index().set_index('fecha')
-    
-    
-    df_count_mes = df.groupby('tipoevento')['tipoevento'].resample('M').count().rename('numevs')
-    df_count_mes = df_count_mes.reset_index().set_index('fecha')
-    
-    df_max = df.groupby('tipoevento')[['dr','ml']].resample('D').max()
-    df_max = df_max.reset_index().set_index('fecha')
-    df_max_mes = df.groupby('tipoevento')[['dr','ml']].resample('M').max()
-    df_max_mes = df_max_mes.reset_index().set_index('fecha')
-    
-    fig = make_subplots(rows=3, cols=2,vertical_spacing=0.02,shared_xaxes='all',horizontal_spacing=0.075,
-                            column_widths=[1,4])
-    
-    fig.update_layout(template='seaborn')
-    i=0
-    for tipoev in tipoevs_custom:
-        M = df_count[df_count.tipoevento==tipoev]
-        M = M.reindex(t_index).fillna(0)
-        N = df_count_mes[df_count_mes.tipoevento==tipoev]
-        N = N.reindex(t_index_mes).fillna(0)
-        eM = df_max[df_max.tipoevento==tipoev]
-        eN = df_max_mes[df_max_mes.tipoevento==tipoev]
-        plot_numevs_dia = go.Scatter(x=M.index,y=M.numevs,name=tipoev,legendgroup=tipoev,marker_color=cols[i],marker_line_width = 0)
-        plot_numevs_mes = go.Scatter(x=N.index,y=N.numevs,name=tipoev,legendgroup=tipoev,xperiod='M1',xperiodalignment='middle',
-                                     showlegend=False,marker_color=cols[i])
-        fig.add_trace(plot_numevs_dia,row=1,col=2)
-        fig.add_trace(plot_numevs_mes,row=1,col=1)
-        if tipoev in ['VT','HB']:
-            plot_maxml_dia = go.Scatter(x=eM.index,y=eM.ml,mode='markers',name='M<sub>L</sub> '+tipoev,legendgroup='M<sub>L</sub> '+tipoev,marker_color=cols[i])
-            plot_maxml_mes = go.Scatter(x=eN.index,y=eN.ml,mode='markers+lines',name='M<sub>L</sub> '+tipoev,legendgroup='M<sub>L</sub> '+tipoev,marker_color=cols[i],
-                                        xperiod='M1',xperiodalignment='middle',showlegend=False)
-            fig.add_trace(plot_maxml_dia,row=2,col=2)
-            fig.add_trace(plot_maxml_mes,row=2,col=1)
-        else:
-            plot_maxdr_dia = go.Scatter(x=eM.index,y=eM.dr,mode='markers',name='D<sub>R</sub> '+tipoev,legendgroup='D<sub>R</sub> '+tipoev,marker_color=cols[i])
-            plot_maxdr_mes = go.Scatter(x=eN.index,y=eN.dr,mode='markers+lines',name='D<sub>R</sub> '+tipoev,legendgroup='D<sub>R</sub> '+tipoev,marker_color=cols[i],
-                                        xperiod='M1',xperiodalignment='middle',showlegend=False)
-            fig.add_trace(plot_maxdr_dia,row=3,col=2)
-            fig.add_trace(plot_maxdr_mes,row=3,col=1)
-        i+=1
-    
-    fig.update_yaxes(title_text='Ev/mes',row=1,col=1,rangemode='tozero')
-    fig.update_yaxes(title_text='Ev/día',row=1,col=2,rangemode='tozero')
-    fig.update_yaxes(title_text='Max M<sub>L</sub>/mes',row=2,col=1,rangemode='tozero')
-    fig.update_yaxes(title_text='Max M<sub>L</sub>/día',row=2,col=2,rangemode='tozero')
-    fig.update_yaxes(title_text='Max D<sub>R</sub>/mes',row=3,col=1,rangemode='tozero')
-    fig.update_yaxes(title_text='Max D<sub>R</sub>/día',row=3,col=2,rangemode='tozero')
-    
-    fig.update_xaxes(range=[fi, ff])
-    fig.update_layout(
-        title={
-            'text': "Estadística de eventos clasificados - "+voldf.nombre.iloc[0],
-            'y':0.9,
-            'x':0.5,
-            'xanchor': 'center',
-            'yanchor': 'top'})
-    #fig.layout.template = 'plotly_dark'
-    
-    
+    esta_meta = gdb.get_metadata_wws(volcan=vol)
+    df['Par'] = df['est'].map(esta_meta.drop_duplicates('idestacion').set_index('idestacion')['distcrater'])*df['amplitud_ums']
+    df.loc[df.tipoevento != 'MF', 'Par'] = None 
+    df['amplitud_ums_old'] = df['est'].map(esta_meta.drop_duplicates('idestacion').set_index('idestacion')['sens1'])*df['amplitudctas']
+    df['amplitud_ums'] = df['amplitud_ums'].fillna(df['amplitud_ums_old'])
+    def RAM(df,fi,ff):
+        df_count = df.groupby('tipoevento')['tipoevento'].resample('D').count().rename('numevs')
+        
+        df_count = df_count.reset_index().set_index('fecha')
+        
+        
+        df_count_mes = df.groupby('tipoevento')['tipoevento'].resample('M').count().rename('numevs')
+        df_count_mes = df_count_mes.reset_index().set_index('fecha')
+        
+        df_max = df.groupby('tipoevento')[['dr','ml','Par']].resample('D').max()
+        df_max = df_max.reset_index().set_index('fecha')
+        df_max_mes = df.groupby('tipoevento')[['dr','ml','Par']].resample('M').max()
+        df_max_mes = df_max_mes.reset_index().set_index('fecha')   
+        
+        rows=1
+        
+        tipoevs_custom=df.tipoevento.unique()
+        if ('VT' or 'VD') in tipoevs_custom:
+            rows=rows+1
+        if ('LP' or 'TR' or 'EX' or 'HB' or 'TO' or 'LV') in tipoevs_custom:
+            rows=rows+1
+        if 'MF' in tipoevs_custom:
+            rows=rows+1
+            
+            
+        if ('VT' or 'VD') in tipoevs_custom:
+            row_ml=2
+            if ('LP' or 'TR' or 'EX' or 'HB' or 'TO' or 'LV') in tipoevs_custom:
+                row_dr=3
+                if 'MF' in tipoevs_custom:
+                    row_mf=4
+            elif 'MF' in tipoevs_custom:
+                row_mf=3
+        elif ('LP' or 'TR' or 'EX' or 'HB' or 'TO' or 'LV') in tipoevs_custom:
+            row_dr=2
+            if 'MF' in tipoevs_custom:
+                row_mf=3
+        elif 'MF' in tipoevs_custom:
+            row_mf=2
+            
+                
+        fig = make_subplots(rows=rows, cols=2,vertical_spacing=0.02,shared_xaxes='all',horizontal_spacing=0.075,
+                                column_widths=[1,4])
+        
+        fig.update_layout(template='seaborn')
+        i=0
+        for tipoev in tipoevs_custom:
+            M = df_count[df_count.tipoevento==tipoev]
+            M = M.reindex(t_index).fillna(0)
+            N = df_count_mes[df_count_mes.tipoevento==tipoev]
+            N = N.reindex(t_index_mes).fillna(0)
+            eM = df_max[df_max.tipoevento==tipoev]
+            eN = df_max_mes[df_max_mes.tipoevento==tipoev]
+            plot_numevs_dia = go.Scatter(x=M.index,y=M.numevs,name=tipoev,legendgroup=tipoev,marker_color=cols[i],marker_line_width = 0)
+            plot_numevs_mes = go.Scatter(x=N.index,y=N.numevs,name=tipoev,legendgroup=tipoev,xperiod='M1',xperiodalignment='middle',
+                                         showlegend=False,marker_color=cols[i])
+            fig.add_trace(plot_numevs_dia,row=1,col=2)
+            fig.add_trace(plot_numevs_mes,row=1,col=1)
+            if tipoev in ['VT','HB']:
+                plot_maxml_dia = go.Scatter(x=eM.index,y=eM.ml,mode='markers',name='M<sub>L</sub> '+tipoev,legendgroup='M<sub>L</sub> '+tipoev,marker_color=cols[i])
+                plot_maxml_mes = go.Scatter(x=eN.index,y=eN.ml,mode='markers+lines',name='M<sub>L</sub> '+tipoev,legendgroup='M<sub>L</sub> '+tipoev,marker_color=cols[i],
+                                            xperiod='M1',xperiodalignment='middle',showlegend=False)
+                fig.add_trace(plot_maxml_dia,row=row_ml,col=2)
+                fig.add_trace(plot_maxml_mes,row=row_ml,col=1)
+            elif tipoev in ['LP','TR','EX','HB','TO','LV']:
+                plot_maxdr_dia = go.Scatter(x=eM.index,y=eM.dr,mode='markers',name='D<sub>R</sub> '+tipoev,legendgroup='D<sub>R</sub> '+tipoev,marker_color=cols[i])
+                plot_maxdr_mes = go.Scatter(x=eN.index,y=eN.dr,mode='markers+lines',name='D<sub>R</sub> '+tipoev,legendgroup='D<sub>R</sub> '+tipoev,marker_color=cols[i],
+                                            xperiod='M1',xperiodalignment='middle',showlegend=False)
+                fig.add_trace(plot_maxdr_dia,row=row_dr,col=2)
+                fig.add_trace(plot_maxdr_mes,row=row_dr,col=1)
+            elif tipoev =='MF':
+                plot_maxPar_dia = go.Scatter(x=eM.index,y=eM.Par,mode='markers',name='Pa<sub>R</sub> '+tipoev,legendgroup='Pa<sub>R</sub> '+tipoev,marker_color=cols[i])
+                plot_maxPar_mes = go.Scatter(x=eN.index,y=eN.Par,mode='markers+lines',name='Pa<sub>R</sub> '+tipoev,legendgroup='Pa<sub>R</sub> '+tipoev,marker_color=cols[i],
+                                            xperiod='M1',xperiodalignment='middle',showlegend=False)
+                fig.add_trace(plot_maxPar_dia,row=row_mf,col=2)
+                fig.add_trace(plot_maxPar_mes,row=row_mf,col=1)
+            i+=1
+        
+        fig.update_yaxes(title_text='Ev/mes',row=1,col=1,rangemode='tozero')
+        fig.update_yaxes(title_text='Ev/día',row=1,col=2,rangemode='tozero')
+        fig.update_yaxes(title_text='Max M<sub>L</sub>/mes',row=2,col=1,rangemode='tozero')
+        fig.update_yaxes(title_text='Max M<sub>L</sub>/día',row=2,col=2,rangemode='tozero')
+        fig.update_yaxes(title_text='Max D<sub>R</sub>/mes',row=3,col=1,rangemode='tozero')
+        fig.update_yaxes(title_text='Max D<sub>R</sub>/día',row=3,col=2,rangemode='tozero')
+        
+        fig.update_xaxes(range=[fi, ff])
+        fig.update_layout(
+            title={
+                'text': "Estadística de eventos clasificados - "+voldf.nombre.iloc[0],
+                'y':0.9,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'})
+        #fig.layout.template = 'plotly_dark'
+        return fig
+    def DET(df,tipoevs_custom,fi,ff):
+        df = df[df.tipoevento==tipoev]
+        nrows=4
 
-    return fig
+        
+        fig = make_subplots(rows=nrows, cols=1,vertical_spacing=0.02,shared_xaxes='all',horizontal_spacing=0.075)
+        
+        df_count = df['zona'].resample('D').count().rename('numevs').reindex(t_index).fillna(0)
+        df_count = df_count.drop(df_count.index[-1])
+        plot_numevs_dia = go.Scatter(x=df_count.index,y=df_count,name='Eventos/día',legendgroup='MF',marker_color=cols[0],marker_line_width = 1,opacity=0.75)
+        fig.add_trace(plot_numevs_dia,row=1,col=1)
+        
+        
+        
+        df_maxamp_dia = df['amplitud_ums'].resample('D').max().rename('maxamp').reindex(t_index).fillna(0)
+        plot_amp_evs = go.Scattergl(x=df.index,y=df.amplitud_ums,name='Amp/ev',legendgroup='Amp',marker_color=cols[1],mode='markers',marker_size=4)
+        plot_amp_evs_max_dia = go.Bar(x=df_maxamp_dia.index,y=df_maxamp_dia,name='Max Amp/día',legendgroup='Amp MF',offset=0.5,
+                                          marker_color=cols[1],opacity=0.25,marker_line_width = 0)
+        fig.add_trace(plot_amp_evs,row=2,col=1)
+        fig.add_trace(plot_amp_evs_max_dia,row=2,col=1)
+        fig.update_yaxes(title_text='Ev/día',row=1,col=1,rangemode='tozero')
+        u_amp='um/s'
+        if tipoev=='MF':
+            u_amp='Pa'
+
+        fig.update_yaxes(title_text=u_amp,row=2,col=1,rangemode='tozero')
+        
+        fig.update_yaxes(type="log",row=3,col=1)
+        import numpy as np
+        fig.update_yaxes(row=3,range=[np.log10(0.5),np.log10(20)],dtick=np.log10(2))
+        plot_freq_evs = go.Scattergl(x=df.index,y=df.frecuencia,name='Frec/ev',legendgroup='D<sub>R</sub>',marker_color=cols[2],mode='markers',marker_size=4,opacity=0.75)
+        fig.add_trace(plot_freq_evs,row=3,col=1)
+        fig.update_yaxes(title_text='Hz',row=3,col=1,rangemode='tozero')
+        
+        
+        if tipoev in ['VT','VD','HB']:
+            mag='ml'
+            maglabel='Magnitud'
+            magaxis='M<sub>L</sub>'
+        elif tipoev=='MF':
+            mag='Par'
+            maglabel='Pa<sub>R</sub>'
+            magaxis='Pa<sub>R</sub>'            
+        else:
+            mag='dr'
+            maglabel='D<sub>R</sub>'
+            magaxis='cm<sup>2</sup>'
+            
+        
+        df_maxene_dia = df[mag].resample('D').max().rename('max'+mag).reindex(t_index).fillna(0)
+                           
+        plot_ene_evs_max_dia = go.Bar(x=df_maxene_dia.index,y=df_maxene_dia,name='Max '+maglabel+'/día',legendgroup=maglabel+' '+tipoev,offset=0.5,
+                                          marker_color=cols[3],opacity=0.25,marker_line_width = 0)
+        
+        fig.add_trace(plot_ene_evs_max_dia,row=4,col=1)
+        plot_dr_evs = go.Scattergl(x=df.index,y=df[mag],name=maglabel+'/ev',legendgroup=maglabel,marker_color=cols[3],mode='markers',marker_size=4,opacity=0.75)
+        fig.add_trace(plot_dr_evs,row=4,col=1)
+        fig.update_yaxes(title_text=magaxis,row=4,col=1,rangemode='tozero')
+        
+                
+        fig.update_layout(bargap=0)
+        fig.update_xaxes(range=[fi, ff])
+        fig.update_layout(
+            title={
+                'text': "Características de sismos "+tipoev+" clasificados, "+voldf.vol_tipocorto.iloc[0]+" "+voldf.nombre.iloc[0],
+                'y':0.9,
+                'x':0.5,
+                'xanchor': 'center',
+                'yanchor': 'top'})
+        return fig
+    
+    
+    
+    figRAM = RAM(df,fi,ff)
+    figDET = []
+    for tipoev in tipoevs_custom:
+        figDET.append(DET(df,tipoevs_custom,fi,ff))
+    return figRAM,figDET
 
 
 PLOTLY_LOGO = app.get_asset_url('img/Sismologia_2020.png?random='+str(random()))  
@@ -237,7 +353,10 @@ banner_inferior = dbc.Card([
 
 
 layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
-                                   dbc.Col([dcc.Loading(html.Div(id='colgrafica-sismodb'))],width=9)
+                                   dbc.Col([dcc.Loading(children=[ dcc.Tabs(id='tabs-sismoDB', value='tab-RAM', children=[
+        dcc.Tab(label='Resumen mensual (RAM)', value='tab-RAM'),
+        dcc.Tab(label='Detalle/tipo de evento', value='tab-DET'),
+    ]),html.Div(id='colgrafica-sismodb')])],width=9)
                                    ]),
                    dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start'),
                    
@@ -247,13 +366,15 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
     #[Output("colgrafica-sismodb", "children"),Output("colmapa-sismodb", "children")],
     [Output("colgrafica-sismodb", "children")],
     [Input("submit-filtro-sismodb", "n_clicks")],
-    [State('fechas-sismodb','start_date'),State('fechas-sismodb','end_date'),State('dropdown_volcanes-sismodb','value'),State('tipoev_check','value')]
+    [State('fechas-sismodb','start_date'),State('fechas-sismodb','end_date'),
+     State('dropdown_volcanes-sismodb','value'),State('tipoev_check','value'),State('tabs-sismoDB','value')]
 ,prevent_initial_call=True)
 def update_cam_fija(*args):
     fini=args[1]
     ffin=args[2]
     volcan=args[3]
     tipoevs_custom = args[4]
+    tab_value = args[5]
     rsam_blacklist=['CRU','PIC','LAV','AGU','CR3','CVI']
     red = gdb.get_metadata_wws(volcan)
     red=red[red.tipo=='SISMOLOGICA']
@@ -261,27 +382,58 @@ def update_cam_fija(*args):
     red = red[red.sensor!='N']
     red=red[~red.codcorto.isin(rsam_blacklist)]
     red1 = red[red.referencia==1].sort_values(by='distcrater').head(1)# 1.referencia
-    estaRSAM = red1.codcorto.iloc[0]
-    #tipoevs_custom=['VT','VD','HB','LP','EX','TR','LV','TO','MF']
-    fig = crear_RAM(fini,ffin,volcan,tipoevs_custom)
-    grafico = html.Div(children=[
+    figRAM,figDET = crear_RAM(fini,ffin,volcan,tipoevs_custom)
+
+    graficoRAM = html.Div(children=[
         dcc.Graph(
-            id='timeline-orca',
-            figure=fig,
+            id='grafico',
+            figure=figRAM,
             style={ 'height':'80vh' }
         )
     ])
+    graficoDET=[]
+    for fig in figDET:
+        
+        graficoDET.append(html.Div(children=[
+            dcc.Graph(
+                id='grafico',
+                figure=fig,
+                style={ 'height':'80vh' }
+            )
+        ])   )
     
-    graficocard = dbc.Card([
-        dbc.CardHeader('Sismicidad'),
-        dbc.CardBody(grafico)
+    lista_ev=[]
+    for item in tipoevs_custom:
+        ev = {'label': item,'value':item}
+        lista_ev.append(ev) 
+        
+    tipoev_dropdown = dcc.Dropdown(
+        id='tipoev-dropdown',
+    clearable=False,
+
+    options=lista_ev,
+    value=tipoevs_custom[0],
+    multi=False,
+    style=
+                                    { 
+                                      'color': '#212121',
+                                      'background-color': '#212121',
+                                    } 
+                                    )
+        
+    graficoRAM = dbc.Card(id='div-RAM',children=[
+        dbc.CardHeader(id='cardheader',children=['Resumen de sismicidad clasificada']),
+        dbc.CardBody(graficoRAM)
         
         ],outline=True,color='light')
 
+    graficoDET = dbc.Card(id='div-DET',children=[
+        dbc.CardHeader(id='cardheader',children=['Detalle de eventos x tipo'] ),
+        dbc.CardBody(graficoDET)
+        
+        ],outline=True,color='light')
 
-
-    #return [graficocard],[mapacard]
-    return [graficocard]
+    return[[graficoRAM,graficoDET]]
 
 
 @app.callback([Output('live-update-text-sismodb', 'children'),Output('fechas-sismodb','start_date'),Output('fechas-sismodb','end_date'),
@@ -294,8 +446,29 @@ def update_date(href):
     print('tic! from '+request.remote_addr)
     fini = dt.datetime.strftime((dt.datetime.utcnow() - dt.timedelta(days=360)).replace(day=1), '%Y-%m-%d')
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
-
-    finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
-
-
     return [html.P(children=[str(datetime.datetime.now())[:16]],style={'text-align':'center'})],fini,ffin,ffin
+
+@app.callback([Output('div-RAM','style'),Output('div-DET','style')],
+              Input('tabs-sismoDB','value')
+              )
+def show_tabs(tabvalue):
+    '''  
+    print(tipoevs)
+    lista_ev=[]
+    for item in tipoevs:
+        ev = {'label': item,'value':item}
+        lista_ev.append(ev) 
+        
+        
+         
+
+'''
+    if tabvalue=='tab-RAM':
+        styleRAM={'display':'block'}
+        styleDET={'display':'none'}
+        #cardhead='Resumen de sismicidad clasificada'
+    elif tabvalue=='tab-DET':
+        styleRAM={'display':'none'}
+        styleDET={'display':'block'}
+        #cardhead=['Detalle de eventos tipo:',tipoev_dropdown]
+    return styleRAM,styleDET

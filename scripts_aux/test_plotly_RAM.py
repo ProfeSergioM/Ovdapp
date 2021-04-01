@@ -10,9 +10,9 @@ import ovdas_getfromdb_lib as gdb
 import datetime as dt
 import pandas as pd
 #variables
-vol='NevChillan'
+vol='Villarrica'
 per='M'
-tipoevs_custom=['VT','LP','EX']
+tipoevs_custom=['VT','MF']
 ###############
 fi = dt.datetime.strftime((dt.datetime.utcnow() - dt.timedelta(days=366)).replace(day=1,minute=0,second=0,microsecond=0),'%Y-%m-%d')
 ff = dt.datetime.strftime(dt.datetime.utcnow(),'%Y-%m-%d')
@@ -31,8 +31,8 @@ if 'MF' in tipoevs:
     df_x_ev['PAr'] = (df['est'].map(esta_meta.set_index('idestacion')['sens1'])*
                  df['est'].map(esta_meta.set_index('idestacion')['distcrater'])*df['amplitudctas']/1000000)
 df_x_ev.loc[df_x_ev.tipoevento != 'MF', 'PAr'] = None
-del df
 
+'''
 diario = {}
 mensual = {}
 
@@ -254,3 +254,4 @@ fig.update_layout(
         'xanchor': 'center',
         'yanchor': 'top'})
 fig.write_html('first_figure.html', auto_open=True)
+'''

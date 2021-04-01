@@ -12,67 +12,74 @@ import locale
 locale.setlocale(locale.LC_TIME, 'es_ES')
 cols = plotly.colors.DEFAULT_PLOTLY_COLORS
 
-ini='2020-06-01'
+ini='2021-01-01'
 fin='2021-03-31'
-vol='NevChillan'
-tipoevs=['VT','LP','LV','TO','EX','TR']
+vol='Villarrica'
+tipoev='LP'
 
 
+voldf =gdb.get_metadata_volcan(vol,rep='y')
+voldf = voldf.drop_duplicates(subset='nombre', keep="first")
+df = pd.DataFrame(gdb.extraer_eventos(inicio=ini,final=fin,volcan=vol,tipoevento=tipoev))
+df.set_index('fecha',inplace=True)
 t_index = pd.date_range(start=ini, end=fin, freq='D')
 t_index_mes = pd.date_range(start=ini, end=fin, freq='M')
-df = pd.DataFrame(gdb.extraer_eventos(inicio=ini,final=fin,volcan=vol))
-df = df[df.tipoevento.isin(tipoevs)]
-df.set_index('fecha',inplace=True)
-df_count = df.groupby('tipoevento')['tipoevento'].resample('D').count().rename('numevs')
+nrows=4
+if tipoev=='HB':nrows=5
+fig = make_subplots(rows=nrows, cols=1,vertical_spacing=0.02,shared_xaxes='all',horizontal_spacing=0.075)
 
-df_count = df_count.reset_index().set_index('fecha')
+df_count = df['zona'].resample('D').count().rename('numevs').reindex(t_index).fillna(0)
+df_count = df_count.drop(df_count.index[-1])
+plot_numevs_dia = go.Scatter(x=df_count.index,y=df_count,name='Eventos/día',legendgroup='MF',marker_color=cols[0],marker_line_width = 1,opacity=0.75)
+fig.add_trace(plot_numevs_dia,row=1,col=1)
 
 
-df_count_mes = df.groupby('tipoevento')['tipoevento'].resample('M').count().rename('numevs')
-df_count_mes = df_count_mes.reset_index().set_index('fecha')
 
-df_max = df.groupby('tipoevento')[['dr','ml']].resample('D').max()
-df_max = df_max.reset_index().set_index('fecha')
-df_max_mes = df.groupby('tipoevento')[['dr','ml']].resample('M').max()
-df_max_mes = df_max_mes.reset_index().set_index('fecha')
+df_maxamp_dia = df['amplitud_ums'].resample('D').max().rename('maxamp').reindex(t_index).fillna(0)
+plot_amp_evs = go.Scattergl(x=df.index,y=df.amplitud_ums,name='Amp/ev',legendgroup='Amp',marker_color=cols[1],mode='markers',marker_size=4)
+plot_amp_evs_max_dia = go.Bar(x=df_maxamp_dia.index,y=df_maxamp_dia,name='Max Amp/día',legendgroup='Amp MF',offset=0.5,
+                                  marker_color=cols[1],opacity=0.25,marker_line_width = 0)
+fig.add_trace(plot_amp_evs,row=2,col=1)
+fig.add_trace(plot_amp_evs_max_dia,row=2,col=1)
+fig.update_yaxes(title_text='Ev/día',row=1,col=1,rangemode='tozero')
+fig.update_yaxes(title_text='um/s',row=2,col=1,rangemode='tozero')
 
-fig = make_subplots(rows=3, cols=2,vertical_spacing=0.02,shared_xaxes='all',horizontal_spacing=0.075,
-                        column_widths=[1,4])
+fig.update_yaxes(type="log",row=3,col=1)
+import numpy as np
+fig.update_yaxes(row=3,range=[np.log10(0.5),np.log10(20)],dtick=np.log10(2))
+plot_freq_evs = go.Scattergl(x=df.index,y=df.frecuencia,name='Frec/ev',legendgroup='D<sub>R</sub>',marker_color=cols[2],mode='markers',marker_size=4,opacity=0.75)
+fig.add_trace(plot_freq_evs,row=3,col=1)
+fig.update_yaxes(title_text='Hz',row=3,col=1,rangemode='tozero')
 
-fig.update_layout(template='seaborn')
-i=0
-for tipoev in tipoevs:
-    M = df_count[df_count.tipoevento==tipoev]
-    M = M.reindex(t_index).fillna(0)
-    N = df_count_mes[df_count_mes.tipoevento==tipoev]
-    N = N.reindex(t_index_mes).fillna(0)
-    eM = df_max[df_max.tipoevento==tipoev]
-    eN = df_max_mes[df_max_mes.tipoevento==tipoev]
-    plot_numevs_dia = go.Scatter(x=M.index,y=M.numevs,name=tipoev,legendgroup=tipoev,marker_color=cols[i],marker_line_width = 0)
-    plot_numevs_mes = go.Scatter(x=N.index,y=N.numevs,name=tipoev,legendgroup=tipoev,xperiod='M1',xperiodalignment='middle',
-                                 showlegend=False,marker_color=cols[i])
-    fig.add_trace(plot_numevs_dia,row=1,col=2)
-    fig.add_trace(plot_numevs_mes,row=1,col=1)
-    if tipoev in ['VT','HB']:
-        plot_maxml_dia = go.Scatter(x=eM.index,y=eM.ml,mode='markers',name='M<sub>L</sub> '+tipoev,legendgroup='M<sub>L</sub> '+tipoev,marker_color=cols[i])
-        plot_maxml_mes = go.Scatter(x=eN.index,y=eN.ml,mode='markers',name='M<sub>L</sub> '+tipoev,legendgroup='M<sub>L</sub> '+tipoev,marker_color=cols[i],
-                                    xperiod='M1',xperiodalignment='middle',showlegend=False)
-        fig.add_trace(plot_maxml_dia,row=2,col=2)
-        fig.add_trace(plot_maxml_mes,row=2,col=1)
-    else:
-        plot_maxdr_dia = go.Scatter(x=eM.index,y=eM.dr,mode='markers',name='D<sub>R</sub> '+tipoev,legendgroup='D<sub>R</sub> '+tipoev,marker_color=cols[i])
-        plot_maxdr_mes = go.Scatter(x=eN.index,y=eN.dr,mode='markers',name='D<sub>R</sub> '+tipoev,legendgroup='D<sub>R</sub> '+tipoev,marker_color=cols[i],
-                                    xperiod='M1',xperiodalignment='middle',showlegend=False)
-        fig.add_trace(plot_maxdr_dia,row=3,col=2)
-        fig.add_trace(plot_maxdr_mes,row=3,col=1)
-    i+=1
 
-fig.update_yaxes(title_text='Ev/mes',row=1,col=1,rangemode='tozero')
-fig.update_yaxes(title_text='Ev/día',row=1,col=2,rangemode='tozero')
-fig.update_yaxes(title_text='Max M<sub>L</sub>/mes',row=2,col=1,rangemode='tozero')
-fig.update_yaxes(title_text='Max M<sub>L</sub>/día',row=2,col=2,rangemode='tozero')
-fig.update_yaxes(title_text='Max D<sub>R</sub>/mes',row=3,col=1,rangemode='tozero')
-fig.update_yaxes(title_text='Max D<sub>R</sub>/día',row=3,col=2,rangemode='tozero')
+if tipoev in ['VT','VD','HB']:
+    mag='ml'
+    maglabel='Magnitud'
+    magaxis='M<sub>L</sub>'
+else:
+    mag='dr'
+    maglabel='D<sub>R</sub>'
+    magaxis='cm<sup>2</sup>'
+    
 
+df_maxene_dia = df[mag].resample('D').max().rename('max'+mag).reindex(t_index).fillna(0)
+                   
+plot_ene_evs_max_dia = go.Bar(x=df_maxene_dia.index,y=df_maxene_dia,name='Max '+maglabel+'/día',legendgroup=maglabel+' '+tipoev,offset=0.5,
+                                  marker_color=cols[3],opacity=0.25,marker_line_width = 0)
+
+fig.add_trace(plot_ene_evs_max_dia,row=4,col=1)
+plot_dr_evs = go.Scattergl(x=df.index,y=df[mag],name=maglabel+'/ev',legendgroup=maglabel,marker_color=cols[3],mode='markers',marker_size=4,opacity=0.75)
+fig.add_trace(plot_dr_evs,row=4,col=1)
+fig.update_yaxes(title_text=magaxis,row=4,col=1,rangemode='tozero')
+
+        
+fig.update_layout(bargap=0)
 fig.update_xaxes(range=[ini, fin])
+fig.update_layout(
+    title={
+        'text': "Características de sismos "+tipoev+" clasificados, "+voldf.vol_tipocorto.iloc[0]+" "+voldf.nombre.iloc[0],
+        'y':0.9,
+        'x':0.5,
+        'xanchor': 'center',
+        'yanchor': 'top'})
 fig.write_html('first_figure.html', auto_open=True)

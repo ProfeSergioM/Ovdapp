@@ -61,7 +61,9 @@ app.clientside_callback(
             document.title = 'Ovdapp - Orcapp'
         } else if (tab_value === '/apps/helicorderizador') {
             document.title = 'Ovdapp - Helicorderizador'
-        } 
+        } else if (tab_value === '/apps/sismodb') {
+            document.title = 'Ovdapp - SismoDB'
+        }
     }
     
     """,

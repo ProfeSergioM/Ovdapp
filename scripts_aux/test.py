@@ -8,6 +8,10 @@ import matplotlib.pyplot as plt
 import ovdas_doc_lib as odl
 import ovdas_figure_lib as ffig
 
-volcan='NevChillan'
+vol='NevChillan'
 
-df = gdb.extraer_eventos('2020-12-01', '2021-01-04', volcan)
+esta_meta = gdb.get_metadata_wws(volcan=vol)
+df = gdb.extraer_eventos(inicio='2021-03-01',final='2021-03-31',volcan=vol)
+df = pd.DataFrame(df)
+df['amplitud_ums_old'] = df['est'].map(esta_meta.drop_duplicates('idestacion').set_index('idestacion')['sens1'])*df['amplitudctas']
+df['amplitud_ums'] = df['amplitud_ums'].fillna(df['amplitud_ums_old'])
