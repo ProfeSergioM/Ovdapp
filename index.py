@@ -3,7 +3,7 @@ import dash_html_components as html
 from dash.dependencies import Input, Output
 
 from app import app
-from apps import ovdapp,electriceye,fastrsam,locali6,autovdas,hangar18,ovdash,orcapp,sismodb,helicorderizador
+from apps import ovdapp,electriceye,fastrsam,locali6,autovdas,hangar18,ovdash,orcapp,sismodb,helicorderizador,nllvsh71
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -35,6 +35,8 @@ def display_page(pathname):
         return helicorderizador.layout
     elif pathname == '/apps/sismodb':
         return sismodb.layout
+    elif pathname == '/apps/nllvsh71':
+        return nllvsh71.layout
     elif pathname == '/':
         return ovdapp.layout
     else:
@@ -63,6 +65,8 @@ app.clientside_callback(
             document.title = 'Ovdapp - Helicorderizador'
         } else if (tab_value === '/apps/sismodb') {
             document.title = 'Ovdapp - SismoDB'
+        } else if (tab_value === '/apps/nllvsh71') {
+            document.title = 'Ovdapp - NonLinLoc vs Hypo71'
         }
     }
     

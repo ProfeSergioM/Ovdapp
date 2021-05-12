@@ -246,10 +246,21 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                 dbc.Button("Ir a la app", color="primary", href='/apps/locali6',target='_blank'),
             ]),],)
         
-
+        card_nllvsh71 = dbc.Card([
+        dbc.CardImg(src=app.get_asset_url('img/nllvsh71_thumb.png'), top=True),
+        dbc.CardBody([
+                html.H4("NLLvsHypo71", className="card-title"),
+                html.P(
+                    "Comparación de algoritmos de localización "
+                    "NonLinLoc / Hypo71.",
+                    className="card-text",
+                ),
+                dbc.Button("Ir a la app", color="primary", href='/apps/nllvsh71',target='_blank'),
+            ]),],)
         
         
-        contenido = html.Div([dbc.Row([dbc.Col(card_locali6,width=2)])])
+        contenido = html.Div([dbc.Row([dbc.Col(card_locali6,width=3),
+                                       dbc.Col(card_nllvsh71,width=3)])])
         return contenido
     elif button_id == "info-button":
         card_locali6 = dbc.Card([

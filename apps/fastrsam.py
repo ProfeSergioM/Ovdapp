@@ -45,15 +45,15 @@ sampling_selector = dcc.Dropdown(
     clearable=False,
     id='dropdown_sampling-fastrsam',
     options=[
-        {'label': '5 minutos (todos)', 'value': '5T'},
-        {'label': '10 minutos', 'value': '10T'},
-        {'label': '15 minutos', 'value': '15T'}, 
-        {'label': '30 minutos', 'value': '30T'},
-        {'label': '1 hora', 'value': '60T'},     
-        {'label': '2 horas', 'value': '120T'}, 
-        {'label': '6 horas', 'value': '360T'}, 
+        {'label': '5 minutos (todos)', 'value': 5},
+        {'label': '10 minutos', 'value': 10},
+        {'label': '15 minutos', 'value': 15}, 
+        {'label': '30 minutos', 'value': 30},
+        {'label': '1 hora', 'value': 60},     
+        {'label': '2 horas', 'value': 120}, 
+        {'label': '6 horas', 'value': 360}, 
     ],
-    value='15T',
+    value=15,
     multi=False,
     style=
                                     { 
@@ -93,7 +93,7 @@ counter_reloj = dcc.Interval(
 
 
 
-def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
+def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
     pointopacity=0.5
     datalinewidth=1
     import plotly.express as px
@@ -104,7 +104,7 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
     #locale.setlocale(locale.LC_ALL, 'es_ES')
     colors = px.colors.qualitative.Plotly
     colors=colors+colors+colors
-    
+    RSAM.index = RSAM.index*1000
     fig = make_subplots(rows=3, cols=1,vertical_spacing=0.05,shared_xaxes='all')
     i=0
     listaRSAM = [item for item in list(RSAM.columns) if (len(item)==4) & (item[-1]=='Z')]
@@ -112,16 +112,16 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
         data = RSAM[sta]
         fig.add_trace(go.Scattergl(x=data.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
                                    hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=1, col=1) 
-        fig.add_trace(go.Scattergl(x=data.index,
-                                       y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
-                                       name=sta+' '+str(int(sampling[:-1])*4)+' MM',
-                                       mode='lines',line_width=datalinewidth,
-                                    hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=1, col=1) 
+        #fig.add_trace(go.Scattergl(x=data.index,
+        #                               y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
+        #                               name=sta+' '+str(int(sampling[:-1])*4)+' MM',
+        #                               mode='lines',line_width=datalinewidth,
+        #                            hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=1, col=1) 
         i+=1
     
     fig.add_trace(go.Scattergl(x=[np.NaN],y=[np.NaN],name='',mode='none'))
     fig.add_trace(go.Scattergl(x=[np.NaN],y=[np.NaN],name='Razón RSAM',mode='none'))
-    fig.update_xaxes(showspikes=True)
+    fig.update_xaxes(showspikes=True,type='date')
     fig.update_yaxes(showspikes=True)
     fig.update_xaxes(
         tickformatstops = [
@@ -142,11 +142,11 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
             data = RSAM[sta]
             fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
                                        hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f}',marker_color=colors[i]),row=2, col=1) 
-            fig.add_trace(go.Scattergl(x=data.index,
-                                       y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
-                                       name=sta+' '+str(int(sampling[:-1])*4)+' MM',
-                                       mode='lines',line_width=datalinewidth,
-                                    hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f}',line_color=colors[i]),row=2, col=1) 
+            #fig.add_trace(go.Scattergl(x=data.index,
+            #                           y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
+            #                           name=sta+' '+str(int(sampling[:-1])*4)+' MM',
+            #                           mode='lines',line_width=datalinewidth,
+            #                        hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f}',line_color=colors[i]),row=2, col=1) 
             i+=1
         #fig.update_yaxes(range=[0,RSAM[listaRE].max().max()*1.1],col=1,row=2)
         fig.update_yaxes(title_font=dict(size=14),title_text='Razón RSAM',fixedrange=False,col=1,row=2)
@@ -159,11 +159,11 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef,sampling):
             data = RSAM[sta]
             fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
                                        hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=3, col=1) 
-            fig.add_trace(go.Scattergl(x=data.index,
-                                       y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
-                                       name=sta+' '+str(int(sampling[:-1])*4)+' MM',
-                                       mode='lines',line_width=datalinewidth,
-                                    hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=3, col=1) 
+            #fig.add_trace(go.Scattergl(x=data.index,
+            #                           y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
+            #                           name=sta+' '+str(int(sampling[:-1])*4)+' MM',
+            #                           mode='lines',line_width=datalinewidth,
+            #                        hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',line_color=colors[i]),row=3, col=1) 
             i+=1
         #fig.update_yaxes(range=[0,RSAM[listaHV].max().max()*1.1],col=1,row=3)
         fig.update_yaxes(title_font=dict(size=14),title_text='Razón H/V',fixedrange=False,col=1,row=3)
@@ -295,10 +295,15 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
      State('dropdown_volcanes-fastrsam','value'), State('fechas-fastrsam','start_date'),State('fechas-fastrsam','end_date'),
      State('dropdown_sampling-fastrsam','value')],prevent_initial_call=True
 )
+
 def update_cam_fija(*args):
+    import numpy as np
+    from scipy import stats
     import ovdas_getdatafastRSAM as gdfr
     def plotear(volcan,fini,ffin,rangef,sampling):
         print('iniciado')
+        import numpy as np
+        from scipy import stats
         #fini=fini+' 00:00:00'
         #ffin=ffin+' 23:59:59'
         voldata = gdb.get_metadata_volcan(volcan)
@@ -310,28 +315,25 @@ def update_cam_fija(*args):
         RSAMS = []
         for esta in list(red.codcorto):
             try:
-                df = fut.get_fastRSAM2(fini,ffin,esta+'Z',rangef[0],rangef[1],5,True,sampling)
-
-                #df= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+'Z', rangef[0],rangef[1], 3,False) 
-                df = df.rename(columns={'fastRSAM':esta+'Z'})
-                df = df.resample('5T').asfreq()
-                df = df[~df.index.duplicated(keep='first')]
-                print(len(df))
-                RSAMS.append(df)
+                df = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+'Z', rangef[0],rangef[1], sampling ) 
+                df = df.rename(columns={'rsam':esta+'Z'})
+                df = df.set_index('fecha')
+                df = df[~df.index.duplicated(keep='first')]  
+                resultz = df[esta+'Z']
+                resultz = resultz[(np.abs(stats.zscore(resultz)) < 3)]
+                RSAMS.append(resultz)
                 
             except:
                 ()
             try:
                 for comp in ['N','E']:
-                    df2 = fut.get_fastRSAM2(fini,ffin,esta+comp,rangef[0],rangef[1],5,True,sampling)
-                    df2 = df2.rename(columns={'fastRSAM':esta+comp})
-                    
-                    #df2= gdfr.fastRSAM_data_EstaFilt(fini,ffin, esta+comp, rangef[0],rangef[1], 3,False) 
-                    df2 = df2.rename(columns={'fastRSAM':esta+comp})
-                    df2 = df2.resample('5T').asfreq()
+                    df2 = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+comp, rangef[0],rangef[1], sampling ) 
+                    df2 = df2.rename(columns={'rsam':esta+comp})
+                    df2 = df2.set_index('fecha')
                     df2 = df2[~df2.index.duplicated(keep='first')]
-                    print(len(df2))
-                    RSAMS.append(df2)
+                    result = df2[esta+comp]
+                    result = result[(np.abs(stats.zscore(result)) < 3)]
+                    RSAMS.append(result)
             except:
                 ()
         RSAM = pd.concat(RSAMS,axis=1) 
@@ -364,14 +366,8 @@ def update_cam_fija(*args):
             hvs=[]
         if len(hvs)>0:
             RSAM = pd.concat([RSAM,hvs],axis=1)
-        resample=True
-        if resample==True:
-            RSAM_raw = RSAM.copy()
-            RSAM_raw['fecha_str'] = RSAM_raw.index.strftime('%Y-%m-%d %H:%M:%S')
-            RSAM_raw = RSAM_raw.to_json()
-            RSAM = RSAM.resample(sampling).mean() 
         print('datos listos, graficando...')
-        fig = crear_fastRSAM(RSAM,voldata,fini,ffin,rangef,sampling)
+        fig = crear_fastRSAM(RSAM,voldata,fini,ffin,rangef)
         grafico = html.Div(children=[
             dcc.Graph(
                 id='timeline-orca',
@@ -385,6 +381,12 @@ def update_cam_fija(*args):
             dbc.CardBody(grafico)
             
             ],outline=True,color='light')
+        
+
+        RSAM_raw = RSAM.copy()
+        RSAM_raw = RSAM_raw.to_json()
+            
+            
         return graficocard,RSAM_raw
 
     livebutton=args[0]
@@ -434,7 +436,8 @@ def download_csv(click,close,data,is_open):
             df= json.loads(data)
             df = pd.DataFrame(df)
             import doc_lib as odl
-            file_path,filename = odl.xlsxRSAM_ovdapp(df)
+            file_path = odl.xlsxdownload_ovdapp(df)
+            filename ='datosRSAM.xlsx'
             file_path = 'assets/dynamic/'+file_path+'.xlsx'
             link_url= '/dash/urlToDownloadrsam?value={}'.format(file_path)
             link_url=link_url+'&filename={}'.format(filename)

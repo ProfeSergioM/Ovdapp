@@ -17,7 +17,7 @@ import ovdas_imageProc_lib as ima
 import ovdas_getfromdb_lib as gdb
 
 
-@tl.job(interval=timedelta(seconds=60*10))
+@tl.job(interval=timedelta(seconds=60))
 def sample_job_every_30s():
     print("Current time : {}".format(time.ctime()))   
     ejex =15 #minutos en el eje x
