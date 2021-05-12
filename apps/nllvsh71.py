@@ -150,11 +150,17 @@ def crear_nllvsh71(volcan,ini,fin,tipoev,mlmin):
     fig.update_yaxes(row=1,col=1,tickformat='int',title='Northing UTM (km)')
     fig.update_xaxes(row=7,col=1,tickformat='int',title='Easting UTM (km)')
     
-    lonprof_hypo = go.Scattergl(x=df['lonUTM_hypo'],y=df['profN'],name='Hypo71',mode='markers',opacity=0.5,legendgroup='group1',showlegend=False,marker_color='#7b85d4')
+    lonprof_hypo = go.Scattergl(x=df['lonUTM_hypo'],y=df['profH'],name='Hypo71',mode='markers',opacity=0.5,legendgroup='group1',showlegend=False,marker_color='#7b85d4')
     fig.add_trace(lonprof_hypo,row=7,col=1)
-    
-    lonprof_NLL = go.Scattergl(x=df['lonUTM_NLL'],y=df['profN'],name='Hypo71',mode='markers',opacity=0.5,legendgroup='group2',showlegend=False,marker_color='#f37738')
+    lonprof_NLL = go.Scattergl(x=df['lonUTM_NLL'],y=df['profN'],name='NLL',mode='markers',opacity=0.5,legendgroup='group2',showlegend=False,marker_color='#f37738')
     fig.add_trace(lonprof_NLL,row=7,col=1)
+    last_lonprof_hypo = go.Scattergl(x=last_df['lonUTM_hypo'],y=last_df['profH'],name='Last Hypo71',mode='markers',
+                                    opacity=1,legendgroup='group3',marker_color='#7b85d4',marker_symbol='circle-dot',marker_size=10,marker_line_width=2,showlegend=False)
+    last_lonprof_NLL = go.Scattergl(x=last_df['lonUTM_NLL'],y=last_df['profN'],name='Last NLL',mode='markers',
+                                    opacity=1,legendgroup='group4',marker_color='#f37738',marker_symbol='circle-dot',marker_size=10,marker_line_width=2,showlegend=False)
+    fig.add_trace(last_lonprof_hypo,row=7,col=1)
+    fig.add_trace(last_lonprof_NLL,row=7,col=1)
+    
     
     diflat = go.Scattergl(x=df.index,y=df.diflat,mode='lines',name='Δ N (NLL-Hypo)',showlegend=False)
     #diflatm = go.Scattergl(x=df.index,y=df.diflat.abs().rolling(int(len(df)/100)).mean(),mode='lines',name='Media Δ N (NLL-Hypo)',line_color='white')
