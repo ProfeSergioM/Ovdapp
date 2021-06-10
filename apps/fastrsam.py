@@ -301,6 +301,8 @@ def update_cam_fija(*args):
     from scipy import stats
     import ovdas_getdatafastRSAM as gdfr
     def plotear(volcan,fini,ffin,rangef,sampling):
+        freqi=rangef[0]
+        freqf=rangef[1]
         print('iniciado')
         import numpy as np
         from scipy import stats
@@ -314,8 +316,12 @@ def update_cam_fija(*args):
         red = red.sort_values(by='distcrater').head(5)
         RSAMS = []
         for esta in list(red.codcorto):
+
             try:
-                df = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+'Z', rangef[0],rangef[1], sampling ) 
+                df = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+'Z', rangef[0],rangef[1]+0.1, sampling ) 
+                bandas = [x.decode('utf-8') for x in list(np.arange(0.5,freqf+0.1,0.1).astype('|S3'))]
+                df['rsam'] =np.sqrt(np.sum(np.power(df[bandas],2),axis=1))
+                
                 df = df.rename(columns={'rsam':esta+'Z'})
                 df = df.set_index('fecha')
                 df = df[~df.index.duplicated(keep='first')]  
@@ -328,6 +334,8 @@ def update_cam_fija(*args):
             try:
                 for comp in ['N','E']:
                     df2 = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+comp, rangef[0],rangef[1], sampling ) 
+                    bandas = [x.decode('utf-8') for x in list(np.arange(0.5,freqf+0.1,0.1).astype('|S3'))]
+                    df['rsam'] =np.sqrt(np.sum(np.power(df[bandas],2),axis=1))
                     df2 = df2.rename(columns={'rsam':esta+comp})
                     df2 = df2.set_index('fecha')
                     df2 = df2[~df2.index.duplicated(keep='first')]

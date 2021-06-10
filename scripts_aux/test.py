@@ -12,7 +12,7 @@ minutes=60
 import numpy as np
 from scipy import stats
 
-for esta in ['MRN','VN2']:
+for esta in ['MRN','VN2','VT2']:
     try:
         df = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+'Z', rangef[0],rangef[1], sampling ) 
         df = df.rename(columns={'rsam':esta+'Z'})
