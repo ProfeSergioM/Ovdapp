@@ -258,9 +258,35 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                 dbc.Button("Ir a la app", color="primary", href='/apps/nllvsh71',target='_blank'),
             ]),],)
         
+        card_loc3D = dbc.Card([
+        dbc.CardImg(src=app.get_asset_url('img/nllvsh71_thumb.png'), top=True),
+        dbc.CardBody([
+                html.H4("Localizaciones 3D", className="card-title"),
+                html.P(
+                    "Gráficos de localización de eventos "
+                    " de burbuja y mapa de calor",
+                    className="card-text",
+                ),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:700/',target='_blank'),
+            ]),],)
+
+        card_GNSS = dbc.Card([
+        dbc.CardImg(src=app.get_asset_url('img/nllvsh71_thumb.png'), top=True),
+        dbc.CardBody([
+                html.H4("Líneas de monitoreo GNSS", className="card-title"),
+                html.P(
+                    "Variación de líneas GNSS "
+                    " usadas en monitoreo geodésico",
+                    className="card-text",
+                ),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:600/',target='_blank'),
+            ]),],)
+
         
         contenido = html.Div([dbc.Row([dbc.Col(card_locali6,width=3),
-                                       dbc.Col(card_nllvsh71,width=3)])])
+                                       dbc.Col(card_nllvsh71,width=3),
+                                       dbc.Col(card_loc3D,width=3),
+                                       dbc.Col(card_GNSS,width=3)])])
         return contenido
     elif button_id == "info-button":
         card_locali6 = dbc.Card([
