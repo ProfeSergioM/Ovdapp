@@ -115,6 +115,7 @@ def get_eventos_destacados():
     eventos = eventos[eventos.tipoevento!='VD']
     eventos = eventos[eventos.tipoevento!='MF']
     eventos = eventos[eventos.tipoevento!='RE']
+    eventos = eventos[eventos.tipoevento!='EX']
     #ml general
     eventosml = eventos[eventos.ml>2]
     #dr general
