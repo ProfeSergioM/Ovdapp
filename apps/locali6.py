@@ -30,7 +30,7 @@ def get_fechahoy():
     ffin = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     return fini,ffin
 
-def get_markers_loc(volcan,fi,ff):
+def get_markers_loc(volcan,fi,ff,q,gap,mlmin,mlmax,zmin,zmax):
     def postproc(df):
         df['fecha'] = df['fecha'].astype('datetime64[s]')
         return df
@@ -43,7 +43,10 @@ def get_markers_loc(volcan,fi,ff):
         df = gdb.extraer_eventos(fi, ff, volcan)
         df= pd.DataFrame(df) 
         if len(df)>0:
-            df = df[df.calidad.isin(['A1','B1','C1'])]
+            df = df[df.calidad.isin(q)]
+            df = df[df.gap<gap]
+            df = df[df.ml.between(mlmin,mlmax)]
+            df = df[df.profundidad.between(zmin,zmax)]
             df['volcan_real'] = df['idvolc'].map(volcanes.set_index('id')['nombre'])
             df['nref_loc']=df['idvolc'].map(volcanes.set_index('id')['nref'])
             df['prof_msnm'] = (df['profundidad']*1000-df['nref_loc'])/1000
@@ -138,6 +141,81 @@ volcan_selector = dcc.Dropdown(
                                       'background-color': '#212121',
                                     } 
 )
+
+calidad_selector = dcc.Dropdown(
+    clearable=False,
+    id='locali6-dropdown_calidad',
+    options=[
+            {'label':'A','value':'A1'},
+            {'label':'B','value':'B1'},
+            {'label':'C','value':'C1'},
+            {'label':'D','value':'D1'}
+],
+    placeholder='Seleccione calidades de localizaciones',
+    value=['A1','B1','C1'],
+    multi='True',
+    style=
+                                    { 
+                                      'color': '#212121',
+                                      'background-color': '#212121',
+                                    } 
+)
+
+gap_selector = dcc.Slider(
+        id='locali6-slider_gap',
+        min=45,
+        max=360,
+        step=45,
+        value=270,
+    marks={
+        45: '45°',
+        90: '90°',
+        135: '135°',
+        180: '180°',
+        225: '225°',
+        270: '270°',
+        315: '315°',
+        360: '360°'
+        
+    },
+    )
+
+mlmin_picker =        dcc.Input(
+            id="locali6-mlmin", type="number",min=0,value=0,step=0.1,
+             placeholder="Min",    style=
+                                    { 'width':'50%',
+                                      'color': 'white',
+                                      'background-color': '#212121',
+                                    } 
+        )
+        
+mlmax_picker =        dcc.Input(
+            id="locali6-mlmax", type="number", placeholder="Máx",  min=0, value=5.0,step=0.1,
+            style=
+                                      { 'width':'50%',
+                                      'color': 'white',
+                                      'background-color': '#212121',
+                                    } 
+        )
+
+zmin_picker =        dcc.Input(
+            id="locali6-zmin", type="number",value=0,
+             placeholder="Min",    style=
+                                    { 'width':'50%',
+                                      'color': 'white',
+                                      'background-color': '#212121',
+                                    } 
+        )
+        
+zmax_picker =        dcc.Input(
+            id="locali6-zmax", type="number", placeholder="Máx",value=50,
+            style=
+                                      { 'width':'50%',
+                                      'color': 'white',
+                                      'background-color': '#212121',
+                                    } 
+        )
+
 fechas_picker = dcc.DatePickerRange(
     id='locali6-fechas',
     start_date_placeholder_text="Inicio",
@@ -152,7 +230,9 @@ fechas_picker = dcc.DatePickerRange(
                                       'color': '#212121',
                                       'background-color': '#212121',
                                     } 
-)  
+)
+
+  
 
 itemsformatos=[dbc.DropdownMenuItem("KMZ (Google Earth)", id="export-kmz-button"),
                dbc.DropdownMenuItem("XLS (Excel)", id="export-xls-button"),
@@ -172,7 +252,16 @@ controles = html.Div([
     fechas_picker,
     html.Div(html.P('Volcán(es)',id='locali6-titulo-fecha')),
     volcan_selector,
-    dbc.Row([formatosalidadropdown,html.Div(dbc.Button("Enviar", color="primary", id="locali6-submit-filtro"),className='m-1',style={'text-align':'right'})],justify='end')
+    html.Div(html.P('Calidad de localización',id='locali6-titulo-calidad')),
+    calidad_selector,
+    html.Div(html.P('GAP máximo',id='locali6-titulo-gap')),
+    gap_selector,
+    html.Div(children=['Intervalo de magnitud (M',html.Sub('L'),')']),
+    dbc.Row([mlmin_picker,mlmax_picker]),
+    html.Div(children=['Intervalo de profundidad (km bajo ref)']),
+    dbc.Row([zmin_picker,zmax_picker]),
+    dbc.Row([formatosalidadropdown,html.Div(dbc.Button("Enviar", color="primary", id="locali6-submit-filtro"),className='m-1',style={'text-align':'right'})],justify='end'),
+
     
     ])
    
@@ -236,16 +325,25 @@ layout = html.Div([modal,navbar,dbc.Row([dbc.Col([sidebar],width=3),
     
 @app.callback(
     [Output('mapaloc-graph','figure')],
-    [Input('url','href'),Input('locali6-submit-filtro','n_clicks')],
-    [State('locali6-dropdown_volcanes','value'),State('locali6-fechas','start_date'),
-     State('locali6-fechas','end_date')])
-def display_mapa(href,ir,volcan,fi,ff):
-
+    [Input('url','href'), Input('locali6-submit-filtro','n_clicks')],
+    [State('locali6-dropdown_volcanes','value'),
+     State('locali6-fechas','start_date'),
+     State('locali6-fechas','end_date'),
+     State('locali6-dropdown_calidad','value'),
+     State('locali6-slider_gap','value'),
+     State('locali6-mlmin','value'),
+     State('locali6-mlmax','value'),
+     State('locali6-zmin','value'),
+     State('locali6-zmax','value')
+     
+     
+     ])
+def display_mapa(href,ir,volcan,fi,ff,q,gap,mlmin,mlmax,zmin,zmax):
     ctx = dash.callback_context
     trigger = ctx.triggered[0]['prop_id']
 
     if trigger in['.','locali6-submit-filtro.n_clicks']:   
-        dflocs = get_markers_loc(volcan, fi, ff)
+        dflocs = get_markers_loc(volcan, fi, ff,q,gap,mlmin,mlmax,zmin,zmax)
         fig =go.Figure()
         
         trace_volcanes = go.Scattermapbox(lon=volcanes.longitud,lat=volcanes.latitud,
