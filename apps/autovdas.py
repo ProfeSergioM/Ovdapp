@@ -84,7 +84,7 @@ counter_imggif = dcc.Interval(
           n_intervals=0
       )
 
-def helicorder(horas,freq):
+def helicorder(horas,freq,volcan):
     import ovdas_WWS_lib as wws
     import ovdas_SeismicProc_lib as sp
     import datetime as dt
@@ -98,6 +98,22 @@ def helicorder(horas,freq):
     subsample=10
     finiround = fini - (fini -fini.min) % timedelta(minutes=ejex)
     ffinround = ffin + (ffin.min - ffin) % timedelta(minutes=ejex)-timedelta(milliseconds=100)
+    #%% Tectonicos
+    volcanDb =gdb.get_metadata_volcan(volcan,rep='y')
+    volcanDb = volcanDb.drop_duplicates(subset='nombre', keep="first")
+
+    region = volcanDb.region_corto.values[0]
+   
+    dfT = pd.read_pickle('//172.16.40.10/Sismologia/OVV/Tectonicos/tectonicos_'+region+'.pkl')
+    dfT = dfT.set_index('inicio')
+    dfT = dfT[dfT.index > finiround]
+    dfT = dfT[dfT.index < ffin]
+
+    dfT = dfT[dfT.duracion>0]
+
+    
+    #%%       
+            
     df_count,detect = oap.get_pickle_OVV(volcan,finiround,ffin,freq)
     traza = wws.extraer_signal(estacion='VN2',componente='Z',inicio=finiround,fin=ffin)
     flag = len(traza)
@@ -153,6 +169,9 @@ def helicorder(horas,freq):
                                             yref='y'+str(i+1),text=diatxt,showarrow=False)) 
             if len(detect)>0:
                 evs = detect[detect.index.to_series().between(min(filas[i].index),max(filas[i].index))]
+            if len(dfT)>0:
+                evsT = dfT[dfT.index.to_series().between(min(filas[i].index),max(filas[i].index))]
+             
             alertaplot = go.Scattergl(x=filas[i].index
                                       ,y=filas[i].amp,
                                       showlegend=False,
@@ -170,13 +189,20 @@ def helicorder(horas,freq):
                 e=0
                 for index,row in evs.iterrows():
                     DR = str(int(row.DRc))
-                    lev = go.Scatter(x=[index,index],y=[-scale/2,scale/2],showlegend=False,hoverinfo='x',line=dict(color='red'))
+                    lev = go.Scatter(x=[index,index],y=[-scale/2,scale/2],showlegend=False,hoverinfo='x',line=dict(color='yellow'))
                     fig.append_trace(lev,i+1,1)
                     if e==0:
                         fig.add_annotation(go.layout.Annotation(x=index,y=scale,font=dict(color='white'),
                                                 xanchor='center',yanchor='middle',xref='x'+str(i+1),
                                                 yref='y'+str(i+1),text=DR+r' cm<sup>2</sup> ',showarrow=False)) 
                     e=+1
+            if len(dfT)>0:
+                for index,row in evsT.iterrows():
+                    lev = go.Scatter(x=[index,index],y=[-scale/2,scale/2],showlegend=False,hoverinfo='x',line=dict(color='green'))
+                    fig.append_trace(lev,i+1,1)   
+                    fig.add_annotation(go.layout.Annotation(x=index,y=scale,font=dict(color='white'),
+                                                xanchor='center',yanchor='middle',xref='x'+str(i+1),
+                                                yref='y'+str(i+1),text='TL',showarrow=False)) 
         for minu in range(0,11):
             fig.add_annotation(go.layout.Annotation(x=minu*0.1,y=0,font=dict(color='white'),
                                             xanchor='center',yanchor='top',xref='paper',
@@ -578,11 +604,11 @@ def update_cam_fija(*args):
             return dash.no_update,dash.no_update,True,'warning','Offline'
         else:
             graficocard = plotear(volcan,fini,ffin)
-            helicard = helicorder(2,freqconteo)
+            helicard = helicorder(2,freqconteo,volcan)
             return [graficocard],helicard,False,'success','Online'
     else:
         graficocard = plotear(volcan,fini,ffin)
-        helicard = helicorder(2,freqconteo)
+        helicard = helicorder(2,freqconteo,volcan)
 
     return [graficocard],helicard,dash.no_update,dash.no_update,dash.no_update
 
