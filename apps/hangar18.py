@@ -98,9 +98,9 @@ def on_button_click(n_inicio,n_reavs,n_rav2020):
     ]
     )
 
-        lista_criterios_NevChillan = dbc.ListGroup( [dbc.ListGroupItemHeading("C.V. Nevados de Chillán"),
+        lista_criterios_NevChillan = dbc.ListGroup( [html.H5("C.V. Nevados de Chillán"),
         dbc.ListGroupItem("Emisión de columna eruptiva por sobre los 2000 m sobre el punto de emisión", color="info")])
-        lista_criterios_Villarrica = dbc.ListGroup( [dbc.ListGroupItemHeading("Vn. Villarrica"),
+        lista_criterios_Villarrica = dbc.ListGroup( [html.H5("Vn. Villarrica"),
         dbc.ListGroupItem("Registro de material particulado en columna de desgasificación (inclusive incandescencias nocturnas con emisiones pulsátiles)", color="info"),
         dbc.ListGroupItem("Registro de un evento sísmico tipo LP, EX, TR, TO, VLP o HB con un desplazamiento reducido (DR) igual o superior a 30 cm*cm", color="info")
         
@@ -121,13 +121,13 @@ def on_button_click(n_inicio,n_reavs,n_rav2020):
             [
                 dbc.ListGroupItem(
                     [
-                        dbc.ListGroupItemHeading("Criterios EN GENERAL (para todos los sistemas volcánicos)"),
+                        html.H5("Criterios EN GENERAL (para todos los sistemas volcánicos)"),
                         lista_criterios_general,
                     ]
                 ),
                 dbc.ListGroupItem(
                     [
-                        dbc.ListGroupItemHeading("Criterios EN PARTICULAR (para un sistema volcánico en específico)"),
+                        html.H5("Criterios EN PARTICULAR (para un sistema volcánico en específico)"),
                         lista_criterios_particular
                     ]
                 ),

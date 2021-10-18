@@ -94,11 +94,11 @@ def helicorder(horas,freq):
     fini = dt.datetime.utcnow() - dt.timedelta(hours=horas)
     ffin = dt.datetime.utcnow()
     finidetect = dt.datetime.utcnow() - dt.timedelta(hours=horas)
-    df_count,detect = oap.get_pickle_OVV(volcan,finidetect,ffin,freq)
+    
     subsample=10
     finiround = fini - (fini -fini.min) % timedelta(minutes=ejex)
     ffinround = ffin + (ffin.min - ffin) % timedelta(minutes=ejex)-timedelta(milliseconds=100)
-    
+    df_count,detect = oap.get_pickle_OVV(volcan,finiround,ffin,freq)
     traza = wws.extraer_signal(estacion='VN2',componente='Z',inicio=finiround,fin=ffin)
     flag = len(traza)
     traza = sp.filtrar_traza(traza,tipo="butter",orden=4,fi=0.4,ff=12)

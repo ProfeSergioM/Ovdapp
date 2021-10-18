@@ -281,12 +281,25 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                 ),
                 dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:600/',target='_blank'),
             ]),],)
+        
+        card_defcon = dbc.Card([
+        dbc.CardImg(src=app.get_asset_url('img/defcon_thumb.png'), top=True),
+        dbc.CardBody([
+                html.H4("DEFCON", className="card-title"),
+                html.P(
+                    "Historial de alertas técnicas "
+                    "decretadas por el Ovdas.",
+                    className="card-text",
+                ),
+                dbc.Button("Ir a la app", color="primary", href='/apps/defcon',target='_blank'),
+            ]),],)
 
         
         contenido = html.Div([dbc.Row([dbc.Col(card_locali6,width=3),
                                        dbc.Col(card_nllvsh71,width=3),
                                        dbc.Col(card_loc3D,width=3),
-                                       dbc.Col(card_GNSS,width=3)])])
+                                       dbc.Col(card_GNSS,width=3)]),
+                              dbc.Row([dbc.Col(card_defcon,width=3)])])
         return contenido
     elif button_id == "info-button":
         card_locali6 = dbc.Card([
