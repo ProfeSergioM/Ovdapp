@@ -110,8 +110,13 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
     listaRSAM = [item for item in list(RSAM.columns) if (len(item)==4) & (item[-1]=='Z')]
     for sta in listaRSAM:
         data = RSAM[sta]
-        fig.add_trace(go.Scattergl(x=data.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
-                                   hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=1, col=1) 
+        #fig.add_trace(go.Scattergl(x=data.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
+        #                          hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=1, col=1) 
+        
+        
+        
+        
+        
         #fig.add_trace(go.Scattergl(x=data.index,
         #                               y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
         #                               name=sta+' '+str(int(sampling[:-1])*4)+' MM',
@@ -140,8 +145,11 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
             
         for sta in list(listaRE):
             data = RSAM[sta]
-            fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
-                                       hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f}',marker_color=colors[i]),row=2, col=1) 
+            #fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
+            #                           hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f}',marker_color=colors[i]),row=2, col=1) 
+            
+            
+            
             #fig.add_trace(go.Scattergl(x=data.index,
             #                           y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
             #                           name=sta+' '+str(int(sampling[:-1])*4)+' MM',
@@ -157,8 +165,14 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
     if len(listaHV)>0:
         for sta in list(listaHV):
             data = RSAM[sta]
-            fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
-                                       hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=3, col=1) 
+            
+            #fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
+            #                           hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=3, col=1) 
+            
+            
+            
+            
+            
             #fig.add_trace(go.Scattergl(x=data.index,
             #                           y=RSAM[sta].rolling(int(sampling[:-1])*4,center=True).mean(),
             #                           name=sta+' '+str(int(sampling[:-1])*4)+' MM',
@@ -300,6 +314,7 @@ def update_cam_fija(*args):
     import numpy as np
     from scipy import stats
     import ovdas_getdatafastRSAM as gdfr
+    
     def plotear(volcan,fini,ffin,rangef,sampling):
         freqi=rangef[0]
         freqf=rangef[1]
@@ -314,39 +329,31 @@ def update_cam_fija(*args):
         red = red[(red.nombre_db==volcan) & (red.tipo=='SISMOLOGICA') & (red.cod.str.startswith('S')==True)]
         red = red[~red.codcorto.isin(['CHP','KIK'])]
         red = red.sort_values(by='distcrater').head(5)
-        RSAMS = []
-        for esta in list(red.codcorto):
-
-            try:
-                df = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+'Z', rangef[0],rangef[1]+0.1, sampling ) 
-                bandas = [x.decode('utf-8') for x in list(np.arange(0.5,freqf+0.1,0.1).astype('|S3'))]
-                df['rsam'] =np.sqrt(np.sum(np.power(df[bandas],2),axis=1))
-                
-                df = df.rename(columns={'rsam':esta+'Z'})
-                df = df.set_index('fecha')
-                df = df[~df.index.duplicated(keep='first')]  
-                resultz = df[esta+'Z']
-                resultz = resultz[(np.abs(stats.zscore(resultz)) < 3)]
-                RSAMS.append(resultz)
-                
-            except:
-                ()
-            try:
-                for comp in ['N','E']:
-                    df2 = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+comp, rangef[0],rangef[1], sampling ) 
-                    bandas = [x.decode('utf-8') for x in list(np.arange(0.5,freqf+0.1,0.1).astype('|S3'))]
-                    df['rsam'] =np.sqrt(np.sum(np.power(df[bandas],2),axis=1))
-                    df2 = df2.rename(columns={'rsam':esta+comp})
-                    df2 = df2.set_index('fecha')
-                    df2 = df2[~df2.index.duplicated(keep='first')]
-                    result = df2[esta+comp]
-                    result = result[(np.abs(stats.zscore(result)) < 3)]
-                    RSAMS.append(result)
-            except:
-                ()
+        
+        from scipy import stats
+        import timeit
+        import numpy as np
+        RSAMS=[]
+        import ovdas_getdatafastRSAM as gdfr
+        bandas = [x.decode('utf-8') for x in list(np.arange(freqi,freqf,0.1).astype('|S3'))]
+        for index,row in red.iterrows():
+            for comp in ['Z','N','E']:
+                esta=row.codcorto
+                df = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+comp, freqi,freqf,sampling ) 
+                if len(df)>0:
+                    #df['rsam'] =np.sqrt(np.power(df[bandas],2).values.sum(axis=1))
+                    df['rsam'] = df[bandas].pow(2).sum(axis=1).pow(0.5)
+                    df = df.rename(columns={'rsam':esta+comp})
+                    df = df.set_index('fecha')
+                    df = df[~df.index.duplicated(keep='first')]  
+                    resultz = df[esta+comp]
+                    resultz = resultz[(np.abs(stats.zscore(resultz)) < 3)]
+                    RSAMS.append(resultz)
+        import pandas as pd            
         RSAM = pd.concat(RSAMS,axis=1) 
-        del RSAMS
-
+        
+        
+        
         listaRE = [item[:-1] for item in RSAM.columns if item[-1]=='Z']
         redRE = red[red.codcorto.isin(listaRE)].sort_values(by='distcrater', ascending=True)
         estaRE =list(redRE.codcorto)
@@ -355,7 +362,7 @@ def update_cam_fija(*args):
             for j in range(i+1,len(estaRE)):
                 esta1=estaRE[i]
                 esta2=estaRE[j]
-                df = (RSAM[esta1+'Z']/RSAM[esta2+'Z'])
+                df = RSAM[esta1+'Z'].div(RSAM[esta2+'Z'].values)
                 
                 df = df.rename(esta1+'Z'+'/'+esta2+'Z')
                 df_RE.append(df)
@@ -374,6 +381,7 @@ def update_cam_fija(*args):
             hvs=[]
         if len(hvs)>0:
             RSAM = pd.concat([RSAM,hvs],axis=1)
+            
         print('datos listos, graficando...')
         fig = crear_fastRSAM(RSAM,voldata,fini,ffin,rangef)
         grafico = html.Div(children=[
@@ -390,13 +398,18 @@ def update_cam_fija(*args):
             
             ],outline=True,color='light')
         
-
+        print(RSAM.columns)
         RSAM_raw = RSAM.copy()
         RSAM_raw = RSAM_raw.to_json()
             
             
         return graficocard,RSAM_raw
 
+
+
+
+
+    #do
     livebutton=args[0]
     ffin=args[6]
     fini=args[5]

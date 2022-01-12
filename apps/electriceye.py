@@ -84,6 +84,9 @@ def dibujar_mapa(eventos):
         leyenda_ml_tabla_entry.append(html.Td(html.Div([icono,' '+str(i)+'.0'])))
     leyenda_ml_tabla = html.Table(html.Tr(leyenda_ml_tabla_entry,style={'display':'table-cell'}))
     leyenda_ml = html.Div(leyenda_ml_tabla, style={"position": "absolute", "bottom": "20px", "right": "10px", "z-index": "1000"})
+    
+    print(eventos.tipoevento.unique())
+    
     if any(item in ['LP','EX','TO','TR','LV'] for item in eventos.tipoevento.unique()):
         
         leyenda_dr_tabla_entry=['DR']
@@ -93,7 +96,8 @@ def dibujar_mapa(eventos):
             leyenda_dr_tabla_entry.append(html.Td(html.Div([icono,' '+str(int(i))])))    
             leyenda_dr_tabla = html.Table(html.Tr(leyenda_dr_tabla_entry,style={'display':'table-cell'}))
             leyenda_dr = html.Div(leyenda_dr_tabla, style={"position": "absolute", "bottom": "20px", "left": "10px", "z-index": "1000"})    
-    
+    else:
+        leyenda_dr = []
     contenidomapa = [dl.TileLayer(id="tiles", url=tileurl),escala,leyenda,leyenda_ml,leyenda_dr,*volcanes_star,*evs]
 
 
@@ -348,6 +352,8 @@ def elegir_evento(values,marker,cajita,active,panes):
         
         center = [eventos[eventos.index==index_sel].latitud.iloc[0],eventos[eventos.index==index_sel].longitud.iloc[0]]
         
+        
+    #print(volcanes)
     volcansel = volcanes[volcanes.id==eventos[eventos.index==index_sel].idvolc.iloc[0]]  
     activelist=np.full(len(values),False)
     activelist[index_sel]=True
