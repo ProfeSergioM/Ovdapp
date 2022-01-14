@@ -110,8 +110,8 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
     listaRSAM = [item for item in list(RSAM.columns) if (len(item)==4) & (item[-1]=='Z')]
     for sta in listaRSAM:
         data = RSAM[sta]
-        #fig.add_trace(go.Scattergl(x=data.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
-        #                          hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=1, col=1) 
+        fig.add_trace(go.Scattergl(x=data.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
+                                  hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=1, col=1) 
         
         
         
@@ -145,8 +145,8 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
             
         for sta in list(listaRE):
             data = RSAM[sta]
-            #fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
-            #                           hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f}',marker_color=colors[i]),row=2, col=1) 
+            fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
+                                       hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f}',marker_color=colors[i]),row=2, col=1) 
             
             
             
@@ -166,8 +166,8 @@ def crear_fastRSAM(RSAM,voldata,fechai,fechaf,rangef):
         for sta in list(listaHV):
             data = RSAM[sta]
             
-            #fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
-            #                           hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=3, col=1) 
+            fig.add_trace(go.Scattergl(x=RSAM.index, y=data.values,name=sta,mode='markers',marker_size=5,opacity=pointopacity,
+                                       hovertemplate='%{x|%Y/%m/%d %H:%M} - %{y:.2f} um/s',marker_color=colors[i]),row=3, col=1) 
             
             
             
@@ -339,7 +339,11 @@ def update_cam_fija(*args):
         for index,row in red.iterrows():
             for comp in ['Z','N','E']:
                 esta=row.codcorto
-                df = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+comp, freqi,freqf,sampling ) 
+                df = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00', esta+comp, freqi,freqf,sampling )  #from DB
+                #import ovdas_future_lib as fut
+                #print(fini,ffin,esta+comp, freqi,freqf,1,True,str(sampling)+'T')
+                #df = fut.get_fastRSAM2(fini, ffin, esta+comp, freqi, freqf, 1, True, str(sampling)+'T')
+                #print(df)
                 if len(df)>0:
                     #df['rsam'] =np.sqrt(np.power(df[bandas],2).values.sum(axis=1))
                     df['rsam'] = df[bandas].pow(2).sum(axis=1).pow(0.5)
@@ -398,7 +402,6 @@ def update_cam_fija(*args):
             
             ],outline=True,color='light')
         
-        print(RSAM.columns)
         RSAM_raw = RSAM.copy()
         RSAM_raw = RSAM_raw.to_json()
             

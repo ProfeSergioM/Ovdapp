@@ -420,12 +420,18 @@ def func(kmz,xls,png,close_modal,cajita,volcansel,fini,ffin,is_open):
     df= pd.DataFrame(df['points'])
     df = df.dropna()
     custom = df['customdata'].tolist()
-    fecha,lat,lon,prof,ml,tipoev,volcan = ([item[0] for item in custom],[item[12] for item in custom],
+
+    fecha,lat,lon,prof,ml,tipoev,volcan,rms,erh,erz,calidad = ([item[0] for item in custom],[item[12] for item in custom],
                             [item[13] for item in custom],[item[14] for item in custom],
                             [item[24] for item in custom],[item[4] for item in custom],
-                            [item[-3] for item in custom])
-    df['fecha'],df['latitud'],df['longitud'],df['profundidad'],df['ml'],df['tipoev'],df['volcan'] = fecha,lat,lon,prof,ml,tipoev,volcan
-    dfnew = df[['fecha','latitud','longitud','profundidad','ml','tipoev','volcan']].copy()
+                            [item[-3] for item in custom],[item[19] for item in custom],
+                            [item[20] for item in custom],[item[21] for item in custom],
+                            [item[22] for item in custom]
+                            
+                            
+                            )
+    df['fecha'],df['latitud'],df['longitud'],df['profundidad'],df['ml'],df['tipoev'],df['volcan'],df['rms'],df['erh'],df['erz'],df['calidad'] = fecha,lat,lon,prof,ml,tipoev,volcan,rms,erh,erz,calidad
+    dfnew = df[['fecha','latitud','longitud','profundidad','ml','tipoev','volcan','rms','erh','erz','calidad']].copy()
     dfnew = dfnew.set_index('fecha',drop=True)
     if dash.callback_context.triggered[0]['prop_id'] =='close-modal-locali6.n_clicks':
         return dash.no_update,not is_open
