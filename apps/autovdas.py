@@ -105,6 +105,7 @@ def helicorder(horas,freq,volcan):
     region = volcanDb.region_corto.values[0]
    
     dfT = pd.read_pickle('//172.16.40.10/Sismologia/OVV/Tectonicos/tectonicos_'+region+'.pkl')
+ 
     dfT = dfT.set_index('inicio')
     dfT = dfT[dfT.index > finiround]
     dfT = dfT[dfT.index < ffin]
@@ -115,6 +116,7 @@ def helicorder(horas,freq,volcan):
     #%%       
             
     df_count,detect = oap.get_pickle_OVV(volcan,finiround,ffin,freq)
+   
     traza = wws.extraer_signal(estacion='VN2',componente='Z',inicio=finiround,fin=ffin)
     flag = len(traza)
     traza = sp.filtrar_traza(traza,tipo="butter",orden=4,fi=0.4,ff=12)
@@ -242,26 +244,40 @@ def helicorder(horas,freq,volcan):
     return helicard
 
 def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
-
+    import numpy as np
+    from scipy import stats
     if countev_period=='H':name='/hora'
     elif countev_period=='D':name='/día'
     markersize=4
     ffinxaxis = dt.datetime.strftime(dt.datetime.utcnow() + dt.timedelta(days=1), '%Y-%m-%d')
     df_count,df = oap.get_pickle_OVV(volcan,fini,ffin,countev_period)
-    
+    bandas = [x.decode('utf-8') for x in list(np.arange(rangef[0],rangef[1],0.1).astype('|S3'))]
 
-
-    df_RSAM = fut.get_fastRSAM2(fini,ffin,estaRSAM+'Z',rangef[0],rangef[1],5,True,'15T')               
+    import ovdas_getdatafastRSAM as gdfr
+    #df_RSAM = fut.get_fastRSAM2(fini,ffin,estaRSAM+'Z',rangef[0],rangef[1],5,True,'15T')               
+    df_RSAM  = gdfr.fastRSAM_dataL(fini+' 00:00:00',ffin+' 00:00:00',
+                                  estaRSAM+'Z',rangef[0],rangef[1],
+                                  15 )  #from DB
+    df_RSAM ['fastRSAM'] =  df_RSAM[bandas].pow(2).sum(axis=1).pow(0.5)
+    #df_RSAM  =  df_RSAM .rename(columns={'fastRSAM':estaRSAM+'Z'})
+    df_RSAM  =  df_RSAM.set_index('fecha')
+    df_RSAM  =  df_RSAM[~ df_RSAM.index.duplicated(keep='first')]  
+    #resultz =  df_RSAM['fastRSAM']
+    df_RSAM =df_RSAM[(np.abs(stats.zscore(df_RSAM['fastRSAM'])) < 3)]
+    df_RSAM.index = pd.to_datetime(df_RSAM.index,unit='s')
+    print(df_RSAM)
     import numpy as np
     #ampslogs=np.power(df['ampl'],0.2)/1
+    
     try:
+        
         tipoevs = len(df.tipoev.unique())
-
+    
         fig = make_subplots(rows=tipoevs+5, cols=1,shared_xaxes=True, vertical_spacing=0.025)
         
         i=1
         for tipoev in df.tipoev.unique():
-    
+
             fig.add_trace(
             go.Bar( x=df_count.index, y=df_count[tipoev],marker= { "color" : 'white'},name='ev'),
             row=i, col=1
@@ -317,7 +333,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
         fig.add_annotation(go.layout.Annotation(x=0.01,y=max(dfdr['DRc'])*1.5,font=dict(color='white'),
                                                 xanchor='left',yanchor='top',xref='paper',bgcolor='#141d26',
                                                 yref='y'+str(i),text='DR/ev',showarrow=False))  
-    
+
         fig.add_shape(
                 type="rect",
                 xref="paper",
@@ -411,7 +427,7 @@ def crear_figura(rangef,fini,ffin,volcan,estaRSAM,countev_period):
                                                 yref='y'+str(i),text='Duración/ev',showarrow=False))  
        
 
-    
+
         fig['layout']['xaxis']['tickfont']['color']='rgba(0,0,0,0)'
         fig['layout']['xaxis'+str(i)]['range']=[fini,ffinxaxis]
     
