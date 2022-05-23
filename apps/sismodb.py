@@ -474,7 +474,6 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
                    ])
 
 @app.callback(
-    #[Output("colgrafica-sismodb", "children"),Output("colmapa-sismodb", "children")],
     [Output("colgrafica-sismodb", "children")],
     [Input("submit-filtro-sismodb", "n_clicks")],
     [State('fechas-sismodb','start_date'),State('fechas-sismodb','end_date'),

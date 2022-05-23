@@ -327,9 +327,9 @@ def update_cam_fija(*args):
         voldata = voldata.drop_duplicates(subset='nombre', keep="first")
         red = gdb.get_metadata_wws(volcan='*')
         red = red[(red.nombre_db==volcan) & (red.tipo=='SISMOLOGICA') & (red.cod.str.startswith('S')==True)]
-        red = red[~red.codcorto.isin(['CHP','KIK','VT2'])]
+        red = red[~red.codcorto.isin(['CVI','CHP','VT2'])]
         red = red.sort_values(by='distcrater').head(5)
-        
+        print(red.codcorto)
         from scipy import stats
         import timeit
         import numpy as np
