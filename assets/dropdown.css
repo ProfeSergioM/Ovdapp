@@ -9,6 +9,10 @@
     color:white;
 }
 
+.Select-control {
+  background-color: rgb(25, 25, 25) !important;
+}
+
 .VirtualizedSelectFocusedOption {
   background-color: #2A9FD6!important;
 }

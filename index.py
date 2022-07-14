@@ -1,9 +1,9 @@
-import dash_core_components as dcc
-import dash_html_components as html
 from dash.dependencies import Input, Output
+from dash import dcc,html
 
 from app import app
-from apps import ovdapp,electriceye,fastrsam,locali6,autovdas,hangar18,ovdash,orcapp,sismodb,helicorderizador,nllvsh71,defcon
+from apps import (ovdapp,electriceye,fastrsam,locali6,autovdas,hangar18,ovdash,
+                  orcapp,sismodb,helicorderizador,nllvsh71,defcon,transparentar)
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
@@ -39,6 +39,8 @@ def display_page(pathname):
         return nllvsh71.layout
     elif pathname == '/apps/defcon':
         return defcon.layout
+    elif pathname == '/apps/transparentar':
+        return transparentar.layout
     elif pathname == '/':
         return ovdapp.layout
     else:
@@ -71,6 +73,8 @@ app.clientside_callback(
             document.title = 'Ovdapp - NonLinLoc vs Hypo71'
         } else if (tab_value === '/apps/defcon') {
             document.title = 'Ovdapp - DEFCON'
+        } else if (tab_value === '/apps/transparentar') {
+            document.title = 'Ovdapp - TRANSPARENTAR'
         }
     }
     
