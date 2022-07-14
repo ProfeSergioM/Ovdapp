@@ -211,9 +211,10 @@ def update_datatable(nclicks,volcan,fechai,fechaf,tipoevs_custom,locs):
     
     df = pd.DataFrame(df)
     df = df[df.tipoevento.isin(tipoevs_custom)]
+    df['profundidad_kmbnm']=np.where(df['profundidad']>0,np.round((-voldf.nref.iloc[0]/1000)+df['profundidad'],1),np.nan)
     if locs==True:
-
-        df['profundidad_kmbnm']=np.round((-voldf.nref.iloc[0]/1000)+df['profundidad'],1)
+    
+        
         
         df.loc[df.calidad=='D1',['latitud','longitud','profundidad','magduracion','nfases','gap',
                                  'distmedia','rms','erh','erz','nestaciones','ml','prof_kmbnm',
@@ -223,7 +224,11 @@ def update_datatable(nclicks,volcan,fechai,fechaf,tipoevs_custom,locs):
                  'latitud','longitud','profundidad_kmbnm','nfases','gap','distmedia',
                  'rms','erh','erz','calidad','nestaciones','ml','comp','tiempo_origen']]  
         df = df[df.ml>0]
-        
+    else:
+
+        df = df[['fecha','tipoevento','unixtime','s_p','duracion','frecuencia',
+                 'latitud','longitud','profundidad_kmbnm','nfases','gap','distmedia',
+                 'rms','erh','erz','calidad','nestaciones','ml','comp','tiempo_origen']]         
     
     df.fecha =df.fecha.round('S')
     
