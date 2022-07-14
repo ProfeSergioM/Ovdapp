@@ -16,6 +16,7 @@ import pandas as pd
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import sys
+
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_future_lib as fut
 import ovdas_ovdapp_lib as oap
@@ -198,8 +199,6 @@ def update_output(value):
     )
 def update_datatable(nclicks,volcan,fechai,fechaf,tipoevs_custom,locs):
     from collections import OrderedDict
-    print(locs)
-
     import numpy as np
     import sys; sys.path.append('//172.16.40.10/Sismologia/pyOvdas_lib/')
     import ovdas_getfromdb_lib as gdb
@@ -242,20 +241,23 @@ def update_datatable(nclicks,volcan,fechai,fechaf,tipoevs_custom,locs):
     
     
 
-    if len(df)>0:
-        df = df.head(20).sort_index(ascending=False)
+    if (len(df)>0) and (len(df)<99999):
+        dfshow = df.head(20).sort_index(ascending=False)
         texto=html.Div([
             html.Div(children=['Se encontraron '+str(len(df))+' sismos, mostrando máximo los 20 últimos registros.']),
-            html.Div(dbc.Button("Descargar xls", color="primary", id="download-transparentar"),style={'text-align':'right'})
+            html.Div(dbc.Button("Descargar datos", color="primary", id="download-transparentar"),style={'text-align':'right'})
 
             
             ])
+    elif len(df)>100000:
+        dfshow = df.head(20).sort_index(ascending=False)
+        texto='Se econtraron mas de 100.000 sismos, trate con un periodo de tiempo menor (un año?). Mostrando máximo los 20 últimos registros.'
     else:
         texto='Sin resultados =('
     return [dash_table.DataTable(
         
         columns=[{"name": i, "id": i} for i in df.columns],
-        data=df.to_dict(into=OrderedDict,orient='records'),
+        data=dfshow.to_dict(into=OrderedDict,orient='records'),
         style_table={'overflowX': 'auto'},
         
     style_header={
@@ -295,12 +297,13 @@ prevent_initial_call=True
 )
 def download_transparentar(n_clicks,df):
      
-    print(dash.callback_context.triggered[0]['prop_id'])
     if n_clicks is not None:
         if dash.callback_context.triggered[0]['prop_id'] =='download-transparentar.n_clicks':
             df = pd.read_json(df)
-        
-            return dcc.send_data_frame(df.to_csv, "mydf.csv")
+            if len(df)>200:
+                return dcc.send_data_frame(df.to_csv, "mydf.csv")
+            else:
+                return dcc.send_data_frame(df.to_excel, "mydf.xlsx")
         else:
             dash.no_update
     
