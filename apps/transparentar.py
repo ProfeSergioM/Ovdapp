@@ -157,9 +157,23 @@ banner_inferior = dbc.Card([
     
     ],outline=True,color='light')
 
+modaldownload = dcc.Loading(html.Div(
+    [
+        dbc.Modal(
+            [
+                dbc.ModalHeader("Finalizado!"),
+                dbc.ModalBody([dbc.Alert("Datos cargados, presione el botón a continuación para descargar :)", color="success"),
+                dbc.Button("Descargar datos", color="primary", className="mr-1",external_link=True,id="button-download-transparentar")]),
+                dbc.ModalFooter(
+                    dbc.Button("Cerrar", id="close-modal-transparentar", className="ml-auto")
+                ),
+            ],
+            id="modal-transparentar",
+        ),
+    ]
+))
 
-
-layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
+layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior,modaldownload],width=3),
                                    dbc.Col(children=[dcc.Loading(html.Div(id='col-datatable'))],width=9)
                                    ]),
                    dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start'),
@@ -245,38 +259,37 @@ def update_datatable(nclicks,volcan,fechai,fechaf,tipoevs_custom,locs):
                 })
     
     
-
-    if (len(df)>0) and (len(df)<99999):
-        dfshow = df.head(20).sort_index(ascending=False)
+    dfshow = df.head(20).sort_index(ascending=False)
+    if (len(df)>0):
+        
         texto=html.Div([
             html.Div(children=['Se encontraron '+str(len(df))+' sismos, mostrando máximo los 20 últimos registros.']),
             html.Div(dbc.Button("Descargar datos", color="primary", id="download-transparentar"),style={'text-align':'right'})
 
             
             ])
-    elif len(df)>100000:
-        dfshow = df.head(20).sort_index(ascending=False)
-        texto='Se econtraron mas de 100.000 sismos, trate con un periodo de tiempo menor (un año?). Mostrando máximo los 20 últimos registros.'
+        return [dash_table.DataTable(
+            
+            columns=[{"name": i, "id": i} for i in df.columns],
+            data=dfshow.to_dict(into=OrderedDict,orient='records'),
+            style_table={'overflowX': 'auto'},
+            
+        style_header={
+            'backgroundColor': 'rgb(30, 30, 30)',
+            'color': 'white'
+        },
+        style_data={ 'selectColor':'white',
+                    'selectBackgroundColor':'white',
+            'backgroundColor': 'rgb(50, 50, 50)',
+            'color': 'white'
+        },
+            
+            
+            )],texto,df.to_json()
     else:
         texto='Sin resultados =('
-    return [dash_table.DataTable(
-        
-        columns=[{"name": i, "id": i} for i in df.columns],
-        data=dfshow.to_dict(into=OrderedDict,orient='records'),
-        style_table={'overflowX': 'auto'},
-        
-    style_header={
-        'backgroundColor': 'rgb(30, 30, 30)',
-        'color': 'white'
-    },
-    style_data={ 'selectColor':'white',
-                'selectBackgroundColor':'white',
-        'backgroundColor': 'rgb(50, 50, 50)',
-        'color': 'white'
-    },
-        
-        
-        )],texto,df.to_json()
+        return dash.no_update,dash.no_update,dash.no_update
+
     
     
 @app.callback([Output('fechas-transparentar','start_date'),Output('fechas-transparentar','end_date'),
@@ -292,25 +305,60 @@ def update_date(href):
     return fini,ffin,ffin
 
 
-
+import io
 
 @app.callback(
-Output("download_data-transparentar", "data"),
-[Input("download-transparentar", "n_clicks")],
-[State('cajita-transparentar', 'children')],
+[Output("button-download-transparentar", "href"),
+ Output("modal-transparentar", "is_open")],
+[Input("close-modal-transparentar", "n_clicks"),
+ Input("download-transparentar", "n_clicks")],
+[State('cajita-transparentar', 'children'),
+ State("modal-transparentar", "is_open")],
 prevent_initial_call=True
 )
-def download_transparentar(n_clicks,df):
+def download_transparentar(close_modal,n_clicks,df,is_open):
      
     if n_clicks is not None:
         if dash.callback_context.triggered[0]['prop_id'] =='download-transparentar.n_clicks':
-            df = pd.read_json(df)
-            if len(df)>200:
-                return dcc.send_data_frame(df.to_csv, "mydf.csv")
-            else:
-                return dcc.send_data_frame(df.to_excel, "mydf.xlsx")
+            #s = io.StringIO()
+            
+            df = json.loads(df)
+            df = pd.DataFrame(df)
+ 
+            df['fecha'] = (df['fecha']*1000000).astype('datetime64[ns]')
+            #df.to_excel(s, index=False)
+            #content = s.getvalue()
+            #dfcsv = df.to_csv("mydf.csv", sep=' ')
+            
+            print('xls!')    
+            import doc_lib as odl
+            file_path = odl.xlsxdownload_ovdapp(df)
+            filename ='datosTransparentar.xlsx'
+            file_path = 'assets/dynamic/'+file_path+'.xlsx'
+            link_url= '/dash/urlToDownloadrsam?value={}'.format(file_path)
+            link_url=link_url+'&filename={}'.format(filename)
+            return link_url,not is_open
+        
+        elif dash.callback_context.triggered[0]['prop_id'] =='close-modal-transparentar.n_clicks':
+            return dash.no_update,not is_open
         else:
-            dash.no_update
+            return dash.no_update,  dash.no_update
+    else:
+        return dash.no_update,  dash.no_update
     
 
     
+@app.server.route('/dash/urlToDownloadtransparentar') 
+def descargar_transparentar():
+    import io,os,flask
+    value = flask.request.args.get('value')
+    filename = flask.request.args.get('filename')
+    return_data = io.BytesIO()
+    with open(value, 'rb') as fo:
+        return_data.write(fo.read())
+    # (after writing, cursor will be at last byte, so move it to start)
+    return_data.seek(0)
+    os.remove(value) 
+    return flask.send_file(return_data,
+                     attachment_filename=filename,
+                     as_attachment=True)
