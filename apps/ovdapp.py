@@ -222,13 +222,26 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
         ),
         dbc.Button("Ir a la app", color="primary", href='http://172.16.42.160:400/',target='_blank'),
         ]
+        ),],)
+        
+        card_transparentar = dbc.Card([dbc.CardImg(src=app.get_asset_url('img/sismodb_thumb.png?random='+
+                                                                         str(random())), top=True),
+        dbc.CardBody([html.H4("TRANSPARENTAR", className="card-title"),
+        html.P(
+            "Lugar donde obtener datos sísmicos en formato "
+            ".xslx para solicitudes de transparencia",
+            className="card-text",
+        ),
+        dbc.Button("Ir a la app", color="primary", href='/apps/transparentar',target='_blank'),
+        ]
         ),],) 
         
         contenido = html.Div([dbc.Row([dbc.Col(card_vona,width=2),
-                                       #dbc.Col(card_rav,width=2),
+                                       
                                        dbc.Col(card_rad,width=2),
                                        dbc.Col(card_flash,width=2),
-                                       dbc.Col(card_heli,width=2)
+                                       dbc.Col(card_heli,width=2),
+                                       dbc.Col(card_transparentar,width=2)
                                        
                                        ],
                                       justify='left')])

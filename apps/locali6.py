@@ -32,7 +32,7 @@ def get_fechahoy():
 
 def get_markers_loc(volcan,fi,ff,q,gap,mlmin,mlmax,zmin,zmax):
     def postproc(df):
-        df['fecha'] = df[''].astype('datetime64[s]')
+        df['fecha'] = df['fecha'].astype('datetime64[s]')
         return df
         
     volcanes =gdb.get_metadata_volcan('*',rep='y')
@@ -62,6 +62,7 @@ def get_markers_loc(volcan,fi,ff,q,gap,mlmin,mlmax,zmin,zmax):
             dfvolcan = gdb.extraer_eventos(fi, ff, volcan[v])
             dfvolcan= pd.DataFrame(dfvolcan)
             df = df.append(dfvolcan)
+    print(df)
     return postproc(df)
     
 volcanes =gdb.get_metadata_volcan('*',rep='y')
