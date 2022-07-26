@@ -156,7 +156,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "para el cálculo de altura de columnas.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://172.16.42.160/Altura_Columnas_Php/',target='_blank'),
+                dbc.Button("Ir a la app", color="primary", href='http://altura.ovdas.sernageomin.cl/',target='_blank'),
             ]
         ),
     ],
@@ -172,7 +172,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "primer paso en el proceso de monitoreo instrumental.",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.22:3000/',target='_blank'),
+                dbc.Button("Ir a la app", color="primary", href='http://apaweb-zc.sernageomin.cl/',target='_blank'),
             ]),],)
         
         contenido = html.Div([dbc.Row([dbc.Col(card_altcol,width=2),
@@ -189,7 +189,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "columnas significativas para la aeronáutica (.doc).",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://172.16.42.160:100/?random='+str(random()),target='_blank'),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.46.20:200/',target='_blank'),
             ]),],)
    
         card_heli = dbc.Card([dbc.CardImg(src=app.get_asset_url('img/heli_thumb.png'), top=True),
@@ -210,7 +210,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
             "Reporte único para los 45 volcanes. (.pdf)",
             className="card-text",
         ),
-        dbc.Button("Ir a la app", color="primary", href='http://172.16.42.160:300/',target='_blank'),
+        dbc.Button("Ir a la app", color="primary", href='http://172.16.46.20:300/',target='_blank'),
         ]
         ),],) 
 
@@ -220,7 +220,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
             "Generación de reporte REAV FLASH, REAV en caso de eventos intespestivos, de rápida emisión (.doc).  ",
             className="card-text",
         ),
-        dbc.Button("Ir a la app", color="primary", href='http://172.16.42.160:400/',target='_blank'),
+        dbc.Button("Ir a la app", color="primary", href='http://172.16.46.20:100/',target='_blank'),
         ]
         ),],)
         
