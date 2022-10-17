@@ -7,8 +7,7 @@ import datetime
 from random import random
 from app import app
 from dash.dependencies import Input, Output,State
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc,html
 import sys
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_getfromdb_lib as gdb
@@ -191,7 +190,7 @@ banner_inferior = dbc.Card([
 layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
                                    dbc.Col([dcc.Loading(html.Div(id='colgrafica-defcon'))],width=9)
                                    ]),
-                   dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start'),
+                   dbc.Row([counter_imggif,counter_reloj]    ,    className="mr-1 g-0",justify='start'),
                    html.Div(id='cajita-loc-defcon', style={'display': 'none'})
                    
                    ])

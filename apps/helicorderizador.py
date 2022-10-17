@@ -7,14 +7,13 @@ Created on Wed Mar 10 12:11:30 2021
 from numpy import arange
 
 import numpy as np
-import dash_html_components as html
 import dash_bootstrap_components as dbc
 from app import app
 app.config.suppress_callback_exceptions = True
 from dash.dependencies import Input, Output,State
 import dash
 from random import random
-import dash_core_components as dcc
+from dash import dcc,html
 import sys
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_getfromdb_lib as gdb

@@ -8,8 +8,7 @@ import dash
 import json
 import numpy as np
 import dash_leaflet as dl
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import dcc,html
 import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output,ALL,State
 from app import app
@@ -240,7 +239,7 @@ navbar = dbc.Navbar(
                     
                 ],
                 align="left",style={'width':'100%'},
-                no_gutters=True,
+                className="g-0",
             ),
           
                 style={ 'width':'100%', 'margin-left':'0px' }

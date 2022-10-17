@@ -10,8 +10,7 @@ import datetime
 from random import random
 from app import app
 from dash.dependencies import Input, Output,State
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc,html
 import plotly.express as px
 import pandas as pd
 from plotly.subplots import make_subplots
@@ -214,7 +213,7 @@ html.A(
             
         ],
         align="left",
-        no_gutters=True,
+        className="mr-1 g-0",
     )
 ,style={'width':'100%'})
 ],
@@ -324,7 +323,7 @@ banner_inferior = dbc.Card([
 layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
                                    dbc.Col([dcc.Loading(html.Div(id='colgrafica'))],width=6),
                                    dbc.Col([dcc.Loading(html.Div(id='colmapa'))],width=3)]),
-                   dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start'),
+                   dbc.Row([counter_imggif,counter_reloj]     ,   className="mr-1 g-0",justify='start'),
                    
                    ])
 

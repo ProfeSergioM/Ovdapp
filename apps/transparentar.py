@@ -176,7 +176,7 @@ modaldownload = dcc.Loading(html.Div(
 layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior,modaldownload],width=3),
                                    dbc.Col(children=[dcc.Loading(html.Div(id='col-datatable'))],width=9)
                                    ]),
-                   dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start'),
+                   dbc.Row([counter_imggif,counter_reloj]      ,  className="mr-1 g-0",justify='start'),
                    html.Div(id='cajita-transparentar', style={'display': 'none'}),
                    dcc.Download(id="download_data-transparentar")
                    
