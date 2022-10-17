@@ -6,8 +6,7 @@ Created on Wed Oct 21 11:34:09 2020
 """
 import dash
 import json
-import dash_html_components as html
-import dash_core_components as dcc
+from dash import dcc,html
 from app import app
 app.config.suppress_callback_exceptions = True
 from dash.exceptions import PreventUpdate
@@ -449,16 +448,16 @@ fechas_picker = dcc.DatePickerRange(
 search_bar = dbc.Row([dbc.Col(volcan_selector,width=4,id='dropdown_wrapper'),
            dbc.Col(fechas_picker,width=5),
            dbc.Col(dbc.Button("Enviar", color="primary",id='enviar', n_clicks=0),width=1),
-           dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1",id='volver-home',href='/',style={'width':'100%','padding-left':'2px','padding-right':'2px'}),width=1)
-   ],justify="between",no_gutters=True) 
+           dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1 g-0",id='volver-home',href='/',style={'width':'100%','padding-left':'2px','padding-right':'2px'}),width=1)
+   ],justify="between") 
 
 navbar = dbc.Navbar([html.A(dbc.Row([
                     dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=2),
                     dbc.Col(dbc.NavbarBrand("Ovdash"),width=9)
                 ],
                 align="left",
-                no_gutters=True,
-            ),
+          
+            ),className="mr-1 g-0",
           
                 style={ 'width':'60%', 'margin-left':'0px' }
         ),

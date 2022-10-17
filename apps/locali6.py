@@ -2,8 +2,7 @@
 import json
 from random import random
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc,html
 from dash.dash import no_update
 from plotly.subplots import make_subplots
 import numpy as np
@@ -111,7 +110,7 @@ navbar = dbc.Navbar(
                     
                 ],
                 align="left",style={'width':'100%'},
-                no_gutters=True,
+                className="g-0",
             ),
           
                 style={ 'width':'100%', 'margin-left':'0px' }

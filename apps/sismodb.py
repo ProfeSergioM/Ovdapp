@@ -10,8 +10,7 @@ import datetime
 from random import random
 from app import app
 from dash.dependencies import Input, Output,State
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc,html
 import plotly.express as px
 import pandas as pd
 from plotly.subplots import make_subplots
@@ -469,7 +468,7 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
 
     ]),html.Div(id='colgrafica-sismodb')])],width=9)
                                    ]),
-                   dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start'),
+                   dbc.Row([counter_imggif,counter_reloj],        className="mr-1 g-0",justify='start'),
                    
                    ])
 

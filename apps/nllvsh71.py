@@ -7,11 +7,9 @@ Created on Tue May 11 14:58:56 2021
 import dash_bootstrap_components as dbc
 import dash
 from app import app
-import dash_html_components as html
 from random import random
 import sys
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc,html
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
 import ovdas_getfromdb_lib as gdb
 volcanes =gdb.get_metadata_volcan('*',rep='y')
@@ -231,7 +229,7 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
                                    dbc.Col([html.Div(id='colgrafica-nllvsh71')],width=9)
                                    ]),
                    html.Div(id='cajita-nllvsh71', style={'display': 'none'}),
-                   dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start', className="mr-1"),
+                   dbc.Row([counter_imggif,counter_reloj],        className="mr-1 g-0",justify='start'),
                    dcc.Loading(modal, style={'position':'fixed','left':'50%','top':'50%'})
                    ])
 

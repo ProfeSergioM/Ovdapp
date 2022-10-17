@@ -6,8 +6,7 @@ import datetime
 from random import random
 from app import app
 from dash.dependencies import Input, Output,State
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc,html
 import pandas as pd
 import sys
 sys.path.append('//172.16.40.10/sismologia/pyovdas_lib/')
@@ -289,7 +288,7 @@ layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width
                                    dbc.Col([html.Div(id='colgrafica-fastrsam')],width=9)
                                    ]),
                    html.Div(id='cajita-fastRSAM', style={'display': 'none'}),
-                   dbc.Row([counter_imggif,counter_reloj],no_gutters=True,justify='start', className="mr-1"),
+                   dbc.Row([counter_imggif,counter_reloj],justify='start', className="mr-1 g-0"),
                    dcc.Loading(modal, style={'position':'fixed','left':'50%','top':'50%'})
                    ])
 
@@ -351,7 +350,7 @@ def update_cam_fija(*args):
                     df = df.set_index('fecha')
                     df = df[~df.index.duplicated(keep='first')]  
                     resultz = df[esta+comp]
-                    resultz = resultz[(np.abs(stats.zscore(resultz)) < 3)]
+                    #resultz = resultz[(np.abs(stats.zscore(resultz)) < 3)]
                     RSAMS.append(resultz)
         import pandas as pd            
         RSAM = pd.concat(RSAMS,axis=1) 
