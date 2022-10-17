@@ -509,7 +509,7 @@ def content_camaras(ir,timer,volcan):
         
         card_fija = dbc.Card([dbc.CardImg(alt='Sin Cámara',id='cardfija',src=app.get_asset_url('fijas/'+cam['value']+'.jpg?random='+str(random())))     
                               ],style={"width": "100%"})         
-        div_camaras.append(dbc.Row([dbc.Col([card_gif],width=6),dbc.Col([card_fija],width=6)],no_gutters=True)) 
+        div_camaras.append(dbc.Row([dbc.Col([card_gif],width=6),dbc.Col([card_fija],width=6)],className="mr-1 g-0")) 
         
     content = dbc.Card([dbc.CardHeader('Cámaras web'),
                               dbc.CardBody(dcc.Loading(className="loading-container",id='loading-card_listaeventos',type='circle',

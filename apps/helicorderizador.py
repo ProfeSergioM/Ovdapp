@@ -102,7 +102,7 @@ def on_button_click(b_live,b_ondemand):
                     [
                         dbc.ListGroupItem(
                             [
-                                dbc.ListGroupItemHeading([volcan_selector]),
+                                html.H5([volcan_selector]),
                                 box_liveheli_png,
                             ]
                         ),
