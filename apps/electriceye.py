@@ -165,11 +165,11 @@ def get_lista(ini=True,sel=0):
             tituloenergia = 'DR'
             energia = int(row.dr)
         texto = fechastr+ ' - '+row.tipoevento
-        divtext = html.Div([dbc.Row([dbc.Col(texto1,width=10),dbc.Col(tituloprof,width=2)],no_gutters=True),
-                         dbc.Row([dbc.Col(texto,width=10),dbc.Col(prof,width=2)],no_gutters=True)])
+        divtext = html.Div([dbc.Row([dbc.Col(texto1,width=10),dbc.Col(tituloprof,width=2)]),
+                         dbc.Row([dbc.Col(texto,width=10),dbc.Col(prof,width=2)])])
         divML = html.Div([dbc.Row([tituloenergia],style={'font-weight':'bold','color':'white'}),
                           dbc.Row([energia],style={'font-weight':'bold','color':'white'})])
-        texto = dbc.Row([dbc.Col(divML,width=1),dbc.Col(divtext,width=11)],no_gutters=True)
+        texto = dbc.Row([dbc.Col(divML,width=1),dbc.Col(divtext,width=11)])
         
 
         id_lgi = {'type':'evento-listgroupitem','index':i}
@@ -419,5 +419,5 @@ def download_csv():
     os.remove(value[:-4]+'png' )
     return flask.send_file(return_data,
                      mimetype='document/docx',
-                     attachment_filename=filename,
+                     download_name=filename,
                      as_attachment=True)

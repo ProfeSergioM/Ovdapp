@@ -114,7 +114,7 @@ def on_button_click(b_live,b_ondemand):
 
     elif button_id == "ondemand-button-heli":
         
-        volcanes_selector = dbc.FormGroup(
+        volcanes_selector = html.Div(
             [
                 dbc.Label("Volcán:", html_for="volcan_od", width=2),
                 dbc.Col(
@@ -133,10 +133,10 @@ def on_button_click(b_live,b_ondemand):
                     width=10,
                 ),
             ],
-            row=True,
+ 
         )        
         
-        fechaini_selector = dbc.FormGroup(
+        fechaini_selector = html.Div(
             [
                 dbc.Label("Fecha y hora inicial (UTC):", html_for="fechaini_od", width=2),
                 dbc.Col(
@@ -144,10 +144,10 @@ def on_button_click(b_live,b_ondemand):
                     width=10,
                 ),
             ],
-            row=True,
+         
         )           
         
-        horas_selector = dbc.FormGroup(
+        horas_selector = html.Div(
             [
                 dbc.Label("Horas a graficar:", html_for="volcan_od", width=2),
                 dbc.Col(
@@ -176,10 +176,10 @@ def on_button_click(b_live,b_ondemand):
                     width=10,
                 ),
             ],
-            row=True,
+     
         )   
         
-        minutos_selector = dbc.FormGroup(
+        minutos_selector = html.Div(
     [
         dbc.Label("Minutos en eje x", html_for="example-radios-row", width=2),
         dbc.Col(
@@ -196,10 +196,10 @@ def on_button_click(b_live,b_ondemand):
             width=10,
         ),
     ],
-    row=True,
+ 
 )
         
-        freq_selector = dbc.FormGroup(
+        freq_selector = html.Div(
     [
         dbc.Label("Frecuencia de filtrado", html_for="od_freq", width=2),
         dbc.Col( dcc.RangeSlider(
@@ -210,7 +210,7 @@ def on_button_click(b_live,b_ondemand):
         value=[0.5,12],
         marks=arange(0,16,1))),
     ],
-    row=True,
+  
 )
         submit = dbc.Button('Enviar!',id='od_ir',color='primary')
         form_ondemand_heli = dbc.Form([volcanes_selector,fechaini_selector,horas_selector,minutos_selector,freq_selector,submit])
@@ -218,7 +218,7 @@ def on_button_click(b_live,b_ondemand):
             [
                 dbc.ListGroupItem(
                     [
-                        dbc.ListGroupItemHeading("Crear helicorder personalizado"),
+                        html.H5("Crear helicorder personalizado"),
                         form_ondemand_heli,
                     ]
                 ),
