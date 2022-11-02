@@ -360,5 +360,6 @@ def descargar_transparentar():
     return_data.seek(0)
     os.remove(value) 
     return flask.send_file(return_data,
-                     attachment_filename=filename,
+                     mimetype='document/xlsx',
+                     download_name=filename,
                      as_attachment=True)

@@ -485,7 +485,7 @@ def descargar():
     os.remove(value) 
     return flask.send_file(return_data,
                      #mimetype='document/xls',
-                     attachment_filename=filename,
+                     download_name=filename,
                      as_attachment=True)
 
 
