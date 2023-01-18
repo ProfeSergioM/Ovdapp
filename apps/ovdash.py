@@ -421,6 +421,7 @@ volcan_selector = dcc.Dropdown(
     id='dropdown_volcanes',
     options=lista_volcanes,
     value=volcan_default,
+	persistence= True,
     multi=False,
     style=
                                     { 
@@ -434,7 +435,7 @@ fechas_picker = dcc.DatePickerRange(
     start_date_placeholder_text="Inicio",
     end_date_placeholder_text="Final",
     calendar_orientation='vertical',
-    display_format='Y-MM-DD',
+    display_format='D-M-Y',
     start_date=get_fechahoy()[0],
     end_date=get_fechahoy()[1],
     min_date_allowed='2010-01-01',
@@ -451,7 +452,8 @@ search_bar = dbc.Row([dbc.Col(volcan_selector,width=4,id='dropdown_wrapper'),
            dbc.Col(dbc.Button("Ovdapp", color="primary",outline=True, className="mr-1 g-0",id='volver-home',href='/',style={'width':'100%','padding-left':'2px','padding-right':'2px'}),width=1)
    ],justify="between") 
 
-navbar = dbc.Navbar([html.A(dbc.Row([
+def serve_layout():
+	return dbc.Navbar([html.A(dbc.Row([
                     dbc.Col(html.Img(src=PLOTLY_LOGO, height="50px"),width=2),
                     dbc.Col(dbc.NavbarBrand("Ovdash"),width=9)
                 ],
@@ -488,11 +490,14 @@ content_cardtimeline = dbc.Card([dbc.CardHeader('Timeline'),dbc.CardBody([timeli
 
 cajita = html.Div(id='cajita', style={'display': 'none'})
 
-layout = (navbar,html.Div(children=[dbc.Row([dbc.Col(width=3,id='content_camaras',style={'padding-left':'0px','padding-right':'0px'}),
+app.layout = serve_layout
+
+layout = (serve_layout(),html.Div(children=[dbc.Row([dbc.Col(width=3,id='content_camaras',style={'padding-left':'0px','padding-right':'0px'}),
                                       dbc.Col([content_cardtimeline],width=6,id='content_timeline',style={'padding-left':'0px','padding-right':'0px'}),
                                       dbc.Col(width=3,id='content_mapa',style={'padding-left':'0px','padding-right':'0px'})],
                                      id='layout-ovdash')]
                    ),counter_cam,counter_timeline,cajita)
+
 
 
 @app.callback(
@@ -538,7 +543,7 @@ def content_timeline(ir,timer,volcan,fi,ff):
     alertas_df = alertas(fini,ffin,volcan)
     rsam,dr = get_rsamdr(fini, ffin, volcan)
     DOAS = get_DOAS(fini, ffin, volcan)
-    dfVRP = pd.read_json('http://172.16.47.22:8000/api/extraer_vrp?fechaini='+fini+'&fechafin='+ffin+'&volcan='+volcan+'&output=json')
+    dfVRP = pd.read_json('http://geo-graficador.sernageomin.cl/api/extraer_vrp?fechaini='+fini+'&fechafin='+ffin+'&volcan='+volcan+'&output=json')
     
     GNSS = get_lineaGNSS(fini, ffin, volcan)
     figure=fig_timeline(fini,ffin,conteo,n_subplots,tipoev_list,volcanes,volcan,alturas,excede,alertas_df,rsam,dr,DOAS,dfVRP,GNSS)

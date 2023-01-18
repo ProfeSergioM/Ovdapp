@@ -319,14 +319,14 @@ banner_inferior = dbc.Card([
     
     ],outline=True,color='light')
 
-
-layout = html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
+def serve_layout():
+	return html.Div([navbar,dbc.Row([dbc.Col([controlescard,banner_inferior],width=3),
                                    dbc.Col([dcc.Loading(html.Div(id='colgrafica'))],width=6),
                                    dbc.Col([dcc.Loading(html.Div(id='colmapa'))],width=3)]),
                    dbc.Row([counter_imggif,counter_reloj]     ,   className="mr-1 g-0",justify='start'),
                    
                    ])
-
+app.layout = serve_layout
 @app.callback(
     [Output("colgrafica", "children"),Output("colmapa", "children")],
     [Input('interval-component-gif', 'n_intervals'),Input("submit-filtro", "n_clicks")],

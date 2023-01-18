@@ -30,7 +30,7 @@ def display_page(pathname):
     elif pathname == '/apps/ovdash':
         return ovdash.layout
     elif pathname == '/apps/orcapp':
-        return orcapp.layout
+        return orcapp.app.layout
     elif pathname == '/apps/helicorderizador':
         return helicorderizador.layout
     elif pathname == '/apps/sismodb':
