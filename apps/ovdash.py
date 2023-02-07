@@ -175,19 +175,20 @@ def get_DOAS(fi,ff,volcan):
     return dfDOAS
 
 def get_lineaGNSS(fi,ff,volcan):
-    lineas_GNSS=gdb.get_lineasGNSS_x_volcan(volcan)
+    lineas_GNSS=gdb.get_lineasGNSS_x_volcan(volcan)    
     linea_ref = lineas_GNSS.head(1)
+    #if volcan == 'Villarrica': # Para mostrar linea especifica 
+        #linea_ref = lineas_GNSS.tail(1)    
     if len(linea_ref)>0:
         df = gdb.get_datos_x_lineaGps(linea_ref.id,fi,ff)
-        df['linea']=linea_ref.linea
-        
+        df['linea']=linea_ref.linea        
         try:
             df.set_index('fecha',drop=True,inplace=True)
             df = df[df.index<ff]
         except:
             df=[]
     else:
-        df=[]
+        df=[]    
     return df
 
 def get_rsamdr(fi,ff,volcan):
@@ -359,7 +360,7 @@ def fig_timeline(fi,ff,df,n_subplots,tipoev_list,volcanes,volcan,alturas,excede,
         import math
         i+=1
         GNSS = GNSS[~GNSS.index.duplicated(keep='first')]
-        df2 = GNSS.reindex(t_index)
+        df2 = GNSS.reindex(t_index)        
         offset=df2.desplazamiento[0]
         maxy=(df2.desplazamiento-df2.desplazamiento[0]).max()
         if math.isnan(offset):
@@ -368,7 +369,8 @@ def fig_timeline(fi,ff,df,n_subplots,tipoev_list,volcanes,volcan,alturas,excede,
         gnssplot = go.Scattergl(x=df2.index,y=df2.desplazamiento-offset,
             opacity=1,name=df2.linea.iloc[0],showlegend=False,marker= { "color" :colorgraficas})
         fig.append_trace(gnssplot,i,1)
-        try:titulogps='<b>Largo línea GNSS '+df2.linea.iloc[0]+'</b>'
+        try:
+            titulogps='<b>Largo línea GNSS '+df2.linea.iloc[0]+'</b>'                
         except:titulogps= '<b>Largo línea GNSS</b>'
         
         fig.add_annotation(go.layout.Annotation(x=0.01,y=maxy,font=dict(color='white'),
@@ -543,7 +545,7 @@ def content_timeline(ir,timer,volcan,fi,ff):
     alertas_df = alertas(fini,ffin,volcan)
     rsam,dr = get_rsamdr(fini, ffin, volcan)
     DOAS = get_DOAS(fini, ffin, volcan)
-    dfVRP = pd.read_json('http://geo-graficador.sernageomin.cl/api/extraer_vrp?fechaini='+fini+'&fechafin='+ffin+'&volcan='+volcan+'&output=json')
+    dfVRP = pd.read_json('http://geo-graficador.ovdas.sernageomin.cl/api/extraer_vrp?fechaini='+fini+'&fechafin='+ffin+'&volcan='+volcan+'&output=json')
     
     GNSS = get_lineaGNSS(fini, ffin, volcan)
     figure=fig_timeline(fini,ffin,conteo,n_subplots,tipoev_list,volcanes,volcan,alturas,excede,alertas_df,rsam,dr,DOAS,dfVRP,GNSS)
