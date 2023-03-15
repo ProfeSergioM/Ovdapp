@@ -125,8 +125,10 @@ def get_eventos_destacados():
     eventosdr = eventos[eventos.dr>=250]
     #dr villarrica
     eventosdr_villarrica = eventos[(eventos.idvolc==28) & (eventos.dr>=30)]
+    #dr lascar
+    eventosdr_lascar = eventos[(eventos.idvolc==10) & (eventos.dr>=40)]
     
-    eventos = pd.concat([eventosml,eventosdr,eventosdr_villarrica])
+    eventos = pd.concat([eventosml,eventosdr,eventosdr_villarrica, eventosdr_lascar])
     eventos = eventos.sort_values(by='fecha',ascending=False).head(20)
     eventos.fecha = eventos.fecha.astype('datetime64[s]')
     eventos = eventos.drop_duplicates(subset='fecha', keep="first")
