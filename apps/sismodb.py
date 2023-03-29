@@ -87,7 +87,9 @@ tipoev_picker = dcc.Checklist(id='tipoev_check',
         {'label': 'VD', 'value': 'VD'},
         {'label': 'TO', 'value': 'TO'},
         {'label': 'MF', 'value': 'MF'},
-        {'label': 'LV', 'value': 'LV'}
+        {'label': 'LV', 'value': 'LV'},
+        {'label': 'AV', 'value': 'AV'},
+        {'label': 'IC', 'value': 'IC'}
     ],
     value=['VT','LP'],
     inputStyle={"margin-right": "5px","margin-left": "5px"}
@@ -138,7 +140,7 @@ def crear_RAM(fi,ff,vol,tipoevs_custom):
         df_max_mes = df.groupby('tipoevento')[['dr','ml','Par']].resample('M').max()
         df_max_mes = df_max_mes.reset_index().set_index('fecha')   
         
-        orderev = ['VT','VD','LP','EX','TR','TO','HB','LV','MF']
+        orderev = ['VT','VD','LP','EX','TR','TO','HB','LV','MF','AV','IC']
         cat = pd.api.types.CategoricalDtype(categories=orderev, ordered=True)
         df.loc[:,'tipoevento'] = df['tipoevento'].astype(cat)
         df.sort_values(by='tipoevento',inplace=True)
