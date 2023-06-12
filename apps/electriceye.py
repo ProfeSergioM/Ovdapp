@@ -281,7 +281,7 @@ modal = html.Div(
             [
                 dbc.ModalHeader("Finalizado!"),
                 dbc.ModalBody([dbc.Alert("Borrador de REAV finalizado, puede cerrar esta ventana =)", color="success"),
-                dbc.Button("Primary", color="primary", className="mr-1",external_link=True,id="docx-download-electriceye")]),
+                dbc.Button("Descargar", color="primary", className="mr-1",external_link=True,id="docx-download-electriceye")]),
                 dbc.ModalFooter(
                     dbc.Button("Close", id="close-modal", className="ml-auto")
                 ),

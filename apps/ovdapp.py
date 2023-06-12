@@ -188,7 +188,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                     "columnas significativas para la aeronáutica (.doc).",
                     className="card-text",
                 ),
-                dbc.Button("Ir a la app", color="primary", href='http://172.16.46.20:200/',target='_blank'),
+                dbc.Button("Ir a la app", color="primary", href='http://aplicativos.ovdas.sernageomin.cl:200/',target='_blank'),
             ]),],)
    
         card_heli = dbc.Card([dbc.CardImg(src=app.get_asset_url('img/heli_thumb.png'), top=True),
@@ -209,7 +209,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
             "Reporte único para los 45 volcanes. (.pdf)",
             className="card-text",
         ),
-        dbc.Button("Ir a la app", color="primary", href='http://172.16.46.20:300/',target='_blank'),
+        dbc.Button("Ir a la app", color="primary", href='http://aplicativos.ovdas.sernageomin.cl:300/',target='_blank'),
         ]
         ),],) 
 
@@ -219,11 +219,11 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
             "Generación de reporte REAV FLASH, REAV en caso de eventos intespestivos, de rápida emisión (.doc).  ",
             className="card-text",
         ),
-        dbc.Button("Ir a la app", color="primary", href='http://172.16.46.20:100/',target='_blank'),
+        dbc.Button("Ir a la app", color="primary", href='http://aplicativos.ovdas.sernageomin.cl:100/',target='_blank'),
         ]
         ),],)
         
-        card_transparentar = dbc.Card([dbc.CardImg(src=app.get_asset_url('img/sismodb_thumb.png?random='+
+        card_transparentar = dbc.Card([dbc.CardImg(src=app.get_asset_url('img/transparen_thumb.png?random='+
                                                                          str(random())), top=True),
         dbc.CardBody([html.H4("TRANSPARENTAR", className="card-title"),
         html.P(
@@ -271,7 +271,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
             ]),],)
         
         card_loc3D = dbc.Card([
-        dbc.CardImg(src=app.get_asset_url('img/nllvsh71_thumb.png'), top=True),
+        dbc.CardImg(src=app.get_asset_url('img/3D_thumb.png'), top=True),
         dbc.CardBody([
                 html.H4("Localizaciones 3D", className="card-title"),
                 html.P(
@@ -283,7 +283,7 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
             ]),],)
 
         card_GNSS = dbc.Card([
-        dbc.CardImg(src=app.get_asset_url('img/nllvsh71_thumb.png'), top=True),
+        dbc.CardImg(src=app.get_asset_url('img/GNSS_thumb.png'), top=True),
         dbc.CardBody([
                 html.H4("Líneas de monitoreo GNSS", className="card-title"),
                 html.P(
@@ -305,13 +305,38 @@ def on_button_click(n_inicio,n_dashboards,n_procesamiento,n_revision,n_reportes,
                 ),
                 dbc.Button("Ir a la app", color="primary", href='/apps/defcon',target='_blank'),
             ]),],)
+        card_estadoEst = dbc.Card([
+        dbc.CardImg(src=app.get_asset_url('img/estadoEst_thumb.png'), top=True),
+        dbc.CardBody([
+                html.H4("Estado de estaciones Simológicas", className="card-title"),
+                html.P(
+                    "Estado de estaciones Sismológicas"
+                    ,
+                    className="card-text",
+                ),
+                dbc.Button("Ir a la app", color="primary", href='http://172.16.47.23:777/',target='_blank'),
+            ]),],)
+        card_agrupada = dbc.Card([
+        dbc.CardImg(src=app.get_asset_url('img/agrupadas_thumb.png'), top=True),
+        dbc.CardBody([
+                html.H4("Visualizador de eventos agrupados", className="card-title"),
+                html.P(
+                    "Eventos agrupados en cortos periodos de tiempo"
+                    " para evaluación de alta productividad sísmica"
+                    ,
+                    className="card-text",
+                ),
+                dbc.Button("Ir a la app", color="primary", href='http://aplicativos.ovdas.sernageomin.cl:400/',target='_blank'),
+            ]),],)
 
         
         contenido = html.Div([dbc.Row([dbc.Col(card_locali6,width=3),
                                        dbc.Col(card_nllvsh71,width=3),
                                        dbc.Col(card_loc3D,width=3),
                                        dbc.Col(card_GNSS,width=3)]),
-                              dbc.Row([dbc.Col(card_defcon,width=3)])])
+                              dbc.Row([dbc.Col(card_defcon,width=3),
+                                       dbc.Col(card_estadoEst,width=3),
+                                       dbc.Col(card_agrupada,width=3)])])
         return contenido
     elif button_id == "info-button":
         card_locali6 = dbc.Card([
